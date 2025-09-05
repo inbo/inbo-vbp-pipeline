@@ -275,7 +275,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and package lambda
-        working-directory: ./lambda/${{ matrix.lambda.name }}
+        working-directory: ./lambdas/${{ matrix.lambda.name }}
         run: |
           set -e -x -o pipefail
 
