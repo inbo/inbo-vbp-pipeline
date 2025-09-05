@@ -337,8 +337,9 @@ jobs:
           cat <<< $(jq '.pipeline = ${{ fromJSON(needs.get-versions.outputs.all_versions) }}' ./versions.json) > ./versions.json
           
           # Update TF module versions
-          sed -ir 's/\(source.*=.*\?ref=\).*"/\1${{ needs.get-versions.outputs.terraform_version }}"/g' ./global/common-global/pipeline.tf
-          sed -ir 's/\(source.*=.*\?ref=\).*"/\1${{ needs.get-versions.outputs.terraform_version }}"/g' ./region/common-region/pipeline.tf
+          TF_VERSION=$(jq '.pipeline.terraform' ./versions.json)
+          sed -ir "s/\(source.*=.*\?ref=\).*"/\1${TF_VERSION}\"/g" ./global/common-global/pipeline.tf
+          sed -ir "s/\(source.*=.*\?ref=\).*"/\1${TF_VERSION}\"/g" ./region/common-region/pipeline.tf
 
           if [ -n "$(git status --porcelain)" ]; then
             git add versions.json
@@ -383,5 +384,5 @@ jobs:
               labels: ['versions', 'automated pr']
             });
             await core.summary.addHeading("Update pipeline versions")
-                  .addLink('PR update', result.url)
+                  .addLink('PR update', result.html_url)
                   .write()

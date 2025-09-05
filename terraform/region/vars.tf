@@ -18,6 +18,13 @@ variable "docker_version" {
   type = string
 }
 
+variable "lambda_versions" {
+  type = object({
+    solr-management = string
+  })
+}
+
+
 variable "environment" {
   type = list(object({
     name  = string
