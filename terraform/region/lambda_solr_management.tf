@@ -49,22 +49,22 @@ resource "aws_security_group" "solr_management" {
   vpc_id      = var.main_vpc_id
 }
 
-resource "aws_security_group_rule" "solr_egress" {
+resource "aws_security_group_rule" "solr_management_lambda_solr_egress" {
   type                     = "egress"
   security_group_id        = aws_security_group.solr_management.id
   source_security_group_id = var.solr.security_group_id
   from_port                = 8983
   to_port                  = 8983
   protocol                 = "tcp"
-  description              = "Allow EMR master instance to communicate with cluster manager."
+  description              = "Allow Solr management lambda to connect to SOLR"
 }
 
-resource "aws_security_group_rule" "keycloak_egress" {
+resource "aws_security_group_rule" "solr_management_lambda_keycloak_egress" {
   type              = "egress"
   security_group_id = aws_security_group.solr_management.id
   cidr_blocks = ["0.0.0.0/0"] #tfsec:ignore:aws-ec2-no-public-egress-sgr
   from_port         = 443
   to_port           = 443
   protocol          = "tcp"
-  description       = "Allow EMR master instance to communicate with cluster manager."
+  description       = "Allow Solr management lambda to connect to keycloak"
 }
