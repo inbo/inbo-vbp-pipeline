@@ -343,7 +343,7 @@ jobs:
           if [ -n "$(git status --porcelain)" ]; then
             git add versions.json
             git add global/common-global/pipeline.tf
-            git add global/common-region/pipeline.tf
+            git add region/common-region/pipeline.tf
             git commit -m "Github actions: automated update of versions"
             git push --set-upstream origin automated-version-update-pipeline
             echo "changes=true" >> "$GITHUB_OUTPUT"
