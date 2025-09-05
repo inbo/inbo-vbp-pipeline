@@ -28,9 +28,9 @@ output "pipelines_s3_bucket_name" {
 output "lambdas" {
   value = {
     sorl-management = {
-      lambda_arn        = aws_lambda_function.solr_management_lambda.arn
-      target_group_arn  = aws_lb_target_group.solr_management_lambda.arn
-      security_group_id = aws_security_group.solr_management.id
+      lambda_arn        = aws_lambda_function.biocache_index_management_lambda.arn
+      target_group_arn  = aws_lb_target_group.biocache_index_management_lambda.arn
+      security_group_id = aws_security_group.biocache_index_management.id
     }
   }
 }
