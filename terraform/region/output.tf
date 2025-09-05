@@ -25,3 +25,12 @@ output "piplines_api_key_secret_arn" {
 output "pipelines_s3_bucket_name" {
   value = aws_s3_bucket.pipelines.bucket
 }
+output "lambdas" {
+  value = {
+    sorl-management = {
+      lambda_arn        = aws_lambda_function.solr_management_lambda.arn
+      target_group_arn  = aws_lb_target_group.solr_management_lambda.arn
+      security_group_id = aws_security_group.solr_management.id
+    }
+  }
+}
