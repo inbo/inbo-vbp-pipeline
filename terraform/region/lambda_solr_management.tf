@@ -1,3 +1,11 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "5.81.0"
+    }
+  }
+}
 resource "aws_lb_target_group" "solr_management_lambda" {
   name        = "inbo-${var.application}-solr-management"
   target_type = "lambda"
@@ -16,15 +24,21 @@ resource "aws_lambda_permission" "solr_management_lambda_invocation_policy" {
   source_arn    = aws_lb_target_group.solr_management_lambda.arn
 }
 
+data "aws_s3_object" "solr_management_lambda" {
+  bucket = var.lambdas.bucket
+  key    = "solr-management/solr-management-${var.lambdas.versions.solr-management}.zip"
+}
+
 #tfsec:ignore:aws-lambda-enable-tracing - no other logs to correlate with
 resource "aws_lambda_function" "solr_management_lambda" {
-  function_name = "inbo-${var.application}-solr-management"
-  s3_bucket     = var.lambdas.bucket
-  s3_key        = "solr-management/solr-management-${var.lambdas.versions.solr-management}.zip"
-  role          = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/inbo-${var.application}-solr-management-lambda"
-  runtime       = "nodejs22.x"
-  handler       = "server.graphqlHandler"
-  timeout       = 10
+  function_name     = "inbo-${var.application}-solr-management"
+  s3_bucket         = data.aws_s3_object.solr_management_lambda.bucket
+  s3_key            = data.aws_s3_object.solr_management_lambda.key
+  s3_object_version = data.aws_s3_object.solr_management_lambda.version_id
+  role              = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/inbo-${var.application}-solr-management-lambda"
+  runtime           = "nodejs22.x"
+  handler           = "server.graphqlHandler"
+  timeout           = 10
 
   vpc_config {
     security_group_ids = [aws_security_group.solr_management.id]
