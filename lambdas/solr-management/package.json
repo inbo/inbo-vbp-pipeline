@@ -3,7 +3,7 @@
     "compile": "tsc",
     "generate": "graphql-codegen",
     "test:ci": "echo 'No testing yet ...'",
-    "build": "npm run generate && --bundle ./src/server.ts --outdir=dist --minify --sourcemap --loader:.gql=text --platform=node && cd ./dist && zip -r ../function.zip .",
+    "build": "npm run generate && esbuild --bundle ./src/server.ts --outdir=dist --minify --sourcemap --loader:.gql=text --platform=node && cd ./dist && zip -r ../function.zip .",
     "package": "npm run build && rm function.zip; cd ./dist && zip -r ../function.zip ."
   },
   "dependencies": {
@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.7",
-    "@graphql-codegen/typescript": "^4.1.6",
+    "@graphql-codegen/typescripĸt": "^4.1.6",
     "@graphql-codegen/typescript-resolvers": "^4.5.2",
     "@types/jsonwebtoken": "^9.0.10",
     "esbuild": "^0.25.9",
