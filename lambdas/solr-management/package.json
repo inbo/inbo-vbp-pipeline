@@ -2,6 +2,7 @@
   "scripts": {
     "compile": "tsc",
     "generate": "graphql-codegen",
+    "test:ci": "echo 'No testing yet ...'",
     "build": "npm run generate && --bundle ./src/server.ts --outdir=dist --minify --sourcemap --loader:.gql=text --platform=node && cd ./dist && zip -r ../function.zip .",
     "package": "npm run build && rm function.zip; cd ./dist && zip -r ../function.zip ."
   },

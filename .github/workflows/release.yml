@@ -110,12 +110,13 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            const version = "${{ needs.get-versions.outputs.terraform_version }}";
             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: `refs/tags/terraform-v${needs.get-versions.outputs.terraform_version}`,
+              ref: `refs/tags/terraform-v${version}`,
               sha: context.sha
-            })
+            });
 
 #      - name: Create release
 #        uses: ncipollo/release-action@v1
@@ -304,6 +305,7 @@ jobs:
       - get-versions
       - build-and-release-terraform
       - build-and-release-lambdas
+      - build-and-push-docker-images
     # Only run if no failures or cancellations and at least one was not skipped
     if: |
       always()
