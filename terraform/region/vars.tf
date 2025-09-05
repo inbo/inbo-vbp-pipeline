@@ -105,6 +105,7 @@ variable "solr" {
 variable "lambdas" {
   type = object({
     bucket = string
+    log_group_name = string
     versions = object({
       solr-management = string
     })

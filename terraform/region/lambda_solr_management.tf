@@ -38,8 +38,8 @@ resource "aws_lambda_function" "solr_management_lambda" {
   }
 
   logging_config {
-    log_group  = var.log_group_name
-    log_format = "TEXT"
+    log_group  = var.lambdas.log_group_name
+    log_format = "JSON"
   }
 }
 
