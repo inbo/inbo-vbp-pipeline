@@ -335,9 +335,15 @@ jobs:
           git config --global user.name "Github Actions"
 
           jq <<< '.pipeline = ${{ fromJSON(needs.get-versions.outputs.all_versions) }}' > ./versions.json
+          
+          # Update TF module versions
+          sed -ir 's/\(source.*=.*\?ref=\).*"/\1${{ needs.get-versions.outputs.terraform_version }}"/g' global/common-global/pipeline.tf
+          sed -ir 's/\(source.*=.*\?ref=\).*"/\1${{ needs.get-versions.outputs.terraform_version }}"/g' global/common-region/pipeline.tf
 
           if [ -n "$(git status --porcelain)" ]; then
             git add versions.json
+            git add global/common-global/pipeline.tf
+            git add global/common-region/pipeline.tf
             git commit -m "Github actions: automated update of versions"
             git push --set-upstream origin automated-version-update
             echo "changes=true" >> "$GITHUB_OUTPUT"
