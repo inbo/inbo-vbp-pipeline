@@ -1,5 +1,5 @@
 resource "aws_lb_target_group" "biocache_index_management_lambda" {
-  name        = "inbo-${var.application}-biocache-index-management"
+  name        = "inbo-${var.application}-biocache-index-mgmt"
   target_type = "lambda"
 }
 
