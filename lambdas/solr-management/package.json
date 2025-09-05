@@ -1,0 +1,23 @@
+{
+  "scripts": {
+    "compile": "tsc",
+    "generate": "graphql-codegen",
+    "build": "npm run generate && --bundle ./src/server.ts --outdir=dist --minify --sourcemap --loader:.gql=text --platform=node && cd ./dist && zip -r ../function.zip .",
+    "package": "npm run build && rm function.zip; cd ./dist && zip -r ../function.zip ."
+  },
+  "dependencies": {
+    "@apollo/server": "^4.12.2",
+    "@as-integrations/aws-lambda": "^3.1.0",
+    "graphql": "^16.11.0",
+    "jsonwebtoken": "^9.0.2",
+    "jwks-rsa": "^3.2.0"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^5.0.7",
+    "@graphql-codegen/typescript": "^4.1.6",
+    "@graphql-codegen/typescript-resolvers": "^4.5.2",
+    "@types/jsonwebtoken": "^9.0.10",
+    "esbuild": "^0.25.9",
+    "typescript": "^5.9.2"
+  }
+}

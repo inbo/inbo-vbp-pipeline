@@ -1,0 +1,77 @@
+{
+  "Comment": "Cleanup a running EMR Cluster",
+  "StartAt": "Get State-machine Config",
+  "States": {
+    "Get State-machine Config": {
+      "Type": "Task",
+      "Arguments": {
+        "Bucket": "inbo-vbp-dev-pipelines",
+        "Key": "config/state-machine.json"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
+      "Next": "DynamoDB GetItem",
+      "Assign": {
+        "config": "{% $parse($states.result.Body) %}"
+      }
+    },
+    "DynamoDB GetItem": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:getItem",
+      "Arguments": {
+        "TableName": "{% $config.dynamodb_table_name %}",
+        "Key": {
+          "PK": {
+            "S": "{% 'RUN|' & $states.context.Execution.Input.rootPipelineId %}"
+          },
+          "SK": {
+            "S": "RUN"
+          }
+        }
+      },
+      "Next": "Has a running cluster"
+    },
+    "Has a running cluster": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "EMR TerminateCluster",
+          "Condition": "{% $exists($states.input.Item.ClusterId.S) %}",
+          "Assign": {
+            "clusterId": "{% $states.input.Item.ClusterId.S %}"
+          }
+        }
+      ],
+      "Default": "Do nothing"
+    },
+    "Do nothing": {
+      "Type": "Pass",
+      "End": true
+    },
+    "EMR TerminateCluster": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:terminateCluster",
+      "Arguments": {
+        "ClusterId": "{% $clusterId %}"
+      },
+      "Next": "Remove ClusterId"
+    },
+    "Remove ClusterId": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Arguments": {
+        "TableName": "{% $config.dynamodb_table_name %}",
+        "Key": {
+          "PK": {
+            "S": "{% 'DataResource|' & $dataResourceId %}"
+          },
+          "SK": {
+            "S": "DataResource"
+          }
+        },
+        "UpdateExpression": "REMOVE ClusterId"
+      },
+      "End": true
+    }
+  },
+  "QueryLanguage": "JSONata"
+}

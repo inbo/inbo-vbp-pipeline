@@ -1,0 +1,109 @@
+{
+  "Comment": "Starts an EMR cluster, processes data resources in parallel, and terminates the cluster",
+  "StartAt": "Get State-machine Config",
+  "States": {
+    "Get State-machine Config": {
+      "Type": "Task",
+      "Arguments": {
+        "Bucket": "inbo-vbp-dev-pipelines",
+        "Key": "config/state-machine.json"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
+      "Next": "Check if list of dataresources are specified",
+      "Assign": {
+        "config": "{% $parse($states.result.Body) %}"
+      }
+    },
+    "Check if list of dataresources are specified": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "Process Data Resources",
+          "Condition": "{% $exists($states.context.Execution.Input.dataResources)  %}",
+          "Assign": {
+            "dataResources": "{% $states.context.Execution.Input.dataResources %}"
+          }
+        }
+      ],
+      "Default": "Get list of all dataresources"
+    },
+    "Get list of all dataresources": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::http:invoke",
+      "Arguments": {
+        "ApiEndpoint": "{% 'https://' & $config.base_domain & '/collectory/ws/dataResource/' %}",
+        "Method": "GET",
+        "Authentication": {
+          "ConnectionArn": "{% $config.collectory_authenticated_connection_arn %}"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "BackoffRate": 2,
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "Process Data Resources",
+      "Assign": {
+        "dataResources": "{% $states.result.ResponseBody.uid %}"
+      }
+    },
+    "Process Data Resources": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "Process Data Resource",
+        "States": {
+          "Process Data Resource": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::states:startExecution.sync:2",
+            "Arguments": {
+              "StateMachineArn": "{% $config.process_single_dataresource_state_machine_arn %}",
+              "Input": {
+                "dataResourceId": "{% $states.input %}",
+                "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
+                "rootPipelineId": "{% $states.context.Execution.Id %}",
+                "solrCollection": "{% $states.context.Execution.Input.solrCollection %}"
+              }
+            },
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "Next": "Ignore Individual Failure"
+              }
+            ],
+            "End": true
+          },
+          "Ignore Individual Failure": {
+            "Type": "Pass",
+            "End": true
+          }
+        }
+      },
+      "Next": "Cleanup EMR Cluster",
+      "Items": "{% $dataResources %}"
+    },
+    "Cleanup EMR Cluster": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::states:startExecution.sync:2",
+      "Arguments": {
+        "StateMachineArn": "{% $config.cleanup_emr_cluster_state_machine_arn %}",
+        "Input": {
+          "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
+          "rootPipelineId": "{% $states.context.Execution.Id %}"
+        }
+      },
+      "End": true
+    }
+  },
+  "QueryLanguage": "JSONata"
+}

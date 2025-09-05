@@ -1,0 +1,280 @@
+{
+  "Comment": "Processes a single large data resource using LA Pipelines on EMR",
+  "StartAt": "Get State-machine Config",
+  "States": {
+    "Get State-machine Config": {
+      "Type": "Task",
+      "Arguments": {
+        "Bucket": "inbo-vbp-dev-pipelines",
+        "Key": "config/state-machine.json"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
+      "Next": "Get or create EMR Cluster",
+      "Assign": {
+        "config": "{% $parse($states.result.Body) %}"
+      }
+    },
+    "Get or create EMR Cluster": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::states:startExecution.sync:2",
+      "Arguments": {
+        "StateMachineArn": "{% $config.get_or_create_emr_cluster_state_machine_arn %}",
+        "Input": {
+          "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
+          "rootPipelineId": "{% $states.context.Execution.Input.rootPipelineId %}"
+        }
+      },
+      "Assign": {
+        "clusterId": "{% $states.result.Output.clusterId %}"
+      },
+      "Next": "Sync EFS Data to HDFS"
+    },
+    "Sync EFS Data to HDFS": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Arguments": {
+        "ClusterId": "{% $clusterId %}",
+        "Step": {
+          "Name": "{% 'sync-efs-index-data-to-hdfs-' & $states.context.Execution.Input.dataResourceId %}",
+          "ActionOnFailure": "CONTINUE",
+          "HadoopJarStep": {
+            "Jar": "s3://eu-west-1.elasticmapreduce/libs/script-runner/script-runner.jar",
+            "Args": [
+              "file:/opt/inbo/pipelines/bootstrap-actions/sync-verbatim-data-to-hdfs.sh",
+              "{% $states.context.Execution.Input.dataResourceId %}"
+            ]
+          }
+        }
+      },
+      "Next": "DWCA to Avro"
+    },
+    "DWCA to Avro": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Arguments": {
+        "ClusterId": "{% $clusterId %}",
+        "Step": {
+          "Name": "{% 'dwca-to-avro-' & $states.context.Execution.Input.dataResourceId %}",
+          "ActionOnFailure": "CONTINUE",
+          "HadoopJarStep": {
+            "Jar": "command-runner.jar",
+            "Args": [
+              "spark-submit",
+              "--deploy-mode",
+              "client",
+              "--class",
+              "au.org.ala.pipelines.beam.ALADwcaToVerbatimPipeline",
+              "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
+              "{% '--datasetId=' & $states.context.Execution.Input.dataResourceId %}",
+              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
+            ]
+          }
+        }
+      },
+      "Next": "Interpret"
+    },
+    "Interpret": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Arguments": {
+        "ClusterId": "{% $clusterId %}",
+        "Step": {
+          "Name": "{% 'interpret-' & $states.context.Execution.Input.dataResourceId %}",
+          "ActionOnFailure": "CONTINUE",
+          "HadoopJarStep": {
+            "Jar": "command-runner.jar",
+            "Args": [
+              "spark-submit",
+              "--deploy-mode",
+              "client",
+              "--class",
+              "au.org.ala.pipelines.beam.ALAVerbatimToInterpretedPipeline",
+              "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
+              "{% '--datasetId=' & $states.context.Execution.Input.dataResourceId %}",
+              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
+            ]
+          }
+        }
+      },
+      "Next": "Validate"
+    },
+    "Validate": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Arguments": {
+        "ClusterId": "{% $clusterId %}",
+        "Step": {
+          "Name": "{% 'validate-' & $states.context.Execution.Input.dataResourceId %}",
+          "ActionOnFailure": "CONTINUE",
+          "HadoopJarStep": {
+            "Jar": "command-runner.jar",
+            "Args": [
+              "spark-submit",
+              "--deploy-mode",
+              "client",
+              "--class",
+              "au.org.ala.pipelines.beam.ALAUUIDValidationPipeline",
+              "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
+              "{% '--datasetId=' & $states.context.Execution.Input.dataResourceId %}",
+              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
+            ]
+          }
+        }
+      },
+      "Next": "UUID"
+    },
+    "UUID": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Arguments": {
+        "ClusterId": "{% $clusterId %}",
+        "Step": {
+          "Name": "{% 'uuid-' & $states.context.Execution.Input.dataResourceId %}",
+          "ActionOnFailure": "CONTINUE",
+          "HadoopJarStep": {
+            "Jar": "command-runner.jar",
+            "Args": [
+              "spark-submit",
+              "--deploy-mode",
+              "client",
+              "--class",
+              "au.org.ala.pipelines.beam.ALAUUIDMintingPipeline",
+              "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
+              "{% '--datasetId=' & $states.context.Execution.Input.dataResourceId %}",
+              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
+            ]
+          }
+        }
+      },
+      "Next": "Sensitive"
+    },
+    "Sensitive": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Arguments": {
+        "ClusterId": "{% $clusterId %}",
+        "Step": {
+          "Name": "{% 'sensitive-' & $states.context.Execution.Input.dataResourceId %}",
+          "ActionOnFailure": "CONTINUE",
+          "HadoopJarStep": {
+            "Jar": "command-runner.jar",
+            "Args": [
+              "spark-submit",
+              "--deploy-mode",
+              "cluster",
+              "--class",
+              "au.org.ala.pipelines.beam.ALAInterpretedToSensitivePipeline",
+              "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
+              "{% '--datasetId=' & $states.context.Execution.Input.dataResourceId %}",
+              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
+            ]
+          }
+        }
+      },
+      "Next": "Image sync"
+    },
+    "Image sync": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Arguments": {
+        "ClusterId": "{% $clusterId %}",
+        "Step": {
+          "Name": "{% 'image-sync-' & $states.context.Execution.Input.dataResourceId %}",
+          "ActionOnFailure": "CONTINUE",
+          "HadoopJarStep": {
+            "Jar": "command-runner.jar",
+            "Args": [
+              "spark-submit",
+              "--deploy-mode",
+              "client",
+              "--class",
+              "au.org.ala.pipelines.beam.ImageServiceSyncPipeline",
+              "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
+              "{% '--datasetId=' & $states.context.Execution.Input.dataResourceId %}",
+              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
+            ]
+          }
+        }
+      },
+      "Next": "Image load"
+    },
+    "Image load": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Arguments": {
+        "ClusterId": "{% $clusterId %}",
+        "Step": {
+          "Name": "{% 'image-load-' & $states.context.Execution.Input.dataResourceId %}",
+          "ActionOnFailure": "CONTINUE",
+          "HadoopJarStep": {
+            "Jar": "command-runner.jar",
+            "Args": [
+              "spark-submit",
+              "--deploy-mode",
+              "client",
+              "--class",
+              "au.org.ala.pipelines.beam.ImageServiceDiffLoadPipeline",
+              "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
+              "{% '--datasetId=' & $states.context.Execution.Input.dataResourceId %}",
+              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
+            ]
+          }
+        }
+      },
+      "Next": "Index",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "Index"
+        }
+      ]
+    },
+    "Index": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Arguments": {
+        "ClusterId": "{% $clusterId %}",
+        "Step": {
+          "Name": "{% 'index-' & $states.context.Execution.Input.dataResourceId %}",
+          "ActionOnFailure": "CONTINUE",
+          "HadoopJarStep": {
+            "Jar": "command-runner.jar",
+            "Args": [
+              "spark-submit",
+              "--deploy-mode",
+              "client",
+              "--class",
+              "au.org.ala.pipelines.beam.IndexRecordPipeline",
+              "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
+              "{% '--datasetId=' & $states.context.Execution.Input.dataResourceId %}",
+              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
+            ]
+          }
+        }
+      },
+      "Next": "EMR Sync to EFS volume"
+    },
+    "EMR Sync to EFS volume": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Arguments": {
+        "ClusterId": "{% $clusterId %}",
+        "Step": {
+          "Name": "{% 'sync-to-efs-' & $states.context.Execution.Input.dataResourceId %}",
+          "ActionOnFailure": "CONTINUE",
+          "HadoopJarStep": {
+            "Jar": "s3://eu-west-1.elasticmapreduce/libs/script-runner/script-runner.jar",
+            "Args": [
+              "file:/opt/inbo/pipelines/bootstrap-actions/sync-to-efs.sh",
+              "{% $states.context.Execution.Input.dataResourceId %}"
+            ]
+          }
+        }
+      },
+      "End": true
+    }
+  },
+  "QueryLanguage": "JSONata"
+}

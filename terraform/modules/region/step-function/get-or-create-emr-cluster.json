@@ -1,0 +1,287 @@
+{
+  "Comment": "Get or create a EMR Cluster",
+  "StartAt": "Get State-machine Config",
+  "States": {
+    "Get State-machine Config": {
+      "Type": "Task",
+      "Arguments": {
+        "Bucket": "inbo-vbp-dev-pipelines",
+        "Key": "config/state-machine.json"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
+      "Next": "Attempt to lock cluster entry",
+      "Assign": {
+        "config": "{% $parse($states.result.Body) %}"
+      }
+    },
+    "Attempt to lock cluster entry": {
+      "Type": "Task",
+      "Arguments": {
+        "TransactItems": [
+          {
+            "Put": {
+              "TableName": "{% $config.dynamodb_table_name %}",
+              "Item": {
+                "PK": {
+                  "S": "{% 'RUN|' & $states.context.Execution.Input.rootPipelineId %}"
+                },
+                "SK": {
+                  "S": "RUN"
+                },
+                "ClusterId": {
+                  "S": "LOCKED"
+                },
+                "TTL": {
+                  "N": "{% $string($millis() + 600000) %}"
+                }
+              },
+              "ConditionExpression": "attribute_not_exists(ClusterId)"
+            }
+          }
+        ]
+      },
+      "Resource": "arn:aws:states:::aws-sdk:dynamodb:transactWriteItems",
+      "Next": "EMR CreateCluster",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "DynamoDb.TransactionCanceledException"
+          ],
+          "Next": "Store start wait timestamp"
+        }
+      ]
+    },
+    "Store start wait timestamp": {
+      "Type": "Pass",
+      "Next": "DynamoDB GetItem",
+      "Assign": {
+        "startWait": "{% $millis() %}"
+      }
+    },
+    "DynamoDB GetItem": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:getItem",
+      "Arguments": {
+        "TableName": "{% $config.dynamodb_table_name %}",
+        "Key": {
+          "PK": {
+            "S": "{% 'RUN|' & $states.context.Execution.Input.rootPipelineId %}"
+          },
+          "SK": {
+            "S": "RUN"
+          }
+        }
+      },
+      "Next": "Choice"
+    },
+    "Choice": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "Return ClusterId",
+          "Condition": "{% $exists($states.input.Item.ClusterId.S) and $states.input.Item.ClusterId.S != \"Locked\" %}",
+          "Assign": {
+            "clusterId": "{% $states.input.Item.ClusterId.S %}"
+          }
+        },
+        {
+          "Next": "Timeout",
+          "Condition": "{% $millis() > $number($states.input.Item.TTL.N) %}"
+        }
+      ],
+      "Default": "Wait"
+    },
+    "Wait": {
+      "Type": "Wait",
+      "Seconds": 5,
+      "Next": "DynamoDB GetItem"
+    },
+    "EMR CreateCluster": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:createCluster",
+      "Arguments": {
+        "Name": "PipelinesCluster",
+        "ServiceRole": "{% $config.iam_emr_service_role_arn %}",
+        "JobFlowRole": "{% $config.iam_emr_instance_profile_arn %}",
+        "Tags": "{% $config.emr_tags %}",
+        "ReleaseLabel": "emr-5.36.2",
+        "LogUri": "{% 's3://' & $config.s3_bucket_name_pipeline & '/logs' %}",
+        "EbsRootVolumeSize": "{% $config.ebs_root_volume_size %}",
+        "AutoTerminationPolicy": {
+          "IdleTimeout": "{% $config.idle_timout_termination_seconds %}"
+        },
+        "StepConcurrencyLevel": 4,
+        "Applications": [
+          {
+            "Name": "Hadoop"
+          },
+          {
+            "Name": "Spark"
+          }
+        ],
+        "VisibleToAllUsers": true,
+        "Instances": {
+          "Ec2SubnetId": "{% $config.ec2_subnet_id %}",
+          "EmrManagedMasterSecurityGroup": "{% $config.emr_managed_master_security_group %}",
+          "EmrManagedSlaveSecurityGroup": "{% $config.emr_managed_slave_security_group %}",
+          "ServiceAccessSecurityGroup": "{% $config.service_access_security_group %}",
+          "AdditionalMasterSecurityGroups": [
+            "{% $config.batch_security_group %}"
+          ],
+          "AdditionalSlaveSecurityGroups": [
+            "{% $config.batch_security_group %}"
+          ],
+          "KeepJobFlowAliveWhenNoSteps": true,
+          "InstanceFleets": [
+            {
+              "InstanceFleetType": "MASTER",
+              "Name": "Master",
+              "TargetOnDemandCapacity": 1,
+              "InstanceTypeConfigs": [
+                {
+                  "InstanceType": "{% $config.master_ec2_instance_type %}"
+                }
+              ]
+            },
+            {
+              "InstanceFleetType": "CORE",
+              "Name": "Core",
+              "TargetOnDemandCapacity": "{% $config.number_of_cluster_workers %}",
+              "InstanceTypeConfigs": [
+                {
+                  "InstanceType": "{% $config.worker_ec2_instance_type %}"
+                }
+              ]
+            }
+          ]
+        },
+        "Configurations": [
+          {
+            "Classification": "hdfs-site",
+            "Properties": {
+              "dfs.webhdfs.enabled": "true"
+            }
+          },
+          {
+            "Classification": "spark-defaults",
+            "Properties": {
+              "spark.yarn.maxAppAttempts": "1",
+              "spark.eventLog.overwrite": "true"
+            }
+          },
+          {
+            "Classification": "spark-env",
+            "Configurations": [
+              {
+                "Classification": "export",
+                "Properties": {
+                  "APIKEY": "{% $config.apikey_secret_value %}"
+                }
+              }
+            ]
+          },
+          {
+            "Classification": "yarn-env",
+            "Configurations": [
+              {
+                "Classification": "export",
+                "Properties": {
+                  "APIKEY": "{% $config.apikey_secret_value %}"
+                }
+              }
+            ]
+          }
+        ],
+        "BootstrapActions": [
+          {
+            "Name": "install-pipelines",
+            "ScriptBootstrapAction": {
+              "Args": [
+                "{% $config.api_key_secret_arn %}",
+                "{% $config.s3_bucket_name_pipeline %}"
+              ],
+              "Path": "{% 's3://' & $config.s3_bucket_name_pipeline & '/bootstrap-actions/install-pipelines.sh' %}"
+            }
+          },
+          {
+            "Name": "cloudwatch",
+            "ScriptBootstrapAction": {
+              "Args": [],
+              "Path": "file:/opt/inbo/pipelines/bootstrap-actions/cloudwatch.sh"
+            }
+          },
+          {
+            "Name": "ssm-agent",
+            "ScriptBootstrapAction": {
+              "Args": [],
+              "Path": "file:/opt/inbo/pipelines/bootstrap-actions/install-ssm-agent.sh"
+            }
+          },
+          {
+            "Name": "mount-data",
+            "ScriptBootstrapAction": {
+              "Args": [
+                "{% $config.efs_data_volume_id %}",
+                "{% $config.efs_data_access_point_id %}",
+                "2049",
+                "/data"
+              ],
+              "Path": "file:/opt/inbo/pipelines/bootstrap-actions/mount-efs.sh"
+            }
+          }
+        ]
+      },
+      "Next": "Write actual clusterId",
+      "Assign": {
+        "clusterId": "{% $states.result.ClusterId %}"
+      }
+    },
+    "Write actual clusterId": {
+      "Type": "Task",
+      "Arguments": {
+        "TransactItems": [
+          {
+            "Put": {
+              "TableName": "{% $config.dynamodb_table_name %}",
+              "Item": {
+                "PK": {
+                  "S": "{% 'RUN|' & $states.context.Execution.Input.rootPipelineId %}"
+                },
+                "SK": {
+                  "S": "RUN"
+                },
+                "ClusterId": {
+                  "S": "{% $clusterId %}"
+                },
+                "TTL": {
+                  "N": "{% $string($millis() + 86400000) %}"
+                }
+              },
+              "ExpressionAttributeValues": {
+                ":locked": {
+                  "S": "LOCKED"
+                }
+              },
+              "ConditionExpression": "ClusterId = :locked"
+            }
+          }
+        ]
+      },
+      "Resource": "arn:aws:states:::aws-sdk:dynamodb:transactWriteItems",
+      "Next": "Return ClusterId"
+    },
+    "Return ClusterId": {
+      "Type": "Pass",
+      "End": true,
+      "Output": {
+        "clusterId": "{% $clusterId %}"
+      }
+    },
+    "Timeout": {
+      "Type": "Fail",
+      "Error": "TimedOutWaitingForEMRCluster",
+      "Cause": "Timed out waiting for an emr cluster to be started"
+    }
+  },
+  "QueryLanguage": "JSONata"
+}
