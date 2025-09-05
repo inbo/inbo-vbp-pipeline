@@ -27,3 +27,7 @@ variable "base_domain" {
 variable "aws_env" {
   type = string
 }
+
+variable "private_subnet_ids" {
+  type = list(string)
+}
