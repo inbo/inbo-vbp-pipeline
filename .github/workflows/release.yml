@@ -337,7 +337,7 @@ jobs:
           cat <<< $(jq '.pipeline = ${{ fromJSON(needs.get-versions.outputs.all_versions) }}' ./versions.json) > ./versions.json
           
           # Update TF module versions
-          TF_VERSION=$(jq '.pipeline.terraform' ./versions.json)
+          TF_VERSION=$(jq -r '.pipeline.terraform' ./versions.json)
           sed -i "s/\(source.*=.*\?ref=\).*\"/\1${TF_VERSION}\"/g" ./global/common-global/pipeline.tf
           sed -i "s/\(source.*=.*\?ref=\).*\"/\1${TF_VERSION}\"/g" ./region/common-region/pipeline.tf
 
