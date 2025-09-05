@@ -338,8 +338,8 @@ jobs:
           
           # Update TF module versions
           TF_VERSION=$(jq '.pipeline.terraform' ./versions.json)
-          sed -ir "s/\(source.*=.*\?ref=\).*"/\1${TF_VERSION}\"/g" ./global/common-global/pipeline.tf
-          sed -ir "s/\(source.*=.*\?ref=\).*"/\1${TF_VERSION}\"/g" ./region/common-region/pipeline.tf
+          sed -ir "s/\(source.*=.*\?ref=\).*\"/\1${TF_VERSION}\"/g" ./global/common-global/pipeline.tf
+          sed -ir "s/\(source.*=.*\?ref=\).*\"/\1${TF_VERSION}\"/g" ./region/common-region/pipeline.tf
 
           if [ -n "$(git status --porcelain)" ]; then
             git add versions.json
