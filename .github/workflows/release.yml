@@ -334,7 +334,7 @@ jobs:
           git config --global user.email "support.natuurdata@inbo.be"
           git config --global user.name "Github Actions"
 
-          jq <<< '.pipeline = ${{ fromJSON(needs.get-versions.outputs.all_versions) }}' > ./versions.json
+          jq <<< '.pipeline = ${{ fromJSON(needs.get-versions.outputs.all_versions) }}' ./versions.json > ./versions.json
           
           # Update TF module versions
           sed -ir 's/\(source.*=.*\?ref=\).*"/\1${{ needs.get-versions.outputs.terraform_version }}"/g' global/common-global/pipeline.tf
