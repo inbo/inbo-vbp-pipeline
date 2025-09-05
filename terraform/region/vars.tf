@@ -18,12 +18,6 @@ variable "docker_version" {
   type = string
 }
 
-variable "lambda_versions" {
-  type = object({
-    solr-management = string
-  })
-}
-
 
 variable "environment" {
   type = list(object({
@@ -100,4 +94,19 @@ variable "aws_iam_role" {
 
 variable "aws_env" {
   type = string
+}
+
+variable "solr" {
+  type = object({
+    base_url = string
+    security_group_id = string
+  })
+}
+variable "lambdas" {
+  type = object({
+    bucket = string
+    versions = object({
+      solr-management = string
+    })
+  })
 }
