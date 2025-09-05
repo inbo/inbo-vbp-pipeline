@@ -54,9 +54,9 @@ jobs:
               echo "Setting new version for lambda ${component} to ${new_version} with ${number_of_changes_since_last_tag} changes"
               LAMBDA_VERSIONS=$(jq -c ". += {\"${component}\": \"v${new_version}\"}" <<< ${LAMBDA_VERSIONS})
               LAMBDA_BUILD_MATRIX=$(jq -c ". += [{\"name\": \"${component}\", \"version\": \"${new_version}\"}]" <<< ${LAMBDA_BUILD_MATRIX})
-              ALL_VERSIONS=$(jq -c ".lambda += {\"${component}\": \"v${new_version}\"}" <<< ${ALL_VERSIONS})
+              ALL_VERSIONS=$(jq -c ".lambdas += {\"${component}\": \"v${new_version}\"}" <<< ${ALL_VERSIONS})
             else
-              ALL_VERSIONS=$(jq -c ".lambda += {\"${component}\": \"v${previous_version}\"}" <<< ${ALL_VERSIONS})
+              ALL_VERSIONS=$(jq -c ".lambdas += {\"${component}\": \"v${previous_version}\"}" <<< ${ALL_VERSIONS})
             fi
           done
           echo "lambda_versions=${LAMBDA_VERSIONS}" >> "$GITHUB_OUTPUT"
