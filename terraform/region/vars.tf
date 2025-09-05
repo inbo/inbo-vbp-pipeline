@@ -107,7 +107,7 @@ variable "lambdas" {
     bucket = string
     log_group_name = string
     versions = object({
-      solr-management = string
+      biocache-index-management = string
     })
   })
 }
