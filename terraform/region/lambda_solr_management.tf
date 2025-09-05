@@ -20,7 +20,7 @@ resource "aws_lambda_permission" "solr_management_lambda_invocation_policy" {
 resource "aws_lambda_function" "solr_management_lambda" {
   function_name = "inbo-${var.application}-solr-management"
   s3_bucket     = var.lambdas.bucket
-  s3_key        = "solr-management/solr-management-${var.lambdas.versions.solr-management}"
+  s3_key        = "solr-management/solr-management-${var.lambdas.versions.solr-management}.zip"
   role          = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/inbo-${var.application}-solr-management-lambda"
   runtime       = "nodejs22.x"
   handler       = "server.graphqlHandler"
