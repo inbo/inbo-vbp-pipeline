@@ -62,7 +62,7 @@ resource "aws_security_group_rule" "solr_egress" {
 resource "aws_security_group_rule" "keycloak_egress" {
   type              = "egress"
   security_group_id = aws_security_group.solr_management.id
-  cidr_blocks = ["0.0.0.0/0"]#tfsec:ignore:aws-ec2-no-public-egress-sgr
+  cidr_blocks = ["0.0.0.0/0"] #tfsec:ignore:aws-ec2-no-public-egress-sgr
   from_port         = 443
   to_port           = 443
   protocol          = "tcp"
