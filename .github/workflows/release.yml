@@ -25,7 +25,7 @@ jobs:
       - name: Get all component versions
         id: versions
         env:
-          LAMBDA_COMPONENTS: "solr-management"
+          LAMBDA_COMPONENTS: "biocache-index-management"
           DOCKER_COMPONENTS: "pipeline-batch-runner"
         run: |
           # Terraform

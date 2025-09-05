@@ -1,0 +1,46 @@
+schema {
+	query: Query
+	mutation: Mutation
+}
+
+type Query {
+	index(id: ID!): Index
+	indices: [Index!]!
+}
+
+type Mutation {
+	getOrCreateIndex(input: GetOrCreateIndexInput!): GetOrCreateIndexOutput
+	deleteIndex(input: DeleteIndexInput!): DeleteIndexOutput
+	clearDataResourceFromIndex(input: clearDataResourceFromIndexInput!): clearDataResourceFromIndexOutput
+}
+
+type Index {
+	id: ID!
+}
+
+input GetOrCreateIndexInput {
+	indexId: ID!
+}
+
+type GetOrCreateIndexOutput {
+	indexId: ID!
+
+}
+
+input DeleteIndexInput {
+	indexId: ID!
+}
+
+type DeleteIndexOutput {
+	indexId: ID!
+}
+
+input clearDataResourceFromIndexInput {
+	indexId: ID!
+	dataResourceId: ID!
+}
+
+type clearDataResourceFromIndexOutput {
+	indexId: ID!
+	dataResourceId: ID!
+}

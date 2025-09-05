@@ -14,37 +14,37 @@ const solrClient = new SolrClient(config);
 
 const resolvers: Resolvers = {
     Query: {
-        collection: async (_, { id }) => {
-            return solrClient.getCollection(id);
+        index: async (_, { id }) => {
+            return solrClient.getIndex(id);
         },
-        collections: async () => {
-            return solrClient.getCollections();
+        indices: async () => {
+            return solrClient.getIndices();
         },
     },
     Mutation: {
-        createCollection: async (_, { input }) => {
-            await solrClient.createCollection(input.collectionId);
+        getOrCreateIndex: async (_, { input }) => {
+            await solrClient.getOrCreateIndex(input.indexId);
             return {
-                collectionId: input.collectionId,
+                indexId: input.indexId,
             };
         },
-        deleteCollection: async (_, { input }) => {
-            await solrClient.deleteCollection(input.collectionId);
+        deleteIndex: async (_, { input }) => {
+            await solrClient.deleteIndex(input.indexId);
             return {
-                collectionId: input.collectionId,
+                indexId: input.indexId,
             };
         },
 
-        clearDataResourceFromCollection: async (
+        clearDataResourceFromIndex: async (
             _,
             { input },
         ) => {
-            await solrClient.deleteDataResourceOccurrencesFromCollection(
-                input.collectionId,
+            await solrClient.deleteDataResourceOccurrencesFromIndex(
+                input.indexId,
                 input.dataResourceId,
             );
             return {
-                collectionId: input.collectionId,
+                indexId: input.indexId,
                 dataResourceId: input.dataResourceId,
             };
         },
