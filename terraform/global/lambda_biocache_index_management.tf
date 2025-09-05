@@ -9,13 +9,13 @@ data "aws_iam_policy_document" "lambda_assume_role_policy" {
   }
 }
 
-resource "aws_iam_role" "solr_management_role" {
-  name = "inbo-${var.application}-solr-management-lambda"
+resource "aws_iam_role" "biocache_index_management_role" {
+  name = "inbo-${var.application}-biocache-index-management-lambda"
 
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
 }
 
-data "aws_iam_policy_document" "solr_management_permission" {
+data "aws_iam_policy_document" "biocache_index_management_permission" {
   statement {
     effect = "Allow"
 
@@ -61,8 +61,8 @@ data "aws_iam_policy_document" "solr_management_permission" {
   }
 }
 
-resource "aws_iam_role_policy" "solr-management" {
-  name   = "solr-management-lambda"
-  role   = aws_iam_role.solr_management_role.id
-  policy = data.aws_iam_policy_document.solr_management_permission.json
+resource "aws_iam_role_policy" "biocache-index-management" {
+  name   = "biocache-index-management-lambda"
+  role   = aws_iam_role.biocache_index_management_role.id
+  policy = data.aws_iam_policy_document.biocache_index_management_permission.json
 }
