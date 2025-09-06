@@ -74,3 +74,11 @@ resource "aws_security_group_rule" "biocache_index_management_lambda_keycloak_eg
   protocol          = "tcp"
   description       = "Allow Solr management lambda to connect to keycloak"
 }
+
+resource "aws_lambda_permission" "lambda_permission" {
+  statement_id  = "AllowALBInvokeBiocacheIndexManagementLambda"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.biocache_index_management_lambda.function_name
+  principal     = "elasticloadbalancing.amazonaws.com"
+  source_arn = aws_lb_target_group.biocache_index_management_lambda.arn
+}
