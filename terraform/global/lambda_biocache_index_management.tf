@@ -37,7 +37,12 @@ data "aws_iam_policy_document" "biocache_index_management_permission" {
     actions = [
       "ec2:DescribeVpcs",
       "ec2:CreateTags",
-      "ec2:DeleteTags"
+      "ec2:DeleteTags",
+      "ec2:CreateNetworkInterface",
+      "ec2:DeleteNetworkInterface",
+      "ec2:AttachNetworkInterface",
+      "ec2:UnassignPrivateIpAddresses",
+      "ec2:AssignPrivateIpAddresses"
     ]
 
     #tfsec:ignore:aws-iam-no-policy-wildcards
@@ -45,22 +50,7 @@ data "aws_iam_policy_document" "biocache_index_management_permission" {
       "*"
     ]
   }
-  statement {
-    effect = "Allow"
 
-    actions = [
-      "ec2:CreateNetworkInterface",
-      "ec2:DeleteNetworkInterface",
-      "ec2:AttachNetworkInterface",
-      "ec2:UnassignPrivateIpAddresses",
-      "ec2:AssignPrivateIpAddresses",
-    ]
-
-    resources = [
-      for subnet_id in var.private_subnet_ids :
-      "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:subnet/${subnet_id}"
-    ]
-  }
 }
 
 resource "aws_iam_role_policy" "biocache-index-management" {
