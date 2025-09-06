@@ -36,6 +36,8 @@ data "aws_iam_policy_document" "biocache_index_management_permission" {
 
     actions = [
       "ec2:DescribeVpcs",
+      "ec2:CreateTags",
+      "ec2:DeleteTags"
     ]
 
     #tfsec:ignore:aws-iam-no-policy-wildcards
