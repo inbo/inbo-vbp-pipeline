@@ -25,7 +25,7 @@ resource "null_resource" "download_lambda_package" {
     command = <<EOF
 $(aws sts assume-role --role-arn ${var.aws_iam_role} --role-session-name tf-${var.application}-upload-branding --query 'Credentials.[`export#AWS_ACCESS_KEY_ID=`,AccessKeyId,`#AWS_SECRET_ACCESS_KEY=`,SecretAccessKey,`#AWS_SESSION_TOKEN=`,SessionToken]' --output text | sed $'s/\t//g' | sed 's/#/ /g')
 
-curl \
+curl --fail --folow --verbose \
   https://github.com/inbo/inbo-vbp-pipeline/releases/download/lambda-biocache-index-management-v${var.lambdas.versions.biocache-index-management}/biocache-index-management-${var.lambdas.versions.biocache-index-management}.zip \
   -o biocache-index-management-${var.lambdas.versions.biocache-index-management}.zip
 
