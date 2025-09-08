@@ -23,6 +23,8 @@ resource "null_resource" "download_lambda_package" {
 
   provisioner "local-exec" {
     command = <<EOF
+set -e -x -o pipefail
+
 $(aws sts assume-role --role-arn ${var.aws_iam_role} --role-session-name tf-${var.application}-upload-branding --query 'Credentials.[`export#AWS_ACCESS_KEY_ID=`,AccessKeyId,`#AWS_SECRET_ACCESS_KEY=`,SecretAccessKey,`#AWS_SESSION_TOKEN=`,SessionToken]' --output text | sed $'s/\t//g' | sed 's/#/ /g')
 
 curl --fail --verbose \
