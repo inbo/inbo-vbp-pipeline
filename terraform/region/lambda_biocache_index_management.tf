@@ -16,9 +16,34 @@ resource "aws_lambda_permission" "biocache_index_management_lambda_invocation_po
   source_arn    = aws_lb_target_group.biocache_index_management_lambda.arn
 }
 
+resource "null_resource" "download_lambda_package" {
+  triggers = {
+    on_version_change = var.lambdas.versions.biocache-index-management
+  }
+
+  provisioner "local-exec" {
+    command = <<EOF
+$(aws sts assume-role --role-arn ${var.aws_iam_role} --role-session-name tf-${var.application}-upload-branding --query 'Credentials.[`export#AWS_ACCESS_KEY_ID=`,AccessKeyId,`#AWS_SECRET_ACCESS_KEY=`,SecretAccessKey,`#AWS_SESSION_TOKEN=`,SessionToken]' --output text | sed $'s/\t//g' | sed 's/#/ /g')
+
+curl \
+  https://github.com/inbo/inbo-vbp-pipeline/releases/download/lambda-biocache-index-management-v${var.lambdas.versions.biocache-index-management}/biocache-index-management-${var.lambdas.versions.biocache-index-management}.zip \
+  -o biocache-index-management-${var.lambdas.versions.biocache-index-management}.zip
+
+# Upload jar to S3
+aws s3 cp ./biocache-index-management-${var.lambdas.versions.biocache-index-management}.zip s3://${var.lambdas.bucket}/biocache-index-management/biocache-index-management-${var.lambdas.versions.biocache-index-management}.zip
+
+EOF
+  }
+
+}
+
 data "aws_s3_object" "biocache_index_management_lambda" {
   bucket = var.lambdas.bucket
   key    = "biocache-index-management/biocache-index-management-${var.lambdas.versions.biocache-index-management}.zip"
+
+  depends_on = [
+    null_resource.download_lambda_package
+  ]
 }
 
 #tfsec:ignore:aws-lambda-enable-tracing - no other logs to correlate with
@@ -40,7 +65,7 @@ resource "aws_lambda_function" "biocache_index_management_lambda" {
   environment {
     variables = {
       SOLR_BASE_URL = var.solr.base_url
-      JWKS_URI = var.jwks_uri
+      JWKS_URI      = var.jwks_uri
     }
   }
 
@@ -81,5 +106,5 @@ resource "aws_lambda_permission" "lambda_permission_alb" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.biocache_index_management_lambda.function_name
   principal     = "elasticloadbalancing.amazonaws.com"
-  source_arn = aws_lb_target_group.biocache_index_management_lambda.arn
+  source_arn    = aws_lb_target_group.biocache_index_management_lambda.arn
 }
