@@ -172,7 +172,7 @@ interpret:
   appName: Interpretation for {datasetId}
   interpretationTypes: ALL
   defaultDateFormat: DMYT,DMY
-  inputPath: '{fsPath}/pipelines-data/{datasetId}/1/verbatim/*.avro'
+  inputPath: '{fsPath}/pipelines-data/{datasetId}/0/verbatim/*.avro'
   # Skips GBIF id generation and copies ids from ExtendedRecord ids
   useExtendedRecordId: true
   runner: SparkRunner
