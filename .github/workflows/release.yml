@@ -289,7 +289,7 @@ jobs:
           set -e -x -o pipefail
 
           npm ci
-          npm run test:ci
+          npm test
           npm run package
           mv function.zip ${{ matrix.lambda.name }}-${{ matrix.lambda.version }}.zip
 

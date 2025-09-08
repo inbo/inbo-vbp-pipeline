@@ -3,7 +3,6 @@
     "compile": "tsc",
     "generate": "graphql-codegen",
     "test": "jest",
-    "test:ci": "echo 'No testing yet ...'",
     "build": "npm run generate && esbuild --bundle ./src/server.ts --outdir=dist --minify --sourcemap --loader:.gql=text --platform=node && cd ./dist && zip -r ../function.zip .",
     "package": "npm run build && rm function.zip; cd ./dist && zip -r ../function.zip .",
     "deploy": "npm run package && aws lambda update-function-code --function-name inbo-vbp-biocache-index-managment --zip-file fileb://function.zip"
