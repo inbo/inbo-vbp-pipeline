@@ -3,8 +3,27 @@ import { IndexService } from "./core/index-service";
 
 export class SolrClient implements IndexService {
     private readonly solrBaseUrl: string;
-    constructor({ solrBaseUrl }: { solrBaseUrl: string }) {
+    private readonly solrBiocacheSchemaConfig: string;
+    private readonly solrBiocacheNumberOfShards: number;
+    private readonly solrBiocacheMaxShardsPerNode: number;
+
+    constructor(
+        {
+            solrBaseUrl,
+            solrBiocacheSchemaConfig,
+            solrBiocacheNumberOfShards,
+            solrBiocacheMaxShardsPerNode,
+        }: {
+            solrBaseUrl: string;
+            solrBiocacheSchemaConfig: string;
+            solrBiocacheNumberOfShards: number;
+            solrBiocacheMaxShardsPerNode: number;
+        },
+    ) {
         this.solrBaseUrl = solrBaseUrl;
+        this.solrBiocacheSchemaConfig = solrBiocacheSchemaConfig;
+        this.solrBiocacheNumberOfShards = solrBiocacheNumberOfShards;
+        this.solrBiocacheMaxShardsPerNode = solrBiocacheMaxShardsPerNode;
     }
     async getIndex(id: string): Promise<Index | null> {
         const response = await fetch(
@@ -37,7 +56,11 @@ export class SolrClient implements IndexService {
     async createIndex(id: string): Promise<Index> {
         // Create if not found
         const response = await fetch(
-            `${this.solrBaseUrl}/admin/collections?action=CREATE&name=${id}&collection.configName=_default&numShards=4&omitHeader=true`,
+            `${this.solrBaseUrl}/admin/collections?action=CREATE&name=${id}&collection.configName=${this.solrBiocacheSchemaConfig}&numShards=${this.solrBiocacheNumberOfShards}&maxShardsPerNode=${this.solrBiocacheMaxShardsPerNode}&omitHeader=true`,
+        );
+        console.error(
+            "Create response: " +
+                `${this.solrBaseUrl}/admin/collections?action=CREATE&name=${id}&collection.configName=${this.solrBiocacheSchemaConfig}&numShards=${this.solrBiocacheNumberOfShards}&maxShardsPerNode=${this.solrBiocacheMaxShardsPerNode}&omitHeader=true`,
         );
         if (response.ok) {
             const data = await response.json();

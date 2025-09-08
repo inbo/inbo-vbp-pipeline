@@ -4,5 +4,15 @@ function RequiredVar(name: string): never {
 
 export default {
     solrBaseUrl: process.env.SOLR_BASE_URL || RequiredVar("SOLR_BASE_URL"),
+    solrBiocacheSchemaConfig: process.env.SOLR_BIOCACHE_SCHEMA_CONFIG ||
+        "_default",
+    solrBiocacheNumberOfShards: parseInt(
+        process.env.SOLR_BIOCACHE_NUMBER_OF_SHARDS ||
+            "1",
+    ),
+    solrBiocacheMaxShardsPerNode: parseInt(
+        process.env.SOLR_BIOCACHE_MAX_SHARDS_PER_NODE ||
+            "1",
+    ),
     jwksUri: process.env.JWKS_URI || RequiredVar("JWKS_URI"),
 };

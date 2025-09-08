@@ -40,7 +40,12 @@ describe("SolrClient", () => {
         }
         if (!ready) throw new Error("Solr did not start in time");
 
-        solrClient = new SolrClient({ solrBaseUrl });
+        solrClient = new SolrClient({
+            solrBaseUrl: solrBaseUrl,
+            solrBiocacheSchemaConfig: "_default",
+            solrBiocacheNumberOfShards: 1,
+            solrBiocacheMaxShardsPerNode: 1,
+        });
     });
 
     afterAll(async () => {

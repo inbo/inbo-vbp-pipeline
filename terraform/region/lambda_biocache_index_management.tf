@@ -6,6 +6,7 @@ resource "aws_lb_target_group" "biocache_index_management_lambda" {
 resource "aws_lb_target_group_attachment" "biocache_index_management_lambda" {
   target_group_arn = aws_lb_target_group.biocache_index_management_lambda.arn
   target_id        = aws_lambda_function.biocache_index_management_lambda.arn
+
 }
 
 resource "aws_lambda_permission" "biocache_index_management_lambda_invocation_policy" {
@@ -66,8 +67,11 @@ resource "aws_lambda_function" "biocache_index_management_lambda" {
 
   environment {
     variables = {
-      SOLR_BASE_URL = var.solr.base_url
-      JWKS_URI      = var.jwks_uri
+      SOLR_BASE_URL                     = var.solr.base_url
+      SOLR_BIOCACHE_SCHEMA_CONFIG       = "biocache"
+      SOLR_BIOCACHE_NUMBER_OF_SHARDS    = "4"
+      SOLR_BIOCACHE_MAX_SHARDS_PER_NODE = "4"
+      JWKS_URI                          = var.jwks_uri
     }
   }
 
