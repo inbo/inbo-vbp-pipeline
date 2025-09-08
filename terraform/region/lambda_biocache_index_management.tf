@@ -76,7 +76,7 @@ resource "aws_security_group_rule" "biocache_index_management_lambda_keycloak_eg
   description       = "Allow Solr management lambda to connect to keycloak"
 }
 
-resource "aws_lambda_permission" "lambda_permission" {
+resource "aws_lambda_permission" "lambda_permission_alb" {
   statement_id  = "AllowALBInvokeBiocacheIndexManagementLambda"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.biocache_index_management_lambda.function_name

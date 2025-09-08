@@ -182,6 +182,16 @@ data "aws_iam_policy_document" "pipeline" {
   statement {
     effect = "Allow"
     actions = [
+      "lambda:InvokeFunction",
+    ]
+    resources = [
+      "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:inbo-${var.application}-biocache-index-management",
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
       "kms:Decrypt",
     ]
     resources = [var.dynamodb_kms_key_arn]
