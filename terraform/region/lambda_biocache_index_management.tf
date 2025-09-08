@@ -40,6 +40,7 @@ resource "aws_lambda_function" "biocache_index_management_lambda" {
   environment {
     variables = {
       SOLR_BASE_URL = var.solr.base_url
+      JWKS_URI = var.jwks_uri
     }
   }
 

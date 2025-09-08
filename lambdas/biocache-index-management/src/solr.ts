@@ -6,38 +6,48 @@ export class SolrClient implements IndexService {
     constructor({ solrBaseUrl }: { solrBaseUrl: string }) {
         this.solrBaseUrl = solrBaseUrl;
     }
-    async getIndex(id: string): Promise<Index> {
-        const response = await fetch(`${this.solrBaseUrl}/collections/${id}`);
+    async getIndex(id: string): Promise<Index | null> {
+        const response = await fetch(
+            `${this.solrBaseUrl}/admin/collections?action=COLSTATUS&collection=${id}&coreInfo=true&segments=true&fieldInfo=true&sizeInfo=true&omitHeader=true`,
+        );
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(
+                `Failed to get index ${id}: ${response.statusText}\n${errorBody}`,
+            );
+        }
         const data = await response.json();
-        return { id: data.collection.id };
+        console.debug("Get collection data:", data);
+        if (data[id]) {
+            return { id: id };
+        } else {
+            return null;
+        }
     }
 
     async getIndices(): Promise<Index[]> {
-        const response = await fetch(`${this.solrBaseUrl}/collections`);
+        const response = await fetch(
+            `${this.solrBaseUrl}/admin/collections?action=LIST&omitHeader=true`,
+        );
         const data = await response.json();
-        return data.collections.map((c: any) => ({ id: c.id }));
+        console.debug("List collections data:", data);
+        return data.collections?.map((id: string) => ({ id }));
     }
 
-    async getOrCreateIndex(id: string): Promise<Index> {
-        // Try to get, if not found, create
+    async createIndex(id: string): Promise<Index> {
+        // Create if not found
         const response = await fetch(
-            `${this.solrBaseUrl}/collections/${id}`,
+            `${this.solrBaseUrl}/admin/collections?action=CREATE&name=${id}&collection.configName=_default&numShards=4&omitHeader=true`,
         );
         if (response.ok) {
             const data = await response.json();
-            return { id: data.collection.id };
-        } else if (response.status === 404) {
-            // Create if not found
-            const createResponse = await fetch(
-                `${this.solrBaseUrl}/collections`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name: id }),
-                },
-            );
-            const createData = await createResponse.json();
-            return { id: createData.collection.id };
+            console.debug("Create collection data:", data);
+            if (!data.success) {
+                throw new Error(
+                    `Failed to create index: ${JSON.stringify(data)}`,
+                );
+            }
+            return { id };
         } else {
             const errorBody = await response.text();
             throw new Error(
@@ -47,16 +57,23 @@ export class SolrClient implements IndexService {
     }
 
     async deleteIndex(id: string): Promise<void> {
-        await fetch(`${this.solrBaseUrl}/collections/${id}`, {
-            method: "DELETE",
-        });
+        const response = await fetch(
+            `${this.solrBaseUrl}/admin/collections?action=DELETE&name=${id}&omitHeader=true`,
+        );
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(
+                `Failed to delete index ${id}: ${response.statusText}\n${errorBody}`,
+            );
+        }
+        console.debug("Delete response:", response);
     }
 
     async deleteDataResourceOccurrencesFromIndex(
         indexId: string,
         dataResourceId: string,
     ): Promise<void> {
-        await fetch(
+        const response = await fetch(
             `${this.solrBaseUrl}/collections/${indexId}/dataResourceOccurrences/${dataResourceId}`,
             {
                 method: "POST",
@@ -68,5 +85,25 @@ export class SolrClient implements IndexService {
                 }),
             },
         );
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(
+                `Failed to delete data resource ${dataResourceId} occurrences from index ${indexId}: ${response.statusText}\n${errorBody}`,
+            );
+        }
+    }
+
+    async getConfigs(): Promise<string[]> {
+        const response = await fetch(
+            `${this.solrBaseUrl}/admin/configs?action=LIST&omitHeader=true`,
+        );
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(
+                `Failed to get configs: ${response.statusText}\n${errorBody}`,
+            );
+        }
+        const data = await response.json();
+        return data.configSets;
     }
 }

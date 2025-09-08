@@ -4,6 +4,5 @@ function RequiredVar(name: string): never {
 
 export default {
     solrBaseUrl: process.env.SOLR_BASE_URL || RequiredVar("SOLR_BASE_URL"),
-    openIdIssuerUrl: process.env.OPEN_ID_ISSUER_URL ||
-        RequiredVar("OPEN_ID_ISSUER_URL"),
+    jwksUri: process.env.JWKS_URI || RequiredVar("JWKS_URI"),
 };

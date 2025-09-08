@@ -3,10 +3,10 @@ export type Index = {
 };
 
 export type IndexService = {
-    getIndex(id: string): Promise<Index>;
+    getIndex(id: string): Promise<Index | null>;
     getIndices(): Promise<Index[]>;
 
-    getOrCreateIndex(id: string): Promise<Index>;
+    createIndex(id: string): Promise<Index>;
     deleteIndex(id: string): Promise<void>;
 
     deleteDataResourceOccurrencesFromIndex(

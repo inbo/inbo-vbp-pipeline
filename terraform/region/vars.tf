@@ -102,6 +102,7 @@ variable "solr" {
     security_group_id = string
   })
 }
+
 variable "lambdas" {
   type = object({
     bucket = string
@@ -110,4 +111,8 @@ variable "lambdas" {
       biocache-index-management = string
     })
   })
+}
+
+variable "jwks_uri" {
+  type = string
 }
