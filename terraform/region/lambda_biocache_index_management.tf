@@ -93,6 +93,17 @@ resource "aws_security_group_rule" "biocache_index_management_lambda_solr_egress
   description              = "Allow Solr management lambda to connect to SOLR"
 }
 
+resource "aws_security_group_rule" "biocache_index_management_lambda_solr_ingress" {
+  type                     = "ingress"
+  security_group_id        = var.solr.security_group_id
+  source_security_group_id = aws_security_group.biocache_index_management.id
+  from_port                = 8983
+  to_port                  = 8983
+  protocol                 = "tcp"
+  description              = "Allow Solr management lambda to connect to SOLR"
+}
+
+
 resource "aws_security_group_rule" "biocache_index_management_lambda_keycloak_egress" {
   type              = "egress"
   security_group_id = aws_security_group.biocache_index_management.id
