@@ -15,8 +15,13 @@ import { GraphQLError } from "graphql";
 const authService = new AuthService(config);
 const solrClient = new SolrClient(config);
 
+// Custom field, added when calling lambda directly from step function
+interface CustomALBEvent extends AWSLambda.ALBEvent {
+    originatesFromStepFunction?: boolean;
+}
+
 interface UserContext {
-    user: User;
+    user: User | null;
 }
 
 const resolvers: Resolvers = {
@@ -26,6 +31,9 @@ const resolvers: Resolvers = {
         },
         indices: async () => {
             return solrClient.getIndices();
+        },
+        activeIndex: async () => {
+            return solrClient.getActiveIndex();
         },
     },
     Mutation: {
@@ -42,6 +50,13 @@ const resolvers: Resolvers = {
         },
         deleteIndex: async (_, { input }) => {
             await solrClient.deleteIndex(input.indexId);
+            return {
+                indexId: input.indexId,
+            };
+        },
+
+        setActiveIndex: async (_, { input }) => {
+            await solrClient.setActiveIndex(input.indexId);
             return {
                 indexId: input.indexId,
             };
@@ -76,9 +91,14 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
             { event, context },
         ) => {
             try {
+                const user =
+                    (event as CustomALBEvent).originatesFromStepFunction
+                        ? null
+                        : await authService.authenticate(event.headers);
+
                 return {
                     ...context,
-                    user: await authService.authenticate(event.headers),
+                    user,
                 };
             } catch (error) {
                 if (error instanceof AuthError) {

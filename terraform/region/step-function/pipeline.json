@@ -9,9 +9,48 @@
         "Key": "config/state-machine.json"
       },
       "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
-      "Next": "Check if list of dataresources are specified",
+      "Next": "Get or Create new Biocache Index",
       "Assign": {
         "config": "{% $parse($states.result.Body) %}"
+      }
+    },
+    "Get or Create new Biocache Index": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Output": "{% $states.result.Payload %}",
+      "Arguments": {
+        "FunctionName": "arn:aws:lambda:eu-west-1:632683202044:function:inbo-vbp-biocache-index-management:$LATEST",
+        "Payload": {
+          "httpMethod": "POST",
+          "version": "2",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "isBase64Encoded": false,
+          "rawQueryString": "",
+          "rawPath": "/",
+          "routeKey": "/",
+          "originatesFromStepFunction": true,
+          "body": "{% $string({\n  'query': 'mutation GetOrCreate($input: GetOrCreateIndexInput!) { getOrCreateIndex(input: $input) { indexId }}',\n'variables': {\n  'input': {\n    'indexId': 'biocache-' & $now('[Y01][M01][D01]')\n  }\n}\n}) %}"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "Check if list of dataresources are specified",
+      "Assign": {
+        "solrCollection": "{% $parse($states.result.Payload.body).data.getOrCreateIndex.indexId %}"
       }
     },
     "Check if list of dataresources are specified": {
@@ -70,7 +109,7 @@
                 "dataResourceId": "{% $states.input %}",
                 "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
                 "rootPipelineId": "{% $states.context.Execution.Id %}",
-                "solrCollection": "{% $states.context.Execution.Input.solrCollection %}"
+                "solrCollection": "{% $solrCollection %}"
               }
             },
             "Catch": [
@@ -78,7 +117,11 @@
                 "ErrorEquals": [
                   "States.ALL"
                 ],
-                "Next": "Ignore Individual Failure"
+                "Next": "Ignore Individual Failure",
+                "Output": {},
+                "Assign": {
+                  "errored": "{% $append($errored, [$states.input]) %}"
+                }
               }
             ],
             "End": true
@@ -102,6 +145,56 @@
           "rootPipelineId": "{% $states.context.Execution.Id %}"
         }
       },
+      "Next": "Choice"
+    },
+    "Choice": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "Switch Active Index",
+          "Condition": "{% $length($errored) = 0 %}"
+        }
+      ],
+      "Default": "Pass"
+    },
+    "Pass": {
+      "Type": "Pass",
+      "Next": "Switch Active Index"
+    },
+    "Switch Active Index": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Output": "{% $states.result.Payload %}",
+      "Arguments": {
+        "FunctionName": "arn:aws:lambda:eu-west-1:632683202044:function:inbo-vbp-biocache-index-management:$LATEST",
+        "Payload": {
+          "httpMethod": "POST",
+          "version": "2",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "isBase64Encoded": false,
+          "rawQueryString": "",
+          "rawPath": "/",
+          "routeKey": "/",
+          "originatesFromStepFunction": true,
+          "body": "{% $string({\n  'query': 'mutation SetActiveIndex($input: SetActiveIndexInput!) { setActiveIndex(input: $input) { indexId }}',\n'variables': {\n  'input': {\n    'indexId': $solrCollection\n  }\n}\n}) %}"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
       "End": true
     }
   },

@@ -4,6 +4,7 @@ import { IndexService } from "./core/index-service";
 export class SolrClient implements IndexService {
     private readonly solrBaseUrl: string;
     private readonly solrBiocacheSchemaConfig: string;
+    private readonly solrBiocacheActiveAlias: string;
     private readonly solrBiocacheNumberOfShards: number;
     private readonly solrBiocacheMaxShardsPerNode: number;
 
@@ -11,20 +12,24 @@ export class SolrClient implements IndexService {
         {
             solrBaseUrl,
             solrBiocacheSchemaConfig,
+            solrBiocacheActiveAlias,
             solrBiocacheNumberOfShards,
             solrBiocacheMaxShardsPerNode,
         }: {
             solrBaseUrl: string;
             solrBiocacheSchemaConfig: string;
+            solrBiocacheActiveAlias: string;
             solrBiocacheNumberOfShards: number;
             solrBiocacheMaxShardsPerNode: number;
         },
     ) {
         this.solrBaseUrl = solrBaseUrl;
         this.solrBiocacheSchemaConfig = solrBiocacheSchemaConfig;
+        this.solrBiocacheActiveAlias = solrBiocacheActiveAlias;
         this.solrBiocacheNumberOfShards = solrBiocacheNumberOfShards;
         this.solrBiocacheMaxShardsPerNode = solrBiocacheMaxShardsPerNode;
     }
+
     async getIndex(id: string): Promise<Index | null> {
         const response = await fetch(
             `${this.solrBaseUrl}/admin/collections?action=COLSTATUS&collection=${id}&coreInfo=true&segments=true&fieldInfo=true&sizeInfo=true&omitHeader=true`,
@@ -58,8 +63,8 @@ export class SolrClient implements IndexService {
         const response = await fetch(
             `${this.solrBaseUrl}/admin/collections?action=CREATE&name=${id}&collection.configName=${this.solrBiocacheSchemaConfig}&numShards=${this.solrBiocacheNumberOfShards}&maxShardsPerNode=${this.solrBiocacheMaxShardsPerNode}&omitHeader=true`,
         );
-        console.error(
-            "Create response: " +
+        console.debug(
+            "Create index response: " +
                 `${this.solrBaseUrl}/admin/collections?action=CREATE&name=${id}&collection.configName=${this.solrBiocacheSchemaConfig}&numShards=${this.solrBiocacheNumberOfShards}&maxShardsPerNode=${this.solrBiocacheMaxShardsPerNode}&omitHeader=true`,
         );
         if (response.ok) {
@@ -97,7 +102,7 @@ export class SolrClient implements IndexService {
         dataResourceId: string,
     ): Promise<void> {
         const response = await fetch(
-            `${this.solrBaseUrl}/collections/${indexId}/dataResourceOccurrences/${dataResourceId}`,
+            `${this.solrBaseUrl}/${indexId}/update/json?commit=true`,
             {
                 method: "POST",
                 headers: {
@@ -128,5 +133,61 @@ export class SolrClient implements IndexService {
         }
         const data = await response.json();
         return data.configSets;
+    }
+
+    async getActiveIndex(): Promise<Index | null> {
+        const response = await fetch(
+            `${this.solrBaseUrl}/admin/collections?action=LISTALIASES&omitHeader=true`,
+        );
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(
+                `Failed to get active index: ${response.statusText}\n${errorBody}`,
+            );
+        }
+        const data = await response.json();
+        console.debug("Get alias data:", data);
+        if (data.aliases?.[this.solrBiocacheActiveAlias]) {
+            return { id: data.aliases[this.solrBiocacheActiveAlias] };
+        } else {
+            return null;
+        }
+    }
+    async setActiveIndex(id: string): Promise<void> {
+        await this.deleteAlias(this.solrBiocacheActiveAlias);
+        await this.createAlias(this.solrBiocacheActiveAlias, [id]);
+    }
+
+    private async createAlias(
+        name: string,
+        collections: string[],
+    ): Promise<void> {
+        const response = await fetch(
+            `${this.solrBaseUrl}/admin/collections?action=CREATEALIAS&name=${name}&collections=${
+                collections.join(",")
+            }&omitHeader=true`,
+        );
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(
+                `Failed to create alias ${name} for collections ${
+                    collections.join(", ")
+                }: ${response.statusText}\n${errorBody}`,
+            );
+        }
+    }
+
+    private async deleteAlias(
+        name: string,
+    ): Promise<void> {
+        const response = await fetch(
+            `${this.solrBaseUrl}/admin/collections?action=DELETEALIAS&name=${name}&omitHeader=true`,
+        );
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(
+                `Failed to delete alias ${name}: ${response.statusText}\n${errorBody}`,
+            );
+        }
     }
 }

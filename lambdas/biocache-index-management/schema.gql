@@ -6,12 +6,15 @@ schema {
 type Query {
 	index(id: ID!): Index
 	indices: [Index!]!
+
+	activeIndex: Index
 }
 
 type Mutation {
-	getOrCreateIndex(input: GetOrCreateIndexInput!): GetOrCreateIndexOutput
-	deleteIndex(input: DeleteIndexInput!): DeleteIndexOutput
-	clearDataResourceFromIndex(input: clearDataResourceFromIndexInput!): clearDataResourceFromIndexOutput
+	getOrCreateIndex(input: GetOrCreateIndexInput!): GetOrCreateIndexOutput!
+	deleteIndex(input: DeleteIndexInput!): DeleteIndexOutput!
+	clearDataResourceFromIndex(input: ClearDataResourceFromIndexInput!): ClearDataResourceFromIndexOutput!
+	setActiveIndex(input: SetActiveIndexInput!): SetActiveIndexOutput!
 }
 
 type Index {
@@ -35,12 +38,20 @@ type DeleteIndexOutput {
 	indexId: ID!
 }
 
-input clearDataResourceFromIndexInput {
+input ClearDataResourceFromIndexInput {
 	indexId: ID!
 	dataResourceId: ID!
 }
 
-type clearDataResourceFromIndexOutput {
+type ClearDataResourceFromIndexOutput {
 	indexId: ID!
 	dataResourceId: ID!
+}
+
+input SetActiveIndexInput {
+	indexId: ID!
+}
+
+type SetActiveIndexOutput {
+	indexId: ID!
 }

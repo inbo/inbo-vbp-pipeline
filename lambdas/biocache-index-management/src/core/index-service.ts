@@ -9,6 +9,9 @@ export type IndexService = {
     createIndex(id: string): Promise<Index>;
     deleteIndex(id: string): Promise<void>;
 
+    getActiveIndex(): Promise<Index | null>;
+    setActiveIndex(id: string): Promise<void>;
+
     deleteDataResourceOccurrencesFromIndex(
         indexId: string,
         dataResourceId: string,

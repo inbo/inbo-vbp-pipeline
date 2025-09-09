@@ -43,6 +43,7 @@ describe("SolrClient", () => {
         solrClient = new SolrClient({
             solrBaseUrl: solrBaseUrl,
             solrBiocacheSchemaConfig: "_default",
+            solrBiocacheActiveAlias: "biocache",
             solrBiocacheNumberOfShards: 1,
             solrBiocacheMaxShardsPerNode: 1,
         });
@@ -81,5 +82,50 @@ describe("SolrClient", () => {
 
         // THEN
         await expect(solrClient.getIndex(indexName)).resolves.toBeNull();
+    });
+
+    test("should set and get active index", async () => {
+        const indexName = "activecollection";
+        await solrClient.createIndex(indexName);
+        await solrClient.setActiveIndex(indexName);
+        const active = await solrClient.getActiveIndex();
+        expect(active?.id).toBe(indexName);
+    });
+
+    test("should clear data resource from index", async () => {
+        const indexName = "clearcollection";
+        await solrClient.createIndex(indexName);
+        // Add a document with dataResourceUid
+        const doc = {
+            id: "doc1",
+            dataResourceUid: "resource1",
+        };
+        await fetch(
+            `${solrBaseUrl}/${indexName}/update/json?commit=true`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ add: { doc } }),
+            },
+        );
+        // Confirm document exists
+        let res = await fetch(
+            `${solrBaseUrl}/${indexName}/select?q=id:doc1&wt=json`,
+        );
+        let data = await res.json();
+        expect(data.response.numFound).toBe(1);
+
+        // Clear data resource
+        await solrClient.deleteDataResourceOccurrencesFromIndex(
+            indexName,
+            "resource1",
+        );
+
+        // Confirm document is deleted
+        res = await fetch(
+            `${solrBaseUrl}/${indexName}/select?q=id:doc1&wt=json`,
+        );
+        data = await res.json();
+        expect(data.response.numFound).toBe(0);
     });
 });

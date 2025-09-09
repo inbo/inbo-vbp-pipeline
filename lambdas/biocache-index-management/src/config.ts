@@ -5,7 +5,9 @@ function RequiredVar(name: string): never {
 export default {
     solrBaseUrl: process.env.SOLR_BASE_URL || RequiredVar("SOLR_BASE_URL"),
     solrBiocacheSchemaConfig: process.env.SOLR_BIOCACHE_SCHEMA_CONFIG ||
-        "_default",
+        "biocache",
+    solrBiocacheActiveAlias: process.env.SOLR_BIOCACHE_ACTIVE_ALIAS ||
+        "biocache",
     solrBiocacheNumberOfShards: parseInt(
         process.env.SOLR_BIOCACHE_NUMBER_OF_SHARDS ||
             "1",

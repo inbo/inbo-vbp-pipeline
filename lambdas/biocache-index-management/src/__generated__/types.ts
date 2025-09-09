@@ -16,6 +16,17 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
+export type ClearDataResourceFromIndexInput = {
+  dataResourceId: Scalars['ID']['input'];
+  indexId: Scalars['ID']['input'];
+};
+
+export type ClearDataResourceFromIndexOutput = {
+  __typename?: 'ClearDataResourceFromIndexOutput';
+  dataResourceId: Scalars['ID']['output'];
+  indexId: Scalars['ID']['output'];
+};
+
 export type DeleteIndexInput = {
   indexId: Scalars['ID']['input'];
 };
@@ -41,9 +52,10 @@ export type Index = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  clearDataResourceFromIndex?: Maybe<ClearDataResourceFromIndexOutput>;
-  deleteIndex?: Maybe<DeleteIndexOutput>;
-  getOrCreateIndex?: Maybe<GetOrCreateIndexOutput>;
+  clearDataResourceFromIndex: ClearDataResourceFromIndexOutput;
+  deleteIndex: DeleteIndexOutput;
+  getOrCreateIndex: GetOrCreateIndexOutput;
+  setActiveIndex: SetActiveIndexOutput;
 };
 
 
@@ -61,8 +73,14 @@ export type MutationGetOrCreateIndexArgs = {
   input: GetOrCreateIndexInput;
 };
 
+
+export type MutationSetActiveIndexArgs = {
+  input: SetActiveIndexInput;
+};
+
 export type Query = {
   __typename?: 'Query';
+  activeIndex?: Maybe<Index>;
   index?: Maybe<Index>;
   indices: Array<Index>;
 };
@@ -72,14 +90,12 @@ export type QueryIndexArgs = {
   id: Scalars['ID']['input'];
 };
 
-export type ClearDataResourceFromIndexInput = {
-  dataResourceId: Scalars['ID']['input'];
+export type SetActiveIndexInput = {
   indexId: Scalars['ID']['input'];
 };
 
-export type ClearDataResourceFromIndexOutput = {
-  __typename?: 'clearDataResourceFromIndexOutput';
-  dataResourceId: Scalars['ID']['output'];
+export type SetActiveIndexOutput = {
+  __typename?: 'SetActiveIndexOutput';
   indexId: Scalars['ID']['output'];
 };
 
@@ -155,6 +171,8 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
+  ClearDataResourceFromIndexInput: ClearDataResourceFromIndexInput;
+  ClearDataResourceFromIndexOutput: ResolverTypeWrapper<ClearDataResourceFromIndexOutput>;
   DeleteIndexInput: DeleteIndexInput;
   DeleteIndexOutput: ResolverTypeWrapper<DeleteIndexOutput>;
   GetOrCreateIndexInput: GetOrCreateIndexInput;
@@ -163,14 +181,16 @@ export type ResolversTypes = {
   Index: ResolverTypeWrapper<Index>;
   Mutation: ResolverTypeWrapper<{}>;
   Query: ResolverTypeWrapper<{}>;
+  SetActiveIndexInput: SetActiveIndexInput;
+  SetActiveIndexOutput: ResolverTypeWrapper<SetActiveIndexOutput>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
-  clearDataResourceFromIndexInput: ClearDataResourceFromIndexInput;
-  clearDataResourceFromIndexOutput: ResolverTypeWrapper<ClearDataResourceFromIndexOutput>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
+  ClearDataResourceFromIndexInput: ClearDataResourceFromIndexInput;
+  ClearDataResourceFromIndexOutput: ClearDataResourceFromIndexOutput;
   DeleteIndexInput: DeleteIndexInput;
   DeleteIndexOutput: DeleteIndexOutput;
   GetOrCreateIndexInput: GetOrCreateIndexInput;
@@ -179,9 +199,15 @@ export type ResolversParentTypes = {
   Index: Index;
   Mutation: {};
   Query: {};
+  SetActiveIndexInput: SetActiveIndexInput;
+  SetActiveIndexOutput: SetActiveIndexOutput;
   String: Scalars['String']['output'];
-  clearDataResourceFromIndexInput: ClearDataResourceFromIndexInput;
-  clearDataResourceFromIndexOutput: ClearDataResourceFromIndexOutput;
+};
+
+export type ClearDataResourceFromIndexOutputResolvers<ContextType = any, ParentType extends ResolversParentTypes['ClearDataResourceFromIndexOutput'] = ResolversParentTypes['ClearDataResourceFromIndexOutput']> = {
+  dataResourceId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  indexId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type DeleteIndexOutputResolvers<ContextType = any, ParentType extends ResolversParentTypes['DeleteIndexOutput'] = ResolversParentTypes['DeleteIndexOutput']> = {
@@ -200,28 +226,30 @@ export type IndexResolvers<ContextType = any, ParentType extends ResolversParent
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
-  clearDataResourceFromIndex?: Resolver<Maybe<ResolversTypes['clearDataResourceFromIndexOutput']>, ParentType, ContextType, RequireFields<MutationClearDataResourceFromIndexArgs, 'input'>>;
-  deleteIndex?: Resolver<Maybe<ResolversTypes['DeleteIndexOutput']>, ParentType, ContextType, RequireFields<MutationDeleteIndexArgs, 'input'>>;
-  getOrCreateIndex?: Resolver<Maybe<ResolversTypes['GetOrCreateIndexOutput']>, ParentType, ContextType, RequireFields<MutationGetOrCreateIndexArgs, 'input'>>;
+  clearDataResourceFromIndex?: Resolver<ResolversTypes['ClearDataResourceFromIndexOutput'], ParentType, ContextType, RequireFields<MutationClearDataResourceFromIndexArgs, 'input'>>;
+  deleteIndex?: Resolver<ResolversTypes['DeleteIndexOutput'], ParentType, ContextType, RequireFields<MutationDeleteIndexArgs, 'input'>>;
+  getOrCreateIndex?: Resolver<ResolversTypes['GetOrCreateIndexOutput'], ParentType, ContextType, RequireFields<MutationGetOrCreateIndexArgs, 'input'>>;
+  setActiveIndex?: Resolver<ResolversTypes['SetActiveIndexOutput'], ParentType, ContextType, RequireFields<MutationSetActiveIndexArgs, 'input'>>;
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+  activeIndex?: Resolver<Maybe<ResolversTypes['Index']>, ParentType, ContextType>;
   index?: Resolver<Maybe<ResolversTypes['Index']>, ParentType, ContextType, RequireFields<QueryIndexArgs, 'id'>>;
   indices?: Resolver<Array<ResolversTypes['Index']>, ParentType, ContextType>;
 };
 
-export type ClearDataResourceFromIndexOutputResolvers<ContextType = any, ParentType extends ResolversParentTypes['clearDataResourceFromIndexOutput'] = ResolversParentTypes['clearDataResourceFromIndexOutput']> = {
-  dataResourceId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+export type SetActiveIndexOutputResolvers<ContextType = any, ParentType extends ResolversParentTypes['SetActiveIndexOutput'] = ResolversParentTypes['SetActiveIndexOutput']> = {
   indexId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type Resolvers<ContextType = any> = {
+  ClearDataResourceFromIndexOutput?: ClearDataResourceFromIndexOutputResolvers<ContextType>;
   DeleteIndexOutput?: DeleteIndexOutputResolvers<ContextType>;
   GetOrCreateIndexOutput?: GetOrCreateIndexOutputResolvers<ContextType>;
   Index?: IndexResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
-  clearDataResourceFromIndexOutput?: ClearDataResourceFromIndexOutputResolvers<ContextType>;
+  SetActiveIndexOutput?: SetActiveIndexOutputResolvers<ContextType>;
 };
 
