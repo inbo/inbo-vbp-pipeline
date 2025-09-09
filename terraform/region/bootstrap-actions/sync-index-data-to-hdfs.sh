@@ -8,5 +8,6 @@ ls -la /data/pipelines-all-datasets
 ls -la /data/pipelines-all-datasets/index-record
 
 hdfs dfs -put -p -f "/data/pipelines-data/${DATA_RESOURCE_ID}" "hdfs:///"
+hdfs dfs -mkdir -p "hdfs:///pipelines-all-datasets/index-record" || true
 hdfs dfs -put -p -f /data/pipelines-all-datasets/index-record/${DATA_RESOURCE_ID} "hdfs:///pipelines-all-datasets/index-record"
 hdfs dfs -ls -R "hdfs:///"
