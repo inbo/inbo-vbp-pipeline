@@ -184,7 +184,7 @@
         }
       },
       "Next": "Is Big or Small?",
-      "Output": "$number($states.result.Item.FileSize.N)"
+      "Output": "{% $number($states.result.Item.FileSize.N) %}"
     },
     "Is Big or Small?": {
       "Type": "Choice",
