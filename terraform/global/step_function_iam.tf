@@ -116,6 +116,7 @@ data "aws_iam_policy_document" "pipeline" {
 
     #tfsec:ignore:aws-iam-no-policy-wildcards
     resources = [
+      "arn:aws:batch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:job-definition/delete-data-resource-data:*",
       "arn:aws:batch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:job-definition/download-data-resources:*",
       "arn:aws:batch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:job-definition/dwca-to-index:*",
       "arn:aws:batch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:job-definition/index-to-solr:*",

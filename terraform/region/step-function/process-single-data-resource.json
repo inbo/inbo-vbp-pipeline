@@ -69,7 +69,7 @@
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:deleteItem",
       "Arguments": {
-        "TableName": "MyDynamoDBTable",
+        "TableName": "{% $config.dynamodb_table_name %}",
         "Key": {
           "PK": {
             "S": "{% 'DataResource#' & $dataResourceId %}"
