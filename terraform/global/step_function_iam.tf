@@ -38,7 +38,7 @@ data "aws_iam_policy_document" "pipeline" {
     condition {
       test     = "StringLike"
       variable = "states:HTTPEndpoint"
-      values = ["https://${var.base_domain}/collectory*", "http://solr.vbp.internal:8983/solr*"]
+      values = ["https://${var.base_domain}/*", "http://solr.vbp.internal:8983/solr*"]
     }
   }
 
