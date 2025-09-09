@@ -12,6 +12,7 @@ locals {
     process_data_resource_job_definition_arn      = aws_batch_job_definition.la_pipelines.arn
     sample_data_resource_job_definition_arn       = aws_batch_job_definition.spatial_sampling.arn
     index_to_solr_job_definition_arn              = aws_batch_job_definition.index_to_solr.arn
+    delete_data_resource_data_job_definition_arn  = aws_batch_job_definition.delete_data_resource_data.arn
     process_single_dataresource_state_machine_arn = aws_sfn_state_machine.process_single_data_resource.arn
     process_large_dataresource_state_machine_arn  = aws_sfn_state_machine.process_large_data_resource.arn
     get_or_create_emr_cluster_state_machine_arn   = aws_sfn_state_machine.get_or_create_emr_cluster.arn

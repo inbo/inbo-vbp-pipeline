@@ -15,12 +15,12 @@
         "config": "{% $parse($states.result.Body) %}"
       }
     },
-    "Choice": {
+    "Has a download URL": {
       "Type": "Choice",
       "Choices": [
         {
           "Condition": "{% $exists($states.input.ResponseBody.connectionParameters.url) %}",
-          "Next": "Download Data Resource",
+          "Next": "Should Cleanup Old Pipeline Data",
           "Assign": {
             "dataResourceUrl": "{% $states.input.ResponseBody.connectionParameters.url %}"
           }
@@ -49,10 +49,99 @@
           "JitterStrategy": "FULL"
         }
       ],
-      "Next": "Choice",
+      "Next": "Has a download URL",
       "Assign": {
-        "dataResources": "{% $states.result.ResponseBody.uid %}"
+        "dataResourceId": "{% $states.result.ResponseBody.uid %}",
+        "lastUpdated": "{% $states.result.ResponseBody.lastUpdated %}"
       }
+    },
+    "Should Cleanup Old Pipeline Data": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "DynamoDB DeleteItem",
+          "Condition": "{% $exists($states.context.Execution.Input.shouldCleanupOldPipelineData) and $states.context.Execution.Input.shouldCleanupOldPipelineData %}"
+        }
+      ],
+      "Default": "Get Processing History"
+    },
+    "DynamoDB DeleteItem": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:deleteItem",
+      "Arguments": {
+        "TableName": "MyDynamoDBTable",
+        "Key": {
+          "PK": {
+            "S": "{% 'DataResource|' & $dataResourceId %}"
+          },
+          "SK": {
+            "S": "{% 'ProcessingState|' & $lastUpdated %}"
+          }
+        }
+      },
+      "Next": "Cleanup Old Pipeline Data"
+    },
+    "Cleanup Old Pipeline Data": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::batch:submitJob.sync",
+      "Arguments": {
+        "JobDefinition": "{% $config.delete_data_resource_data_job_definition_arn %}",
+        "JobName": "{% 'delete-data-' & $dataResourceId %}",
+        "JobQueue": "{% $config.job_queue_arn %}",
+        "ContainerOverrides": {
+          "Environment": [
+            {
+              "Name": "DATA_RESOURCE_ID",
+              "Value": "{% $dataResourceId %}"
+            }
+          ]
+        }
+      },
+      "Next": "Download Data Resource"
+    },
+    "Get Processing History": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:getItem",
+      "Arguments": {
+        "TableName": "{% $config.dynamodb_table_name %}",
+        "Key": {
+          "PK": {
+            "S": "{% 'DataResource|' & $dataResourceId %}"
+          },
+          "SK": {
+            "S": "{% 'ProcessingState|' & $lastUpdated %}"
+          }
+        }
+      },
+      "Next": "Can Skip Processing?",
+      "Output": "{% $exists($states.result.Item) ? $states.result.Item : {\n\n} %}"
+    },
+    "Can Skip Processing?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "Do Nothing",
+          "Condition": "{% $exists($states.input.SolrCollections.SS) and $contains($states.input.SolrCollections.SS, $states.context.Execution.Input.solrCollection ) %}"
+        },
+        {
+          "Next": "Parallel",
+          "Condition": "{% $exists($states.input.lastSampled.S) %}"
+        },
+        {
+          "Next": "Get or create EMR Cluster",
+          "Condition": "{% $exists($states.input.LastIndexed.S) %}"
+        },
+        {
+          "Next": "Is Big or Small?",
+          "Condition": "{% $exists($states.input.FileSize.N) %}",
+          "Output": "{% $states.input.FileSize.N %}"
+        }
+      ],
+      "Default": "Download Data Resource"
+    },
+    "Do Nothing": {
+      "Type": "Pass",
+      "End": true
     },
     "Download Data Resource": {
       "Type": "Task",
@@ -70,13 +159,17 @@
             {
               "Name": "DATA_RESOURCE_URL",
               "Value": "{% $dataResourceUrl %}"
+            },
+            {
+              "Name": "DATA_RESOURCE_LAST_UPDATED",
+              "Value": "{% $lastUpdated %}"
             }
           ]
         }
       },
-      "Next": "Get Processing History"
+      "Next": "Get Download File Size"
     },
-    "Get Processing History": {
+    "Get Download File Size": {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:getItem",
       "Arguments": {
@@ -86,27 +179,19 @@
             "S": "{% 'DataResource|' & $dataResourceId %}"
           },
           "SK": {
-            "S": "DataResource"
+            "S": "{% 'ProcessingState|' & $lastUpdated %}"
           }
         }
       },
-      "Next": "Check Processing history and file size",
-      "Assign": {
-        "fileSize": "{% $number($states.result.Item.FileSize.N) %}",
-        "fileHash": "{% $states.result.Item.FileHash.S %}",
-        "lastSuccessHash": "{% $states.result.Item.LastSuccessHash.S %}"
-      }
+      "Next": "Is Big or Small?",
+      "Output": "$number($states.result.Item.FileSize.N)"
     },
-    "Check Processing history and file size": {
+    "Is Big or Small?": {
       "Type": "Choice",
       "Choices": [
         {
-          "Next": "Get or create EMR Cluster",
-          "Condition": "{% $fileHash = $lastSuccessHash %}"
-        },
-        {
           "Next": "Process Large Dataresource",
-          "Condition": "{% $fileSize > $config.dataresource_size_threshold %}"
+          "Condition": "{% $states.input > $config.dataresource_size_threshold %}"
         }
       ],
       "Default": "Process Small Data Resource"
@@ -122,7 +207,7 @@
           "rootPipelineId": "{% $states.context.Execution.Input.rootPipelineId %}"
         }
       },
-      "Next": "Update Success"
+      "Next": "Update Index Success"
     },
     "Process Small Data Resource": {
       "Type": "Task",
@@ -140,9 +225,9 @@
           ]
         }
       },
-      "Next": "Update Success"
+      "Next": "Update Index Success"
     },
-    "Update Success": {
+    "Update Index Success": {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Arguments": {
@@ -152,16 +237,13 @@
             "S": "{% 'DataResource|' & $dataResourceId %}"
           },
           "SK": {
-            "S": "DataResource"
+            "S": "{% 'ProcessingState|' & $lastUpdated %}"
           }
         },
-        "UpdateExpression": "SET LastSuccessTimestamp = :timestamp, LastSuccessHash = :hash",
+        "UpdateExpression": "SET LastIndexed = :timestamp",
         "ExpressionAttributeValues": {
           ":timestamp": {
             "S": "{% $now() %}"
-          },
-          ":hash": {
-            "S": "{% $fileHash %}"
           }
         }
       },
@@ -281,13 +363,57 @@
                   }
                 }
               },
+              "Next": "Update Sampling Success"
+            },
+            "Update Sampling Success": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::dynamodb:updateItem",
+              "Arguments": {
+                "TableName": "{% $config.dynamodb_table_name %}",
+                "Key": {
+                  "PK": {
+                    "S": "{% 'DataResource|' & $dataResourceId %}"
+                  },
+                  "SK": {
+                    "S": "{% 'ProcessingState|' & $lastUpdated %}"
+                  }
+                },
+                "UpdateExpression": "SET LastSampled = :timestamp",
+                "ExpressionAttributeValues": {
+                  ":timestamp": {
+                    "S": "{% $now() %}"
+                  }
+                }
+              },
               "End": true
             }
           }
         },
         {
-          "StartAt": "Clear Old Records",
+          "StartAt": "Remove Solr Success",
           "States": {
+            "Remove Solr Success": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::dynamodb:updateItem",
+              "Arguments": {
+                "TableName": "{% $config.dynamodb_table_name %}",
+                "Key": {
+                  "PK": {
+                    "S": "{% 'DataResource|' & $dataResourceId %}"
+                  },
+                  "SK": {
+                    "S": "{% 'ProcessingState|' & $lastUpdated %}"
+                  }
+                },
+                "UpdateExpression": "DELETE SolrCollections :collection",
+                "ExpressionAttributeValues": {
+                  ":collection": {
+                    "S": "{% $states.context.Execution.Input.solrCollection %}"
+                  }
+                }
+              },
+              "Next": "Clear Old Records"
+            },
             "Clear Old Records": {
               "Type": "Task",
               "Resource": "arn:aws:states:::lambda:invoke",
@@ -347,6 +473,28 @@
                       "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
                       "{% '--solrCollection=' & $states.context.Execution.Input.solrCollection %}"
                     ]
+                  }
+                }
+              },
+              "Next": "Update Solr Success"
+            },
+            "Update Solr Success": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::dynamodb:updateItem",
+              "Arguments": {
+                "TableName": "{% $config.dynamodb_table_name %}",
+                "Key": {
+                  "PK": {
+                    "S": "{% 'DataResource|' & $dataResourceId %}"
+                  },
+                  "SK": {
+                    "S": "{% 'ProcessingState|' & $lastUpdated %}"
+                  }
+                },
+                "UpdateExpression": "ADD SolrCollections = :collection",
+                "ExpressionAttributeValues": {
+                  ":collection": {
+                    "S": "{% $states.context.Execution.Input.solrCollection %}"
                   }
                 }
               },

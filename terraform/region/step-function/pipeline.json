@@ -31,7 +31,7 @@
           "rawPath": "/",
           "routeKey": "/",
           "originatesFromStepFunction": true,
-          "body": "{% $string({\n  'query': 'mutation GetOrCreate($input: GetOrCreateIndexInput!) { getOrCreateIndex(input: $input) { indexId }}',\n'variables': {\n  'input': {\n    'indexId': 'biocache-' & $now('[Y01][M01][D01]')\n  }\n}\n}) %}"
+          "body": "{% $string({\n  'query': 'mutation GetOrCreate($input: GetOrCreateIndexInput!) { getOrCreateIndex(input: $input) { indexId }}',\n'variables': {\n  'input': {\n    'indexId': $exists($states.context.Execution.Input.solrCollection) ? $states.context.Execution.Input.solrCollection : 'biocache-' & $now('[Y0001][M01][D01]')\n  }\n}\n}) %}"
         }
       },
       "Retry": [
@@ -112,19 +112,15 @@
                 "solrCollection": "{% $solrCollection %}"
               }
             },
+            "End": true,
             "Catch": [
               {
                 "ErrorEquals": [
-                  "States.ALL"
+                  "States.TaskFailed"
                 ],
-                "Next": "Ignore Individual Failure",
-                "Output": {},
-                "Assign": {
-                  "errored": "{% $append($errored, [$states.input]) %}"
-                }
+                "Next": "Ignore Individual Failure"
               }
-            ],
-            "End": true
+            ]
           },
           "Ignore Individual Failure": {
             "Type": "Pass",
@@ -145,20 +141,6 @@
           "rootPipelineId": "{% $states.context.Execution.Id %}"
         }
       },
-      "Next": "Choice"
-    },
-    "Choice": {
-      "Type": "Choice",
-      "Choices": [
-        {
-          "Next": "Switch Active Index",
-          "Condition": "{% $length($errored) = 0 %}"
-        }
-      ],
-      "Default": "Pass"
-    },
-    "Pass": {
-      "Type": "Pass",
       "Next": "Switch Active Index"
     },
     "Switch Active Index": {
