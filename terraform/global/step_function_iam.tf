@@ -185,7 +185,7 @@ data "aws_iam_policy_document" "pipeline" {
       "lambda:InvokeFunction",
     ]
     resources = [
-      "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:inbo-${var.application}-biocache-index-management",
+      "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:inbo-${var.application}-biocache-index-management:*",
     ]
   }
 
