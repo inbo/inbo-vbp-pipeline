@@ -22,12 +22,6 @@ resource "aws_dynamodb_table" "biodiversiteitsportaal_pipelines" {
     enabled        = true
   }
 
-  local_secondary_index {
-    name            = "FileHash-Index"
-    projection_type = "ALL"
-    range_key       = "FileHash"
-  }
-
   server_side_encryption {
     enabled     = true
     kms_key_arn = var.dynamodb_kms_key_arn
