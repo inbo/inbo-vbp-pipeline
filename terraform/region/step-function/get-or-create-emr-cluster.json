@@ -79,7 +79,7 @@
       "Choices": [
         {
           "Next": "Return ClusterId",
-          "Condition": "{% $exists($states.input.Item.ClusterId.S) and $states.input.Item.ClusterId.S != \"Locked\" %}",
+          "Condition": "{% $exists($states.input.Item.ClusterId.S) and $states.input.Item.ClusterId.S != \"LOCKED\" %}",
           "Assign": {
             "clusterId": "{% $states.input.Item.ClusterId.S %}"
           }
