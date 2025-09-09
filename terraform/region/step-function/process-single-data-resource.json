@@ -121,11 +121,11 @@
       "Choices": [
         {
           "Next": "Do Nothing",
-          "Condition": "{% $exists($states.input.SolrCollections.SS) and $contains($states.input.SolrCollections.SS, $states.context.Execution.Input.solrCollection ) %}"
+          "Condition": "{% $exists($states.input.SolrCollections.SS) and $states.context.Execution.Input.solrCollection in $states.input.SolrCollections.SS %}"
         },
         {
-          "Next": "Parallel",
-          "Condition": "{% $exists($states.input.lastSampled.S) %}"
+          "Next": "Get or create EMR Cluster 2",
+          "Condition": "{% $exists($states.input.LastSampled.S) %}"
         },
         {
           "Next": "Get or create EMR Cluster",
@@ -138,6 +138,24 @@
         }
       ],
       "Default": "Download Data Resource"
+    },
+    "Get or create EMR Cluster 2": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::states:startExecution.sync:2",
+      "Arguments": {
+        "StateMachineArn": "{% $config.get_or_create_emr_cluster_state_machine_arn %}",
+        "Input": {
+          "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
+          "rootPipelineId": "{% $exists($states.context.Execution.Input.rootPipelineId) ? $states.context.Execution.Input.rootPipelineId : $states.context.Execution.Id %}"
+        }
+      },
+      "Assign": {
+        "clusterId": "{% $states.result.Output.clusterId %}"
+      },
+      "Next": "Parallel",
+      "Output": {
+        "skipSamplingSync": true
+      }
     },
     "Do Nothing": {
       "Type": "Pass",
@@ -204,7 +222,7 @@
         "Input": {
           "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
           "dataResourceId": "{% $dataResourceId %}",
-          "rootPipelineId": "{% $states.context.Execution.Input.rootPipelineId %}"
+          "rootPipelineId": "{% $exists($states.context.Execution.Input.rootPipelineId) ? $states.context.Execution.Input.rootPipelineId : $states.context.Execution.Id %}"
         }
       },
       "Next": "Update Index Success"
@@ -256,7 +274,7 @@
         "StateMachineArn": "{% $config.get_or_create_emr_cluster_state_machine_arn %}",
         "Input": {
           "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
-          "rootPipelineId": "{% $states.context.Execution.Input.rootPipelineId %}"
+          "rootPipelineId": "{% $exists($states.context.Execution.Input.rootPipelineId) ? $states.context.Execution.Input.rootPipelineId : $states.context.Execution.Id %}"
         }
       },
       "Assign": {
@@ -338,14 +356,31 @@
           }
         }
       },
-      "Next": "Parallel"
+      "Next": "Parallel",
+      "Output": {
+        "skipSamplingSync": false
+      }
     },
     "Parallel": {
       "Type": "Parallel",
       "Branches": [
         {
-          "StartAt": "Sync Indexed and Sampled EFS Data to HDFS",
+          "StartAt": "Can Skip Syncing Sampling Data",
           "States": {
+            "Can Skip Syncing Sampling Data": {
+              "Type": "Choice",
+              "Choices": [
+                {
+                  "Next": "Do Nothing 2",
+                  "Condition": "{% $boolean($states.input.skipSamplingSync) %}"
+                }
+              ],
+              "Default": "Sync Indexed and Sampled EFS Data to HDFS"
+            },
+            "Do Nothing 2": {
+              "Type": "Pass",
+              "End": true
+            },
             "Sync Indexed and Sampled EFS Data to HDFS": {
               "Type": "Task",
               "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
@@ -408,7 +443,9 @@
                 "UpdateExpression": "DELETE SolrCollections :collection",
                 "ExpressionAttributeValues": {
                   ":collection": {
-                    "S": "{% $states.context.Execution.Input.solrCollection %}"
+                    "SS": [
+                      "{% $states.context.Execution.Input.solrCollection %}"
+                    ]
                   }
                 }
               },
@@ -491,10 +528,12 @@
                     "S": "{% 'ProcessingState#' & $lastUpdated %}"
                   }
                 },
-                "UpdateExpression": "ADD SolrCollections = :collection",
+                "UpdateExpression": "ADD SolrCollections :collection",
                 "ExpressionAttributeValues": {
                   ":collection": {
-                    "S": "{% $states.context.Execution.Input.solrCollection %}"
+                    "SS": [
+                      "{% $states.context.Execution.Input.solrCollection %}"
+                    ]
                   }
                 }
               },

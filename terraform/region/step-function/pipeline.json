@@ -177,6 +177,29 @@
           "JitterStrategy": "FULL"
         }
       ],
+      "Next": "Sync Occurrence Record Assertions"
+    },
+    "Sync Occurrence Record Assertions": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::http:invoke",
+      "Arguments": {
+        "ApiEndpoint": "{% 'https://' & $config.base_domain & '/biocache-service/sync' %}",
+        "Method": "GET",
+        "Authentication": {
+          "ConnectionArn": "{% $config.collectory_authenticated_connection_arn %}"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "BackoffRate": 2,
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "JitterStrategy": "FULL"
+        }
+      ],
       "End": true
     }
   },
