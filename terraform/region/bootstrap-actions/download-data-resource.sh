@@ -27,7 +27,7 @@ FILE_HASH=$(md5sum "${OUTPUT_LOCATION}" | cut -d ' ' -f 1)
 echo "Finished downloading ${DATA_RESOURCE_ID} with size of ${FILE_SIZE} and hash ${FILE_HASH}"
 
 aws dynamodb update-item --table-name "${DYNAMODB_FILE_HISTORY_TABLE}" \
-  --key '{"PK": {"S": "'DataResource\|$DATA_RESOURCE_ID'"},"SK": {"S": "'ProcessingState\$DATA_RESOURCE_LAST_UPDATED'"}}' \
+  --key '{"PK": {"S": "'DataResource#$DATA_RESOURCE_ID'"},"SK": {"S": "'ProcessingState#$DATA_RESOURCE_LAST_UPDATED'"}}' \
   --update-expression 'SET FileSize = :size, FileHash = :hash' \
   --expression-attribute-values '{
     ":size": {"N": "'${FILE_SIZE}'"},

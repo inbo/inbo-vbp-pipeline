@@ -72,10 +72,10 @@
         "TableName": "MyDynamoDBTable",
         "Key": {
           "PK": {
-            "S": "{% 'DataResource|' & $dataResourceId %}"
+            "S": "{% 'DataResource#' & $dataResourceId %}"
           },
           "SK": {
-            "S": "{% 'ProcessingState|' & $lastUpdated %}"
+            "S": "{% 'ProcessingState#' & $lastUpdated %}"
           }
         }
       },
@@ -106,10 +106,10 @@
         "TableName": "{% $config.dynamodb_table_name %}",
         "Key": {
           "PK": {
-            "S": "{% 'DataResource|' & $dataResourceId %}"
+            "S": "{% 'DataResource#' & $dataResourceId %}"
           },
           "SK": {
-            "S": "{% 'ProcessingState|' & $lastUpdated %}"
+            "S": "{% 'ProcessingState#' & $lastUpdated %}"
           }
         }
       },
@@ -176,10 +176,10 @@
         "TableName": "{% $config.dynamodb_table_name %}",
         "Key": {
           "PK": {
-            "S": "{% 'DataResource|' & $dataResourceId %}"
+            "S": "{% 'DataResource#' & $dataResourceId %}"
           },
           "SK": {
-            "S": "{% 'ProcessingState|' & $lastUpdated %}"
+            "S": "{% 'ProcessingState#' & $lastUpdated %}"
           }
         }
       },
@@ -234,10 +234,10 @@
         "TableName": "{% $config.dynamodb_table_name %}",
         "Key": {
           "PK": {
-            "S": "{% 'DataResource|' & $dataResourceId %}"
+            "S": "{% 'DataResource#' & $dataResourceId %}"
           },
           "SK": {
-            "S": "{% 'ProcessingState|' & $lastUpdated %}"
+            "S": "{% 'ProcessingState#' & $lastUpdated %}"
           }
         },
         "UpdateExpression": "SET LastIndexed = :timestamp",
@@ -372,10 +372,10 @@
                 "TableName": "{% $config.dynamodb_table_name %}",
                 "Key": {
                   "PK": {
-                    "S": "{% 'DataResource|' & $dataResourceId %}"
+                    "S": "{% 'DataResource#' & $dataResourceId %}"
                   },
                   "SK": {
-                    "S": "{% 'ProcessingState|' & $lastUpdated %}"
+                    "S": "{% 'ProcessingState#' & $lastUpdated %}"
                   }
                 },
                 "UpdateExpression": "SET LastSampled = :timestamp",
@@ -399,10 +399,10 @@
                 "TableName": "{% $config.dynamodb_table_name %}",
                 "Key": {
                   "PK": {
-                    "S": "{% 'DataResource|' & $dataResourceId %}"
+                    "S": "{% 'DataResource#' & $dataResourceId %}"
                   },
                   "SK": {
-                    "S": "{% 'ProcessingState|' & $lastUpdated %}"
+                    "S": "{% 'ProcessingState#' & $lastUpdated %}"
                   }
                 },
                 "UpdateExpression": "DELETE SolrCollections :collection",
@@ -485,10 +485,10 @@
                 "TableName": "{% $config.dynamodb_table_name %}",
                 "Key": {
                   "PK": {
-                    "S": "{% 'DataResource|' & $dataResourceId %}"
+                    "S": "{% 'DataResource#' & $dataResourceId %}"
                   },
                   "SK": {
-                    "S": "{% 'ProcessingState|' & $lastUpdated %}"
+                    "S": "{% 'ProcessingState#' & $lastUpdated %}"
                   }
                 },
                 "UpdateExpression": "ADD SolrCollections = :collection",
