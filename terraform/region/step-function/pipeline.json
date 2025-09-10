@@ -109,7 +109,9 @@
                 "dataResourceId": "{% $states.input %}",
                 "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
                 "rootPipelineId": "{% $states.context.Execution.Id %}",
-                "solrCollection": "{% $solrCollection %}"
+                "solrCollection": "{% $solrCollection %}",
+                "shouldCleanupOldPipelineData": "{% $exists($states.context.Execution.Input.shouldCleanupOldPipelineData)? $states.context.Execution.Input.shouldCleanupOldPipelineData : false %}",
+                "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}"
               }
             },
             "End": true,

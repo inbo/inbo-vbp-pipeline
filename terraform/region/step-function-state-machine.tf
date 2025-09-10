@@ -25,7 +25,7 @@ locals {
     master_ec2_instance_type                      = "m7g.2xlarge"
     worker_ec2_instance_type                      = "m7g.4xlarge"
     number_of_cluster_workers                     = 2
-    idle_timout_termination_seconds               = 8 * 60 * 60
+    idle_timout_termination_seconds               = 1 * 60 * 60
     emr_tags                                      = [
       for key, value in merge(data.aws_default_tags.current.tags, {
         for-use-with-amazon-emr-managed-policies = "true"
