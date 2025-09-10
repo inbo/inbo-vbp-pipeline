@@ -134,7 +134,9 @@
         {
           "Next": "Is Big or Small?",
           "Condition": "{% $exists($states.input.FileSize.N) %}",
-          "Output": "{% $states.input.FileSize.N %}"
+          "Output": {
+            "fileSize": "{% $number( $states.input.FileSize.N) %}"
+          }
         }
       ],
       "Default": "Download Data Resource"
@@ -185,9 +187,9 @@
           ]
         }
       },
-      "Next": "Get Download File Size"
+      "Next": "Get Download File Size and Hash"
     },
-    "Get Download File Size": {
+    "Get Download File Size and Hash": {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:getItem",
       "Arguments": {
@@ -201,8 +203,69 @@
           }
         }
       },
-      "Next": "Is Big or Small?",
-      "Output": "{% $number($states.result.Item.FileSize.N) %}"
+      "Next": "Store File Hash Reference",
+      "Assign": {
+        "fileSize": "{% $number($states.result.Item.FileSize.N) %}",
+        "fileHash": "{% $states.result.Item.FileHash.S %}"
+      }
+    },
+    "Store File Hash Reference": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:putItem",
+      "Arguments": {
+        "TableName": "{% $config.dynamodb_table_name %}",
+        "Item": {
+          "PK": {
+            "S": "{% 'DataResource#' & $dataResourceId %}"
+          },
+          "SK": {
+            "S": "{% 'ProcessingState#' & $fileHash %}"
+          },
+          "LastUpdated": "{% $lastUpdated %}"
+        },
+        "ReturnValues": "ALL_OLD"
+      },
+      "Next": "Still has the same File Hash?",
+      "Output": "{% $states.result.Attributes %}"
+    },
+    "Still has the same File Hash?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "Copy Previous File Hash Processing State",
+          "Condition": "{% $exists($states.input.LastUpdated.S) %}",
+          "Output": "{% $fileSize %}"
+        }
+      ],
+      "Default": "Is Big or Small?"
+    },
+    "Copy Previous File Hash Processing State": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Arguments": {
+        "TableName": "{% $config.dynamodb_table_name %}",
+        "Key": {
+          "PK": {
+            "S": "{% 'DataResource#' & $dataResourceId %}"
+          },
+          "SK": {
+            "S": "{% 'ProcessingState#' & $lastUpdated %}"
+          }
+        },
+        "UpdateExpression": "SET LastIndexed = :lastIndexed, LastSampled = :lastSampled, SolrCollections = :solrCollections",
+        "ExpressionAttributeValues": {
+          ":lastIndexed": {
+            "S": "{% $states.input.LastUpdated.S %}"
+          },
+          ":lastSampled": {
+            "S": "{% $states.input.LastSampled.S %}"
+          },
+          ":solrCollections": {
+            "SS": "{% $states.input.SolrCollections.SS %}"
+          }
+        }
+      },
+      "Next": "Can Skip Processing?"
     },
     "Is Big or Small?": {
       "Type": "Choice",
