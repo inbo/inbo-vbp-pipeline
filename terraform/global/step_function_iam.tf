@@ -176,8 +176,8 @@ data "aws_iam_policy_document" "pipeline" {
       "s3:GetObject"
     ]
     resources = [
-      "arn:aws:s3:::inbo-${var.application}-pipelines",
-      "arn:aws:s3:::inbo-${var.application}-pipelines/*"
+      "arn:aws:s3:::inbo-${var.application}-${var.aws_env}-pipelines",
+      "arn:aws:s3:::inbo-${var.application}-${var.aws_env}-pipelines/*"
     ]
   }
 
