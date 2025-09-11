@@ -295,18 +295,18 @@
                     },
                     {
                       "Name": "ROOT_PIPELINE_ID",
-                      "Value": "{% rootPipelineId %}"
+                      "Value": "{% $rootPipelineId %}"
                     },
                     {
                       "Name": "EXECUTION_PIPELINE_ID",
-                      "Value": "{% states.context.Execution.Id %}"
+                      "Value": "{% $states.context.Execution.Id %}"
                     }
                   ]
                 }
               },
               "Next": "Get Download File Size and Hash",
-              "Assign": {
-                "downloadedTimeStamp": "{% $states.result.Output.ConainerOverrides.Environment[name = 'DOWNLOADED_EVENT_TIMESTAMP'].value %}"
+              "Output": {
+                "downloadedTimeStamp": "{% $states.result.Container.Environment[Name = 'DOWNLOADED_EVENT_TIMESTAMP'].value %}"
               }
             },
             "Get Download File Size and Hash": {
@@ -319,7 +319,7 @@
                     "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
                   },
                   "SK": {
-                    "S": "{% $join(['HISTORY#', $lastUpdated, $downloadedTimeStamp, 'DOWNLOADED'], '#') %}"
+                    "S": "{% $join(['HISTORY#', $lastUpdated, $states.input.downloadedTimeStamp, 'DOWNLOADED'], '#') %}"
                   }
                 }
               },
