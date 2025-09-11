@@ -4,6 +4,9 @@ set -e -o pipefail
 DATA_RESOURCE_ID=${DATA_RESOURCE_ID:?DATA_RESOURCE_ID is required as env var}
 DATA_RESOURCE_URL=${DATA_RESOURCE_URL:?DATA_RESOURCE_URL is required as env var}
 DATA_RESOURCE_LAST_UPDATED=${DATA_RESOURCE_LAST_UPDATED:?DATA_RESOURCE_LAST_UPDATED is required as env var}
+DOWNLOADED_EVENT_TIMESTAMP=${DOWNLOADED_EVENT_TIMESTAMP:?DOWNLOADED_EVENT_TIMESTAMP is required as env var}
+ROOT_PIPELINE_ID=${ROOT_PIPELINE_ID:?ROOT_PIPELINE_ID is required as env var}
+EXECUTION_PIPELINE_ID=${EXECUTION_PIPELINE_ID:?EXECUTION_PIPELINE_ID is required as env var}
 APIKEY=${APIKEY:?AWS_SECRET_ID is required as env var}
 
 # Optional env vars
@@ -26,10 +29,37 @@ FILE_HASH=$(md5sum "${OUTPUT_LOCATION}" | cut -d ' ' -f 1)
 
 echo "Finished downloading ${DATA_RESOURCE_ID} with size of ${FILE_SIZE} and hash ${FILE_HASH}"
 
-aws dynamodb update-item --table-name "${DYNAMODB_FILE_HISTORY_TABLE}" \
-  --key '{"PK": {"S": "'DataResource#$DATA_RESOURCE_ID'"},"SK": {"S": "'ProcessingState#$DATA_RESOURCE_LAST_UPDATED'"}}' \
-  --update-expression 'SET FileSize = :size, FileHash = :hash' \
-  --expression-attribute-values '{
-    ":size": {"N": "'${FILE_SIZE}'"},
-    ":hash": {"S": "'${FILE_HASH}'"}
-  }'
+aws dynamodb put-item \
+  --table-name "${DYNAMODB_FILE_HISTORY_TABLE}" \
+  --item <<EOF
+{
+  "PK": {
+    "S": "DATA_RESOURCE#$DATA_RESOURCE_ID"
+  },
+  "SK": {
+    "S": "HISTORY#$DATA_RESOURCE_LAST_UPDATED#$DOWNLOADED_EVENT_TIMESTAMP#DOWNLOADED"
+  },
+  "RootPipelineId": {
+    "S": "$ROOT_PIPELINE_ID"
+  },
+  "ExecutionId": {
+    "S": "$EXECUTION_PIPELINE_ID"
+  },
+  "DataResourceId": {
+    "S": "$DATA_RESOURCE_ID"
+  },
+  "Timestamp": {
+    "S": "$DOWNLOADED_EVENT_TIMESTAMP"
+  },
+  "Event": {
+    "S": "DOWNLOADED"
+  },
+  "FileHash": {
+    "S": "$FILE_HASH"
+  }
+  "FileSize": {
+    "N": "$FILE_SIZE"
+  }
+}
+EOF
+

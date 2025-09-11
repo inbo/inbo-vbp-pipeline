@@ -1,4 +1,4 @@
-import { SolrClient } from "../src/solr";
+import { SolrClient } from "../src/solr/solr";
 import { GenericContainer } from "testcontainers";
 import fetch from "node-fetch";
 import { describe, expect, test } from "@jest/globals";

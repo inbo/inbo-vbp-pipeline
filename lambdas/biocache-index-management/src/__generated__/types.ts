@@ -16,6 +16,15 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
+export type CancelPipelineInput = {
+  id: Scalars['ID']['input'];
+};
+
+export type CancelPipelineOutput = {
+  __typename?: 'CancelPipelineOutput';
+  pipeline: Pipeline;
+};
+
 export type ClearDataResourceFromIndexInput = {
   dataResourceId: Scalars['ID']['input'];
   indexId: Scalars['ID']['input'];
@@ -25,6 +34,15 @@ export type ClearDataResourceFromIndexOutput = {
   __typename?: 'ClearDataResourceFromIndexOutput';
   dataResourceId: Scalars['ID']['output'];
   indexId: Scalars['ID']['output'];
+};
+
+export type DataResourceHistoryInput = {
+  dataResourceId: Scalars['ID']['input'];
+};
+
+export type DataResourceHistoryOutput = {
+  __typename?: 'DataResourceHistoryOutput';
+  dataResourceId: Scalars['ID']['output'];
 };
 
 export type DeleteIndexInput = {
@@ -52,10 +70,17 @@ export type Index = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  cancelPipeline: CancelPipelineOutput;
   clearDataResourceFromIndex: ClearDataResourceFromIndexOutput;
   deleteIndex: DeleteIndexOutput;
   getOrCreateIndex: GetOrCreateIndexOutput;
   setActiveIndex: SetActiveIndexOutput;
+  startPipeline: StartPipelineOutput;
+};
+
+
+export type MutationCancelPipelineArgs = {
+  input: CancelPipelineInput;
 };
 
 
@@ -78,15 +103,38 @@ export type MutationSetActiveIndexArgs = {
   input: SetActiveIndexInput;
 };
 
+
+export type MutationStartPipelineArgs = {
+  input: StartPipelineInput;
+};
+
+export type Pipeline = {
+  __typename?: 'Pipeline';
+  id: Scalars['ID']['output'];
+};
+
 export type Query = {
   __typename?: 'Query';
   activeIndex?: Maybe<Index>;
+  dataResourceHistory: Array<DataResourceHistoryOutput>;
   index?: Maybe<Index>;
   indices: Array<Index>;
+  pipeline?: Maybe<Pipeline>;
+  pipelines: Array<Pipeline>;
+};
+
+
+export type QueryDataResourceHistoryArgs = {
+  input: DataResourceHistoryInput;
 };
 
 
 export type QueryIndexArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryPipelineArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -97,6 +145,16 @@ export type SetActiveIndexInput = {
 export type SetActiveIndexOutput = {
   __typename?: 'SetActiveIndexOutput';
   indexId: Scalars['ID']['output'];
+};
+
+export type StartPipelineInput = {
+  dataResourceIds: Array<Scalars['ID']['input']>;
+  solrCollection?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type StartPipelineOutput = {
+  __typename?: 'StartPipelineOutput';
+  pipeline: Pipeline;
 };
 
 
@@ -171,8 +229,12 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
+  CancelPipelineInput: CancelPipelineInput;
+  CancelPipelineOutput: ResolverTypeWrapper<CancelPipelineOutput>;
   ClearDataResourceFromIndexInput: ClearDataResourceFromIndexInput;
   ClearDataResourceFromIndexOutput: ResolverTypeWrapper<ClearDataResourceFromIndexOutput>;
+  DataResourceHistoryInput: DataResourceHistoryInput;
+  DataResourceHistoryOutput: ResolverTypeWrapper<DataResourceHistoryOutput>;
   DeleteIndexInput: DeleteIndexInput;
   DeleteIndexOutput: ResolverTypeWrapper<DeleteIndexOutput>;
   GetOrCreateIndexInput: GetOrCreateIndexInput;
@@ -180,17 +242,24 @@ export type ResolversTypes = {
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Index: ResolverTypeWrapper<Index>;
   Mutation: ResolverTypeWrapper<{}>;
+  Pipeline: ResolverTypeWrapper<Pipeline>;
   Query: ResolverTypeWrapper<{}>;
   SetActiveIndexInput: SetActiveIndexInput;
   SetActiveIndexOutput: ResolverTypeWrapper<SetActiveIndexOutput>;
+  StartPipelineInput: StartPipelineInput;
+  StartPipelineOutput: ResolverTypeWrapper<StartPipelineOutput>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
+  CancelPipelineInput: CancelPipelineInput;
+  CancelPipelineOutput: CancelPipelineOutput;
   ClearDataResourceFromIndexInput: ClearDataResourceFromIndexInput;
   ClearDataResourceFromIndexOutput: ClearDataResourceFromIndexOutput;
+  DataResourceHistoryInput: DataResourceHistoryInput;
+  DataResourceHistoryOutput: DataResourceHistoryOutput;
   DeleteIndexInput: DeleteIndexInput;
   DeleteIndexOutput: DeleteIndexOutput;
   GetOrCreateIndexInput: GetOrCreateIndexInput;
@@ -198,15 +267,28 @@ export type ResolversParentTypes = {
   ID: Scalars['ID']['output'];
   Index: Index;
   Mutation: {};
+  Pipeline: Pipeline;
   Query: {};
   SetActiveIndexInput: SetActiveIndexInput;
   SetActiveIndexOutput: SetActiveIndexOutput;
+  StartPipelineInput: StartPipelineInput;
+  StartPipelineOutput: StartPipelineOutput;
   String: Scalars['String']['output'];
+};
+
+export type CancelPipelineOutputResolvers<ContextType = any, ParentType extends ResolversParentTypes['CancelPipelineOutput'] = ResolversParentTypes['CancelPipelineOutput']> = {
+  pipeline?: Resolver<ResolversTypes['Pipeline'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type ClearDataResourceFromIndexOutputResolvers<ContextType = any, ParentType extends ResolversParentTypes['ClearDataResourceFromIndexOutput'] = ResolversParentTypes['ClearDataResourceFromIndexOutput']> = {
   dataResourceId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   indexId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type DataResourceHistoryOutputResolvers<ContextType = any, ParentType extends ResolversParentTypes['DataResourceHistoryOutput'] = ResolversParentTypes['DataResourceHistoryOutput']> = {
+  dataResourceId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -226,16 +308,26 @@ export type IndexResolvers<ContextType = any, ParentType extends ResolversParent
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
+  cancelPipeline?: Resolver<ResolversTypes['CancelPipelineOutput'], ParentType, ContextType, RequireFields<MutationCancelPipelineArgs, 'input'>>;
   clearDataResourceFromIndex?: Resolver<ResolversTypes['ClearDataResourceFromIndexOutput'], ParentType, ContextType, RequireFields<MutationClearDataResourceFromIndexArgs, 'input'>>;
   deleteIndex?: Resolver<ResolversTypes['DeleteIndexOutput'], ParentType, ContextType, RequireFields<MutationDeleteIndexArgs, 'input'>>;
   getOrCreateIndex?: Resolver<ResolversTypes['GetOrCreateIndexOutput'], ParentType, ContextType, RequireFields<MutationGetOrCreateIndexArgs, 'input'>>;
   setActiveIndex?: Resolver<ResolversTypes['SetActiveIndexOutput'], ParentType, ContextType, RequireFields<MutationSetActiveIndexArgs, 'input'>>;
+  startPipeline?: Resolver<ResolversTypes['StartPipelineOutput'], ParentType, ContextType, RequireFields<MutationStartPipelineArgs, 'input'>>;
+};
+
+export type PipelineResolvers<ContextType = any, ParentType extends ResolversParentTypes['Pipeline'] = ResolversParentTypes['Pipeline']> = {
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   activeIndex?: Resolver<Maybe<ResolversTypes['Index']>, ParentType, ContextType>;
+  dataResourceHistory?: Resolver<Array<ResolversTypes['DataResourceHistoryOutput']>, ParentType, ContextType, RequireFields<QueryDataResourceHistoryArgs, 'input'>>;
   index?: Resolver<Maybe<ResolversTypes['Index']>, ParentType, ContextType, RequireFields<QueryIndexArgs, 'id'>>;
   indices?: Resolver<Array<ResolversTypes['Index']>, ParentType, ContextType>;
+  pipeline?: Resolver<Maybe<ResolversTypes['Pipeline']>, ParentType, ContextType, RequireFields<QueryPipelineArgs, 'id'>>;
+  pipelines?: Resolver<Array<ResolversTypes['Pipeline']>, ParentType, ContextType>;
 };
 
 export type SetActiveIndexOutputResolvers<ContextType = any, ParentType extends ResolversParentTypes['SetActiveIndexOutput'] = ResolversParentTypes['SetActiveIndexOutput']> = {
@@ -243,13 +335,22 @@ export type SetActiveIndexOutputResolvers<ContextType = any, ParentType extends 
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type StartPipelineOutputResolvers<ContextType = any, ParentType extends ResolversParentTypes['StartPipelineOutput'] = ResolversParentTypes['StartPipelineOutput']> = {
+  pipeline?: Resolver<ResolversTypes['Pipeline'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type Resolvers<ContextType = any> = {
+  CancelPipelineOutput?: CancelPipelineOutputResolvers<ContextType>;
   ClearDataResourceFromIndexOutput?: ClearDataResourceFromIndexOutputResolvers<ContextType>;
+  DataResourceHistoryOutput?: DataResourceHistoryOutputResolvers<ContextType>;
   DeleteIndexOutput?: DeleteIndexOutputResolvers<ContextType>;
   GetOrCreateIndexOutput?: GetOrCreateIndexOutputResolvers<ContextType>;
   Index?: IndexResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
+  Pipeline?: PipelineResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   SetActiveIndexOutput?: SetActiveIndexOutputResolvers<ContextType>;
+  StartPipelineOutput?: StartPipelineOutputResolvers<ContextType>;
 };
 

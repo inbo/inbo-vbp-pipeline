@@ -16,5 +16,10 @@ export default {
         process.env.SOLR_BIOCACHE_MAX_SHARDS_PER_NODE ||
             "1",
     ),
+    awsStateMachineArn: process.env.AWS_STATE_MACHINE_ARN ||
+        RequiredVar("AWS_STATE_MACHINE_ARN"),
+    awsDynamoDBTableName: process.env.AWS_DYNAMODB_TABLE_NAME ||
+        RequiredVar("AWS_DYNAMODB_TABLE_NAME"),
+    awsBaseUrl: process.env.AWS_BASE_URL,
     jwksUri: process.env.JWKS_URI || RequiredVar("JWKS_URI"),
 };

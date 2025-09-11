@@ -4,19 +4,30 @@ schema {
 }
 
 type Query {
+	################ INDEX ##############
 	index(id: ID!): Index
 	indices: [Index!]!
-
 	activeIndex: Index
+
+	############## PIPELINE #############
+	pipeline(id: ID!): Pipeline
+	pipelines: [Pipeline!]!
+	dataResourceHistory(input: DataResourceHistoryInput!): [DataResourceHistoryOutput!]!
 }
 
 type Mutation {
+	################ INDEX ##############
 	getOrCreateIndex(input: GetOrCreateIndexInput!): GetOrCreateIndexOutput!
 	deleteIndex(input: DeleteIndexInput!): DeleteIndexOutput!
 	clearDataResourceFromIndex(input: ClearDataResourceFromIndexInput!): ClearDataResourceFromIndexOutput!
 	setActiveIndex(input: SetActiveIndexInput!): SetActiveIndexOutput!
+
+	############## PIPELINE #############
+	startPipeline(input: StartPipelineInput!): StartPipelineOutput!
+	cancelPipeline(input: CancelPipelineInput!): CancelPipelineOutput!
 }
 
+############## INDEX #############
 type Index {
 	id: ID!
 }
@@ -54,4 +65,35 @@ input SetActiveIndexInput {
 
 type SetActiveIndexOutput {
 	indexId: ID!
+}
+
+############ PIPELINE ###########
+type Pipeline {
+	id: ID!
+}
+
+input DataResourceHistoryInput {
+	dataResourceId: ID!
+}
+
+type DataResourceHistoryOutput {
+	dataResourceId: ID!
+}
+
+input StartPipelineInput {
+	dataResourceIds: [ID!]!
+	solrCollection: String
+}
+
+type StartPipelineOutput {
+	pipeline: Pipeline!
+
+}
+
+input CancelPipelineInput {
+	id: ID!
+}
+
+type CancelPipelineOutput {
+	pipeline: Pipeline!
 }

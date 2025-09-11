@@ -1,5 +1,5 @@
-import { Index } from "./core/index-service";
-import { IndexService } from "./core/index-service";
+import { Index } from "../core/index-service";
+import { IndexService } from "../core/index-service";
 
 export class SolrClient implements IndexService {
     private readonly solrBaseUrl: string;

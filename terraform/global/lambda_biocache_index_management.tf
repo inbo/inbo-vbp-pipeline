@@ -49,6 +49,46 @@ data "aws_iam_policy_document" "biocache_index_management_permission" {
     ]
   }
 
+  // Step Function Permissions
+  statement {
+    effect = "Allow"
+    #tfsec:ignore:aws-iam-no-policy-wildcards
+    actions = [
+      "states:Describe*",
+      "states:Create*",
+      "states:Update*",
+      "states:List*",
+      "states:Start*"
+    ]
+    #tfsec:ignore:aws-iam-no-policy-wildcards
+    resources = [
+      "arn:aws:states:${var.aws_region}:${data.aws_caller_identity.current.account_id}:stateMachine:inbo-${var.application}-pipeline*",
+      "arn:aws:states:${var.aws_region}:${data.aws_caller_identity.current.account_id}:execution:inbo-${var.application}-pipeline*",
+    ]
+  }
+
+  // DynamoDB Permissions
+  statement {
+    effect = "Allow"
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:Query"
+    ]
+    resources = [
+      "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/inbo-${var.application}-pipelines"
+    ]
+  }
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+    ]
+    resources = [var.dynamodb_kms_key_arn]
+  }
+
 }
 
 resource "aws_iam_role_policy" "biocache-index-management" {

@@ -1,6 +1,5 @@
 import { ApolloServer } from "@apollo/server";
 import { Resolvers } from "./__generated__/types";
-import { SolrClient } from "./solr";
 import config from "./config";
 import typeDefs from "../schema.gql";
 
@@ -12,8 +11,10 @@ import { User } from "./core/user";
 import { AuthError, AuthService } from "./auth";
 import { GraphQLError } from "graphql";
 
+import { IndexMutation, IndexQuery } from "./graphql/index-resolvers";
+import { PipelineMutation, PipelineQuery } from "./graphql/pipeline-resolvers";
+
 const authService = new AuthService(config);
-const solrClient = new SolrClient(config);
 
 // Custom field, added when calling lambda directly from step function
 interface CustomALBEvent extends AWSLambda.ALBEvent {
@@ -26,55 +27,12 @@ interface UserContext {
 
 const resolvers: Resolvers = {
     Query: {
-        index: async (_, { id }) => {
-            return solrClient.getIndex(id);
-        },
-        indices: async () => {
-            return solrClient.getIndices();
-        },
-        activeIndex: async () => {
-            return solrClient.getActiveIndex();
-        },
+        ...IndexQuery,
+        ...PipelineQuery,
     },
     Mutation: {
-        getOrCreateIndex: async (_, { input }) => {
-            const index = await solrClient.getIndex(input.indexId);
-            if (index) {
-                return { indexId: index.id };
-            } else {
-                const newIndex = await solrClient.createIndex(input.indexId);
-                return {
-                    indexId: newIndex.id,
-                };
-            }
-        },
-        deleteIndex: async (_, { input }) => {
-            await solrClient.deleteIndex(input.indexId);
-            return {
-                indexId: input.indexId,
-            };
-        },
-
-        setActiveIndex: async (_, { input }) => {
-            await solrClient.setActiveIndex(input.indexId);
-            return {
-                indexId: input.indexId,
-            };
-        },
-
-        clearDataResourceFromIndex: async (
-            _,
-            { input },
-        ) => {
-            await solrClient.deleteDataResourceOccurrencesFromIndex(
-                input.indexId,
-                input.dataResourceId,
-            );
-            return {
-                indexId: input.indexId,
-                dataResourceId: input.dataResourceId,
-            };
-        },
+        ...IndexMutation,
+        ...PipelineMutation,
     },
 };
 

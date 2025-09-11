@@ -9,30 +9,12 @@
         "Key": "config/state-machine.json"
       },
       "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
-      "Next": "Store Execution State Started",
+      "Next": "Get Data Resource Details",
       "Assign": {
         "dataResourceId": "{% $states.input.dataResourceId %}",
-        "config": "{% $parse($states.result.Body) %}"
+        "config": "{% $parse($states.result.Body) %}",
+        "rootPipelineId": "{% $exists($states.context.Execution.Input.rootPipelineId) ? $states.context.Execution.Input.rootPipelineId : $states.context.Execution.Id %}"
       }
-    },
-    "Store Execution State Started": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::dynamodb:putItem",
-      "Arguments": {
-        "TableName": "{% $config.dynamodb_table_name %}",
-        "Item": {
-          "PK": {
-            "S": "{% $exists($states.context.Execution.Input.rootPipelineId) ? $states.context.Execution.Input.rootPipelineId : $states.context.Execution.Id %}"
-          },
-          "SK": {
-            "S": "{% 'RUN#' & $dataResourceId %}"
-          },
-          "State": {
-            "S": "STARTED"
-          }
-        }
-      },
-      "Next": "Get Data Resource Details"
     },
     "Get Data Resource Details": {
       "Type": "Task",
@@ -85,7 +67,7 @@
         "TableName": "{% $config.dynamodb_table_name %}",
         "Item": {
           "PK": {
-            "S": "{% $exists($states.context.Execution.Input.rootPipelineId) ? $states.context.Execution.Input.rootPipelineId : $states.context.Execution.Id %}"
+            "S": "{% $rootPipelineId %}"
           },
           "SK": {
             "S": "{% 'RUN#' & $dataResourceId %}"
@@ -113,7 +95,7 @@
               "TableName": "{% $config.dynamodb_table_name %}",
               "Item": {
                 "PK": {
-                  "S": "{% 'DataResource#' & $dataResourceId %}"
+                  "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
                 },
                 "SK": {
                   "S": "LOCK"
@@ -126,6 +108,34 @@
                 }
               },
               "ConditionExpression": "{% $exists($states.context.Execution.Input.overwriteLock) and $states.context.Execution.Input.overwriteLock ? null : 'attribute_not_exists(SK)' %}"
+            }
+          },
+          {
+            "Put": {
+              "TableName": "{% $config.dynamodb_table_name %}",
+              "Item": {
+                "PK": {
+                  "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
+                },
+                "SK": {
+                  "S": "{% $join(['HISTORY#', $lastUpdated, $now(), 'STARTED'], '#') %}"
+                },
+                "RootPipelineId": {
+                  "S": "{% $rootPipelineId %}"
+                },
+                "ExecutionId": {
+                  "S": "{% $states.context.Execution.Id %}"
+                },
+                "DataResourceId": {
+                  "S": "{% $dataResourceId %}"
+                },
+                "Timestamp": {
+                  "S": "{% $now() %}"
+                },
+                "Event": {
+                  "S": "STARTED"
+                }
+              }
             }
           }
         ]
@@ -143,7 +153,7 @@
     },
     "Catch Failures": {
       "Type": "Parallel",
-      "Next": "Store Execution State Success",
+      "Next": "Unlock Data Resource for Processing",
       "Branches": [
         {
           "StartAt": "Should Cleanup Old Pipeline Data",
@@ -152,7 +162,7 @@
               "Type": "Choice",
               "Choices": [
                 {
-                  "Next": "Delete Old Processing History",
+                  "Next": "Delete Old FileHash Reference",
                   "Condition": "{% $exists($states.context.Execution.Input.shouldCleanupOldPipelineData) and $states.context.Execution.Input.shouldCleanupOldPipelineData %}"
                 },
                 {
@@ -160,25 +170,27 @@
                   "Condition": "{% $exists($states.context.Execution.Input.shouldRedownload) and $states.context.Execution.Input.shouldRedownload %}"
                 }
               ],
-              "Default": "Get Processing History"
+              "Default": "Get Processing History",
+              "Output": "{% $lastUpdated %}"
             },
-            "Delete Old Processing History": {
+            "Get Processing History": {
               "Type": "Task",
-              "Resource": "arn:aws:states:::dynamodb:deleteItem",
               "Arguments": {
                 "TableName": "{% $config.dynamodb_table_name %}",
-                "Key": {
-                  "PK": {
-                    "S": "{% 'DataResource#' & $dataResourceId %}"
+                "KeyConditionExpression": "PK = :pk and begins_with(SK, :sk)",
+                "ExpressionAttributeValues": {
+                  ":pk": {
+                    "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
                   },
-                  "SK": {
-                    "S": "{% 'ProcessingState#' & $lastUpdated %}"
+                  ":sk": {
+                    "S": "{% 'HISTORY#' & $lastUpdated %}"
                   }
                 },
-                "ReturnValues": "ALL_OLD"
+                "Limit": 2
               },
-              "Next": "Delete Old FileHash Reference",
-              "Output": "{% $exists($states.result.Attributes) ? $states.result.Attributes : {} %}"
+              "Resource": "arn:aws:states:::aws-sdk:dynamodb:query",
+              "Next": "Can Skip Processing?",
+              "Output": "{% $exists($states.result.Items) and $length($states.result.items) = 2 ? $states.result.items[1] : {} %}"
             },
             "Delete Old FileHash Reference": {
               "Type": "Task",
@@ -187,10 +199,10 @@
                 "TableName": "{% $config.dynamodb_table_name %}",
                 "Key": {
                   "PK": {
-                    "S": "{% 'DataResource#' & $dataResourceId %}"
+                    "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
                   },
                   "SK": {
-                    "S": "{% 'ProcessingState#' & $states.input.FileHash.S %}"
+                    "S": "{% 'FILE_HASH#' & $states.input.FileHash.S %}"
                   }
                 }
               },
@@ -214,83 +226,28 @@
               },
               "Next": "Download Data Resource"
             },
-            "Get Processing History": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::dynamodb:getItem",
-              "Arguments": {
-                "TableName": "{% $config.dynamodb_table_name %}",
-                "Key": {
-                  "PK": {
-                    "S": "{% 'DataResource#' & $dataResourceId %}"
-                  },
-                  "SK": {
-                    "S": "{% 'ProcessingState#' & $lastUpdated %}"
-                  }
-                }
-              },
-              "Next": "Can Skip Processing?",
-              "Output": "{% $exists($states.result.Item) ? $states.result.Item : {\n\n} %}"
-            },
             "Can Skip Processing?": {
               "Type": "Choice",
               "Choices": [
                 {
                   "Next": "Do Nothing",
-                  "Condition": "{% $exists($states.input.SolrCollections.SS) and $states.context.Execution.Input.solrCollection in $states.input.SolrCollections.SS %}"
+                  "Condition": "{% $exists($states.input.Event) and $states.input.Event = 'SOLR_UPLOADED' and $states.context.Execution.Input.solrCollection = $states.input.SolrCollections.S %}"
                 },
                 {
-                  "Next": "Store Execution State Sampled 2",
-                  "Condition": "{% $exists($states.input.LastSampled.S) %}"
+                  "Next": "Get or create EMR Cluster 2",
+                  "Condition": "{% $exists($states.input.Event) and $states.input.Event = 'SAMPLED'  %}"
                 },
                 {
-                  "Next": "Store Execution State Indexed",
-                  "Condition": "{% $exists($states.input.LastIndexed.S) %}"
+                  "Next": "Get or create EMR Cluster",
+                  "Condition": "{% $exists($states.input.Event) and $states.input.Event = 'INDEXED'  %}"
                 },
                 {
-                  "Next": "Store Execution State Downloaded",
-                  "Condition": "{% $exists($states.input.FileSize.N) %}",
+                  "Next": "Is Big or Small?",
+                  "Condition": "{% $exists($states.input.Event) and $states.input.Event = 'DOWNLOADED' %}",
                   "Output": "{% $number( $states.input.FileSize.N) %}"
                 }
               ],
-              "Default": "Download Data Resource"
-            },
-            "Store Execution State Sampled 2": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::dynamodb:putItem",
-              "Arguments": {
-                "TableName": "{% $config.dynamodb_table_name %}",
-                "Item": {
-                  "PK": {
-                    "S": "{% $exists($states.context.Execution.Input.rootPipelineId) ? $states.context.Execution.Input.rootPipelineId : $states.context.Execution.Id %}"
-                  },
-                  "SK": {
-                    "S": "{% 'RUN#' & $dataResourceId %}"
-                  },
-                  "State": {
-                    "S": "SUCCESS"
-                  }
-                }
-              },
-              "Next": "Get or create EMR Cluster 2"
-            },
-            "Store Execution State Downloaded": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::dynamodb:putItem",
-              "Arguments": {
-                "TableName": "{% $config.dynamodb_table_name %}",
-                "Item": {
-                  "PK": {
-                    "S": "{% $exists($states.context.Execution.Input.rootPipelineId) ? $states.context.Execution.Input.rootPipelineId : $states.context.Execution.Id %}"
-                  },
-                  "SK": {
-                    "S": "{% 'RUN#' & $dataResourceId %}"
-                  },
-                  "State": {
-                    "S": "DOWNLOADED"
-                  }
-                }
-              },
-              "Next": "Is Big or Small?",
+              "Default": "Download Data Resource",
               "Output": "{% $states.input %}"
             },
             "Get or create EMR Cluster 2": {
@@ -300,7 +257,7 @@
                 "StateMachineArn": "{% $config.get_or_create_emr_cluster_state_machine_arn %}",
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
-                  "rootPipelineId": "{% $exists($states.context.Execution.Input.rootPipelineId) ? $states.context.Execution.Input.rootPipelineId : $states.context.Execution.Id %}"
+                  "rootPipelineId": "{% $rootPipelineId %}"
                 }
               },
               "Assign": {
@@ -331,11 +288,26 @@
                     {
                       "Name": "DATA_RESOURCE_LAST_UPDATED",
                       "Value": "{% $lastUpdated %}"
+                    },
+                    {
+                      "Name": "DOWNLOADED_EVENT_TIMESTAMP",
+                      "Value": "{% $now() %}"
+                    },
+                    {
+                      "Name": "ROOT_PIPELINE_ID",
+                      "Value": "{% rootPipelineId %}"
+                    },
+                    {
+                      "Name": "EXECUTION_PIPELINE_ID",
+                      "Value": "{% states.context.Execution.Id %}"
                     }
                   ]
                 }
               },
-              "Next": "Get Download File Size and Hash"
+              "Next": "Get Download File Size and Hash",
+              "Assign": {
+                "downloadedTimeStamp": "{% $states.result.Output.ConainerOverrides.Environment[name = 'DOWNLOADED_EVENT_TIMESTAMP'].value %}"
+              }
             },
             "Get Download File Size and Hash": {
               "Type": "Task",
@@ -344,10 +316,10 @@
                 "TableName": "{% $config.dynamodb_table_name %}",
                 "Key": {
                   "PK": {
-                    "S": "{% 'DataResource#' & $dataResourceId %}"
+                    "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
                   },
                   "SK": {
-                    "S": "{% 'ProcessingState#' & $lastUpdated %}"
+                    "S": "{% $join(['HISTORY#', $lastUpdated, $downloadedTimeStamp, 'DOWNLOADED'], '#') %}"
                   }
                 }
               },
@@ -364,12 +336,17 @@
                 "TableName": "{% $config.dynamodb_table_name %}",
                 "Item": {
                   "PK": {
-                    "S": "{% 'DataResource#' & $dataResourceId %}"
+                    "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
                   },
                   "SK": {
-                    "S": "{% 'ProcessingState#' & $fileHash %}"
+                    "S": "{% 'FILE_HASH#' & $fileHash %}"
                   },
-                  "LastUpdated": "{% $lastUpdated %}"
+                  "FileHash": {
+                    "S": "{% $fileHash %}"
+                  },
+                  "LastUpdated": {
+                    "S": "{% $lastUpdated %}"
+                  }
                 },
                 "ReturnValues": "ALL_OLD"
               },
@@ -380,44 +357,13 @@
               "Type": "Choice",
               "Choices": [
                 {
-                  "Next": "Get Old Processing History",
+                  "Next": "Get Processing History",
                   "Condition": "{% $exists($states.input.LastUpdated.S) %}",
                   "Output": "{% $states.input.LastUpdated.S %}"
                 }
               ],
-              "Default": "Store Execution State Downloaded",
+              "Default": "Is Big or Small?",
               "Output": "{% $fileSize %}"
-            },
-            "Get Old Processing History": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::dynamodb:getItem",
-              "Arguments": {
-                "TableName": "{% $config.dynamodb_table_name %}",
-                "Key": {
-                  "PK": {
-                    "S": "{% 'DataResource#' & $dataResourceId %}"
-                  },
-                  "SK": {
-                    "S": "{% 'ProcessingState#' & $states.input %}"
-                  }
-                }
-              },
-              "Next": "Copy Processing History for FileHash",
-              "Assign": {
-                "fileSize": "{% $number($states.result.Item.FileSize.N) %}",
-                "fileHash": "{% $states.result.Item.FileHash.S %}"
-              },
-              "Output": "{% $states.result.Item %}"
-            },
-            "Copy Processing History for FileHash": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::dynamodb:putItem",
-              "Arguments": {
-                "TableName": "{% $config.dynamodb_table_name %}",
-                "Item": "{% $merge([\n  $states.input,\n  {\n    \"PK\": {\n      \"S\": \"{% 'DataResource#' & $dataResourceId %}\"\n    },\n    \"SK\": {\n      \"S\": \"{% 'ProcessingState#' & $lastUpdated %}\"\n    },\n    \"LastUpdated\": \"{% $lastUpdated %}\"\n  }\n]) %}"
-              },
-              "Next": "Can Skip Processing?",
-              "Output": "{% $states.input %}"
             },
             "Is Big or Small?": {
               "Type": "Choice",
@@ -437,7 +383,7 @@
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
                   "dataResourceId": "{% $dataResourceId %}",
-                  "rootPipelineId": "{% $exists($states.context.Execution.Input.rootPipelineId) ? $states.context.Execution.Input.rootPipelineId : $states.context.Execution.Id %}"
+                  "rootPipelineId": "{% $rootPipelineId %}"
                 }
               },
               "Next": "Update Index Success"
@@ -467,35 +413,31 @@
                 "TableName": "{% $config.dynamodb_table_name %}",
                 "Key": {
                   "PK": {
-                    "S": "{% 'DataResource#' & $dataResourceId %}"
+                    "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
                   },
                   "SK": {
-                    "S": "{% 'ProcessingState#' & $lastUpdated %}"
+                    "S": "{% $join(['HISTORY#', $lastUpdated, $now(), 'INDEXED'], '#') %}"
+                  },
+                  "RootPipelineId": {
+                    "S": "{% $rootPipelineId %}"
+                  },
+                  "ExecutionId": {
+                    "S": "{% $states.context.Execution.Id %}"
+                  },
+                  "DataResourceId": {
+                    "S": "{% $dataResourceId %}"
+                  },
+                  "Timestamp": {
+                    "S": "{% $now() %}"
+                  },
+                  "Event": {
+                    "S": "INDEXED"
                   }
                 },
                 "UpdateExpression": "SET LastIndexed = :timestamp",
                 "ExpressionAttributeValues": {
                   ":timestamp": {
                     "S": "{% $now() %}"
-                  }
-                }
-              },
-              "Next": "Store Execution State Indexed"
-            },
-            "Store Execution State Indexed": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::dynamodb:putItem",
-              "Arguments": {
-                "TableName": "{% $config.dynamodb_table_name %}",
-                "Item": {
-                  "PK": {
-                    "S": "{% $exists($states.context.Execution.Input.rootPipelineId) ? $states.context.Execution.Input.rootPipelineId : $states.context.Execution.Id %}"
-                  },
-                  "SK": {
-                    "S": "{% 'RUN#' & $dataResourceId %}"
-                  },
-                  "State": {
-                    "S": "SUCCESS"
                   }
                 }
               },
@@ -508,7 +450,7 @@
                 "StateMachineArn": "{% $config.get_or_create_emr_cluster_state_machine_arn %}",
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
-                  "rootPipelineId": "{% $exists($states.context.Execution.Input.rootPipelineId) ? $states.context.Execution.Input.rootPipelineId : $states.context.Execution.Id %}"
+                  "rootPipelineId": "{% $rootPipelineId %}"
                 }
               },
               "Assign": {
@@ -641,10 +583,25 @@
                         "TableName": "{% $config.dynamodb_table_name %}",
                         "Key": {
                           "PK": {
-                            "S": "{% 'DataResource#' & $dataResourceId %}"
+                            "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
                           },
                           "SK": {
-                            "S": "{% 'ProcessingState#' & $lastUpdated %}"
+                            "S": "{% $join(['HISTORY#', $lastUpdated, $now(), 'SAMPLED'], '#') %}"
+                          },
+                          "RootPipelineId": {
+                            "S": "{% $rootPipelineId %}"
+                          },
+                          "ExecutionId": {
+                            "S": "{% $states.context.Execution.Id %}"
+                          },
+                          "DataResourceId": {
+                            "S": "{% $dataResourceId %}"
+                          },
+                          "Timestamp": {
+                            "S": "{% $now() %}"
+                          },
+                          "Event": {
+                            "S": "SAMPLED"
                           }
                         },
                         "UpdateExpression": "SET LastSampled = :timestamp",
@@ -654,51 +611,39 @@
                           }
                         }
                       },
-                      "Next": "Store Execution State Sampled"
-                    },
-                    "Store Execution State Sampled": {
+                      "End": true
+                    }
+                  }
+                },
+                {
+                  "StartAt": "Store Solr Reset Event",
+                  "States": {
+                    "Store Solr Reset Event": {
                       "Type": "Task",
                       "Resource": "arn:aws:states:::dynamodb:putItem",
                       "Arguments": {
                         "TableName": "{% $config.dynamodb_table_name %}",
                         "Item": {
                           "PK": {
-                            "S": "{% $exists($states.context.Execution.Input.rootPipelineId) ? $states.context.Execution.Input.rootPipelineId : $states.context.Execution.Id %}"
+                            "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
                           },
                           "SK": {
-                            "S": "{% 'RUN#' & $dataResourceId %}"
+                            "S": "{% $join(['HISTORY#', $lastUpdated, $now(), 'SOLR_RESET'], '#') %}"
                           },
-                          "State": {
-                            "S": "SUCCESS"
-                          }
-                        }
-                      },
-                      "End": true
-                    }
-                  }
-                },
-                {
-                  "StartAt": "Remove Solr Success",
-                  "States": {
-                    "Remove Solr Success": {
-                      "Type": "Task",
-                      "Resource": "arn:aws:states:::dynamodb:updateItem",
-                      "Arguments": {
-                        "TableName": "{% $config.dynamodb_table_name %}",
-                        "Key": {
-                          "PK": {
-                            "S": "{% 'DataResource#' & $dataResourceId %}"
+                          "RootPipelineId": {
+                            "S": "{% $rootPipelineId %}"
                           },
-                          "SK": {
-                            "S": "{% 'ProcessingState#' & $lastUpdated %}"
-                          }
-                        },
-                        "UpdateExpression": "DELETE SolrCollections :collection",
-                        "ExpressionAttributeValues": {
-                          ":collection": {
-                            "SS": [
-                              "{% $states.context.Execution.Input.solrCollection %}"
-                            ]
+                          "ExecutionId": {
+                            "S": "{% $states.context.Execution.Id %}"
+                          },
+                          "DataResourceId": {
+                            "S": "{% $dataResourceId %}"
+                          },
+                          "Timestamp": {
+                            "S": "{% $now() %}"
+                          },
+                          "Event": {
+                            "S": "SOLR_RESET"
                           }
                         }
                       },
@@ -766,27 +711,37 @@
                           }
                         }
                       },
-                      "Next": "Update Solr Success"
+                      "Next": "Store Solr Upload Event"
                     },
-                    "Update Solr Success": {
+                    "Store Solr Upload Event": {
                       "Type": "Task",
-                      "Resource": "arn:aws:states:::dynamodb:updateItem",
+                      "Resource": "arn:aws:states:::dynamodb:putItem",
                       "Arguments": {
                         "TableName": "{% $config.dynamodb_table_name %}",
-                        "Key": {
+                        "Item": {
                           "PK": {
-                            "S": "{% 'DataResource#' & $dataResourceId %}"
+                            "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
                           },
                           "SK": {
-                            "S": "{% 'ProcessingState#' & $lastUpdated %}"
-                          }
-                        },
-                        "UpdateExpression": "ADD SolrCollections :collection",
-                        "ExpressionAttributeValues": {
-                          ":collection": {
-                            "SS": [
-                              "{% $states.context.Execution.Input.solrCollection %}"
-                            ]
+                            "S": "{% $join(['HISTORY#', $lastUpdated, $now(), 'SOLR_UPLOADED'], '#') %}"
+                          },
+                          "RootPipelineId": {
+                            "S": "{% $rootPipelineId %}"
+                          },
+                          "ExecutionId": {
+                            "S": "{% $states.context.Execution.Id %}"
+                          },
+                          "DataResourceId": {
+                            "S": "{% $dataResourceId %}"
+                          },
+                          "Timestamp": {
+                            "S": "{% $now() %}"
+                          },
+                          "Event": {
+                            "S": "SOLR_UPLOADED"
+                          },
+                          "SolrCollection": {
+                            "S": "{% $states.context.Execution.Input.solrCollection %}"
                           }
                         }
                       },
@@ -821,7 +776,7 @@
         "TableName": "{% $config.dynamodb_table_name %}",
         "Key": {
           "PK": {
-            "S": "{% 'DataResource#' & $dataResourceId %}"
+            "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
           },
           "SK": {
             "S": "LOCK"
@@ -831,25 +786,6 @@
       "Next": "Store Execution State Failed",
       "Output": "{% $states.input %}"
     },
-    "Store Execution State Success": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::dynamodb:putItem",
-      "Arguments": {
-        "TableName": "{% $config.dynamodb_table_name %}",
-        "Item": {
-          "PK": {
-            "S": "{% $exists($states.context.Execution.Input.rootPipelineId) ? $states.context.Execution.Input.rootPipelineId : $states.context.Execution.Id %}"
-          },
-          "SK": {
-            "S": "{% 'RUN#' & $dataResourceId %}"
-          },
-          "State": {
-            "S": "SUCCESS"
-          }
-        }
-      },
-      "Next": "Unlock Data Resource for Processing"
-    },
     "Unlock Data Resource for Processing": {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:deleteItem",
@@ -857,7 +793,7 @@
         "TableName": "{% $config.dynamodb_table_name %}",
         "Key": {
           "PK": {
-            "S": "{% 'DataResource#' & $dataResourceId %}"
+            "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
           },
           "SK": {
             "S": "LOCK"
