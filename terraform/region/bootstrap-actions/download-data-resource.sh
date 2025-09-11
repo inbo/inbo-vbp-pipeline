@@ -31,7 +31,7 @@ echo "Finished downloading ${DATA_RESOURCE_ID} with size of ${FILE_SIZE} and has
 
 aws dynamodb put-item \
   --table-name "${DYNAMODB_FILE_HISTORY_TABLE}" \
-  --item <<EOF
+  --item "$(cat <<EOF
 {
   "PK": {
     "S": "DATA_RESOURCE#$DATA_RESOURCE_ID"
@@ -56,10 +56,10 @@ aws dynamodb put-item \
   },
   "FileHash": {
     "S": "$FILE_HASH"
-  }
+  },
   "FileSize": {
     "N": "$FILE_SIZE"
   }
 }
 EOF
-
+)"
