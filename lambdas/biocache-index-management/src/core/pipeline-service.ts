@@ -3,11 +3,12 @@ export type Pipeline = {
 };
 
 export type DataResourceHistory = {
-    id: string;
     dataResourceId: string;
-    pipelineId: string;
-    status: string;
+    rootPipelineId: string;
+    executionId: string;
+    event: string;
     timestamp: Date;
+    lastUpdated: Date;
 };
 
 export type PipelineService = {

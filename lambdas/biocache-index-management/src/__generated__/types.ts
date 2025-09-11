@@ -36,13 +36,23 @@ export type ClearDataResourceFromIndexOutput = {
   indexId: Scalars['ID']['output'];
 };
 
+export type DataResourceEvent = {
+  __typename?: 'DataResourceEvent';
+  dataResourceId: Scalars['ID']['output'];
+  event: Scalars['String']['output'];
+  executionId: Scalars['ID']['output'];
+  lastUpdated: Scalars['String']['output'];
+  rootPipelineId: Scalars['ID']['output'];
+  timestamp: Scalars['String']['output'];
+};
+
 export type DataResourceHistoryInput = {
   dataResourceId: Scalars['ID']['input'];
 };
 
 export type DataResourceHistoryOutput = {
   __typename?: 'DataResourceHistoryOutput';
-  dataResourceId: Scalars['ID']['output'];
+  events: Array<DataResourceEvent>;
 };
 
 export type DeleteIndexInput = {
@@ -116,7 +126,7 @@ export type Pipeline = {
 export type Query = {
   __typename?: 'Query';
   activeIndex?: Maybe<Index>;
-  dataResourceHistory: Array<DataResourceHistoryOutput>;
+  dataResourceHistory: DataResourceHistoryOutput;
   index?: Maybe<Index>;
   indices: Array<Index>;
   pipeline?: Maybe<Pipeline>;
@@ -233,6 +243,7 @@ export type ResolversTypes = {
   CancelPipelineOutput: ResolverTypeWrapper<CancelPipelineOutput>;
   ClearDataResourceFromIndexInput: ClearDataResourceFromIndexInput;
   ClearDataResourceFromIndexOutput: ResolverTypeWrapper<ClearDataResourceFromIndexOutput>;
+  DataResourceEvent: ResolverTypeWrapper<DataResourceEvent>;
   DataResourceHistoryInput: DataResourceHistoryInput;
   DataResourceHistoryOutput: ResolverTypeWrapper<DataResourceHistoryOutput>;
   DeleteIndexInput: DeleteIndexInput;
@@ -258,6 +269,7 @@ export type ResolversParentTypes = {
   CancelPipelineOutput: CancelPipelineOutput;
   ClearDataResourceFromIndexInput: ClearDataResourceFromIndexInput;
   ClearDataResourceFromIndexOutput: ClearDataResourceFromIndexOutput;
+  DataResourceEvent: DataResourceEvent;
   DataResourceHistoryInput: DataResourceHistoryInput;
   DataResourceHistoryOutput: DataResourceHistoryOutput;
   DeleteIndexInput: DeleteIndexInput;
@@ -287,8 +299,18 @@ export type ClearDataResourceFromIndexOutputResolvers<ContextType = any, ParentT
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type DataResourceHistoryOutputResolvers<ContextType = any, ParentType extends ResolversParentTypes['DataResourceHistoryOutput'] = ResolversParentTypes['DataResourceHistoryOutput']> = {
+export type DataResourceEventResolvers<ContextType = any, ParentType extends ResolversParentTypes['DataResourceEvent'] = ResolversParentTypes['DataResourceEvent']> = {
   dataResourceId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  event?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  executionId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  lastUpdated?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  rootPipelineId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  timestamp?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type DataResourceHistoryOutputResolvers<ContextType = any, ParentType extends ResolversParentTypes['DataResourceHistoryOutput'] = ResolversParentTypes['DataResourceHistoryOutput']> = {
+  events?: Resolver<Array<ResolversTypes['DataResourceEvent']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -323,7 +345,7 @@ export type PipelineResolvers<ContextType = any, ParentType extends ResolversPar
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   activeIndex?: Resolver<Maybe<ResolversTypes['Index']>, ParentType, ContextType>;
-  dataResourceHistory?: Resolver<Array<ResolversTypes['DataResourceHistoryOutput']>, ParentType, ContextType, RequireFields<QueryDataResourceHistoryArgs, 'input'>>;
+  dataResourceHistory?: Resolver<ResolversTypes['DataResourceHistoryOutput'], ParentType, ContextType, RequireFields<QueryDataResourceHistoryArgs, 'input'>>;
   index?: Resolver<Maybe<ResolversTypes['Index']>, ParentType, ContextType, RequireFields<QueryIndexArgs, 'id'>>;
   indices?: Resolver<Array<ResolversTypes['Index']>, ParentType, ContextType>;
   pipeline?: Resolver<Maybe<ResolversTypes['Pipeline']>, ParentType, ContextType, RequireFields<QueryPipelineArgs, 'id'>>;
@@ -343,6 +365,7 @@ export type StartPipelineOutputResolvers<ContextType = any, ParentType extends R
 export type Resolvers<ContextType = any> = {
   CancelPipelineOutput?: CancelPipelineOutputResolvers<ContextType>;
   ClearDataResourceFromIndexOutput?: ClearDataResourceFromIndexOutputResolvers<ContextType>;
+  DataResourceEvent?: DataResourceEventResolvers<ContextType>;
   DataResourceHistoryOutput?: DataResourceHistoryOutputResolvers<ContextType>;
   DeleteIndexOutput?: DeleteIndexOutputResolvers<ContextType>;
   GetOrCreateIndexOutput?: GetOrCreateIndexOutputResolvers<ContextType>;

@@ -12,7 +12,21 @@ export const PipelineQuery: QueryResolvers = {
         return pipelineService.getPipelines();
     },
     dataResourceHistory: async (_, { input: { dataResourceId } }) => {
-        return pipelineService.getDataResourceHistory(dataResourceId);
+        const events = await pipelineService.getDataResourceHistory(
+            dataResourceId,
+        );
+        return {
+            events: events.map((event) => {
+                return {
+                    dataResourceId: event.dataResourceId,
+                    rootPipelineId: event.rootPipelineId,
+                    executionId: event.executionId,
+                    event: event.event,
+                    timestamp: event.timestamp.toISOString(),
+                    lastUpdated: event.lastUpdated.toISOString(),
+                };
+            }),
+        };
     },
 };
 

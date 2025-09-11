@@ -109,34 +109,6 @@
               },
               "ConditionExpression": "{% $exists($states.context.Execution.Input.overwriteLock) and $states.context.Execution.Input.overwriteLock ? null : 'attribute_not_exists(SK)' %}"
             }
-          },
-          {
-            "Put": {
-              "TableName": "{% $config.dynamodb_table_name %}",
-              "Item": {
-                "PK": {
-                  "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
-                },
-                "SK": {
-                  "S": "{% $join(['HISTORY#', $lastUpdated, $now(), 'STARTED'], '#') %}"
-                },
-                "RootPipelineId": {
-                  "S": "{% $rootPipelineId %}"
-                },
-                "ExecutionId": {
-                  "S": "{% $states.context.Execution.Id %}"
-                },
-                "DataResourceId": {
-                  "S": "{% $dataResourceId %}"
-                },
-                "Timestamp": {
-                  "S": "{% $now() %}"
-                },
-                "Event": {
-                  "S": "STARTED"
-                }
-              }
-            }
           }
         ]
       },
@@ -162,7 +134,7 @@
               "Type": "Choice",
               "Choices": [
                 {
-                  "Next": "Delete Old FileHash Reference",
+                  "Next": "Cleanup Old Pipeline Data",
                   "Condition": "{% $exists($states.context.Execution.Input.shouldCleanupOldPipelineData) and $states.context.Execution.Input.shouldCleanupOldPipelineData %}"
                 },
                 {
@@ -186,27 +158,11 @@
                     "S": "{% 'HISTORY#' & $lastUpdated %}"
                   }
                 },
-                "Limit": 2
+                "Limit": 1
               },
               "Resource": "arn:aws:states:::aws-sdk:dynamodb:query",
               "Next": "Can Skip Processing?",
-              "Output": "{% $exists($states.result.Items) and $length($states.result.items) = 2 ? $states.result.items[1] : {} %}"
-            },
-            "Delete Old FileHash Reference": {
-              "Type": "Task",
-              "Resource": "arn:aws:states:::dynamodb:deleteItem",
-              "Arguments": {
-                "TableName": "{% $config.dynamodb_table_name %}",
-                "Key": {
-                  "PK": {
-                    "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
-                  },
-                  "SK": {
-                    "S": "{% 'FILE_HASH#' & $states.input.FileHash.S %}"
-                  }
-                }
-              },
-              "Next": "Cleanup Old Pipeline Data"
+              "Output": "{% $states.result.Count = 1 ? $states.result.Items[0] : {} %}"
             },
             "Cleanup Old Pipeline Data": {
               "Type": "Task",
@@ -231,19 +187,19 @@
               "Choices": [
                 {
                   "Next": "Do Nothing",
-                  "Condition": "{% $exists($states.input.Event) and $states.input.Event = 'SOLR_UPLOADED' and $states.context.Execution.Input.solrCollection = $states.input.SolrCollections.S %}"
+                  "Condition": "{% $exists($states.input.Event.S) and $states.input.Event.S = 'SOLR_UPLOADED' and $states.context.Execution.Input.solrCollection = $states.input.SolrCollections.S %}"
                 },
                 {
                   "Next": "Get or create EMR Cluster 2",
-                  "Condition": "{% $exists($states.input.Event) and $states.input.Event = 'SAMPLED'  %}"
+                  "Condition": "{% $exists($states.input.Event.S) and $states.input.Event.S = 'SAMPLED'  %}"
                 },
                 {
                   "Next": "Get or create EMR Cluster",
-                  "Condition": "{% $exists($states.input.Event) and $states.input.Event = 'INDEXED'  %}"
+                  "Condition": "{% $exists($states.input.Event.S) and $states.input.Event.S = 'INDEXED'  %}"
                 },
                 {
                   "Next": "Is Big or Small?",
-                  "Condition": "{% $exists($states.input.Event) and $states.input.Event = 'DOWNLOADED' %}",
+                  "Condition": "{% $exists($states.input.Event.S) and $states.input.Event.S = 'DOWNLOADED' %}",
                   "Output": "{% $number( $states.input.FileSize.N) %}"
                 }
               ],
@@ -306,7 +262,7 @@
               },
               "Next": "Get Download File Size and Hash",
               "Output": {
-                "downloadedTimeStamp": "{% $states.result.Container.Environment[Name = 'DOWNLOADED_EVENT_TIMESTAMP'].value %}"
+                "downloadedTimeStamp": "{% $states.result.Container.Environment[Name='DOWNLOADED_EVENT_TIMESTAMP'].Value %}"
               }
             },
             "Get Download File Size and Hash": {
@@ -319,7 +275,7 @@
                     "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
                   },
                   "SK": {
-                    "S": "{% $join(['HISTORY#', $lastUpdated, $states.input.downloadedTimeStamp, 'DOWNLOADED'], '#') %}"
+                    "S": "{% $join(['HISTORY', $lastUpdated, $states.input.downloadedTimeStamp, 'DOWNLOADED'], '#') %}"
                   }
                 }
               },
@@ -358,7 +314,7 @@
               "Choices": [
                 {
                   "Next": "Get Processing History",
-                  "Condition": "{% $exists($states.input.LastUpdated.S) %}",
+                  "Condition": "{% $not($exists($states.context.Execution.Input.shouldCleanupOldPipelineData) and $states.context.Execution.Input.shouldCleanupOldPipelineData) and $exists($states.input.LastUpdated.S) %}",
                   "Output": "{% $states.input.LastUpdated.S %}"
                 }
               ],
@@ -408,10 +364,10 @@
             },
             "Update Index Success": {
               "Type": "Task",
-              "Resource": "arn:aws:states:::dynamodb:updateItem",
+              "Resource": "arn:aws:states:::dynamodb:putItem",
               "Arguments": {
                 "TableName": "{% $config.dynamodb_table_name %}",
-                "Key": {
+                "Item": {
                   "PK": {
                     "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
                   },
@@ -432,12 +388,6 @@
                   },
                   "Event": {
                     "S": "INDEXED"
-                  }
-                },
-                "UpdateExpression": "SET LastIndexed = :timestamp",
-                "ExpressionAttributeValues": {
-                  ":timestamp": {
-                    "S": "{% $now() %}"
                   }
                 }
               },
@@ -578,10 +528,10 @@
                     },
                     "Update Sampling Success": {
                       "Type": "Task",
-                      "Resource": "arn:aws:states:::dynamodb:updateItem",
+                      "Resource": "arn:aws:states:::dynamodb:putItem",
                       "Arguments": {
                         "TableName": "{% $config.dynamodb_table_name %}",
-                        "Key": {
+                        "Item": {
                           "PK": {
                             "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
                           },
@@ -603,12 +553,6 @@
                           "Event": {
                             "S": "SAMPLED"
                           }
-                        },
-                        "UpdateExpression": "SET LastSampled = :timestamp",
-                        "ExpressionAttributeValues": {
-                          ":timestamp": {
-                            "S": "{% $now() %}"
-                          }
                         }
                       },
                       "End": true
@@ -616,39 +560,8 @@
                   }
                 },
                 {
-                  "StartAt": "Store Solr Reset Event",
+                  "StartAt": "Clear Old Records",
                   "States": {
-                    "Store Solr Reset Event": {
-                      "Type": "Task",
-                      "Resource": "arn:aws:states:::dynamodb:putItem",
-                      "Arguments": {
-                        "TableName": "{% $config.dynamodb_table_name %}",
-                        "Item": {
-                          "PK": {
-                            "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
-                          },
-                          "SK": {
-                            "S": "{% $join(['HISTORY#', $lastUpdated, $now(), 'SOLR_RESET'], '#') %}"
-                          },
-                          "RootPipelineId": {
-                            "S": "{% $rootPipelineId %}"
-                          },
-                          "ExecutionId": {
-                            "S": "{% $states.context.Execution.Id %}"
-                          },
-                          "DataResourceId": {
-                            "S": "{% $dataResourceId %}"
-                          },
-                          "Timestamp": {
-                            "S": "{% $now() %}"
-                          },
-                          "Event": {
-                            "S": "SOLR_RESET"
-                          }
-                        }
-                      },
-                      "Next": "Clear Old Records"
-                    },
                     "Clear Old Records": {
                       "Type": "Task",
                       "Resource": "arn:aws:states:::lambda:invoke",

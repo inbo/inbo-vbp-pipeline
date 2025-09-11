@@ -81,11 +81,12 @@ export class AwsPipelineServiceImpl implements PipelineService {
         });
 
         return output.Items?.map((item) => ({
-            id: "meh",
             dataResourceId: item.DataResourceId?.S || "empty",
-            pipelineId: item.PipelineId?.S || "empty",
-            status: item.Status?.S || "empty",
-            timestamp: new Date(item.LastUpdated?.S || "1970-01-01"),
+            rootPipelineId: item.RootPipelineId?.S || "empty",
+            executionId: item.ExecutionId?.S || "empty",
+            event: item.Event?.S || "empty",
+            timestamp: new Date(item.timestamp?.S || "1970-01-01"),
+            lastUpdated: new Date(item.lastUpdated?.S || "1970-01-01"),
         })) || [];
     }
 }

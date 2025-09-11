@@ -12,7 +12,7 @@ type Query {
 	############## PIPELINE #############
 	pipeline(id: ID!): Pipeline
 	pipelines: [Pipeline!]!
-	dataResourceHistory(input: DataResourceHistoryInput!): [DataResourceHistoryOutput!]!
+	dataResourceHistory(input: DataResourceHistoryInput!): DataResourceHistoryOutput!
 }
 
 type Mutation {
@@ -76,8 +76,17 @@ input DataResourceHistoryInput {
 	dataResourceId: ID!
 }
 
-type DataResourceHistoryOutput {
+type DataResourceEvent {
 	dataResourceId: ID!
+	rootPipelineId: ID!
+	executionId: ID!
+	event: String!
+	timestamp: String!
+	lastUpdated: String!
+}
+
+type DataResourceHistoryOutput {
+	events: [DataResourceEvent!]!
 }
 
 input StartPipelineInput {
