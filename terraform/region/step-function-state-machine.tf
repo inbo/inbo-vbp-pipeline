@@ -53,34 +53,34 @@ resource "aws_sfn_state_machine" "pipeline" {
   name     = "inbo-${var.application}-pipeline"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/inbo-${var.application}-pipeline-step-function"
 
-  definition = replace(file("${path.module}/step-function/pipeline.json"), "inbo-vbp-dev-pipelines", "inbo-vbp-${var.aws_env}-pipelines")
+  definition = replace(replace(file("${path.module}/step-function/pipeline.json"), "inbo-vbp-dev-pipelines", "inbo-vbp-${var.aws_env}-pipelines"), "632683202044", data.aws_caller_identity.current.account_id)
 }
 
 resource "aws_sfn_state_machine" "process_single_data_resource" {
   name     = "inbo-${var.application}-pipeline-process-single-dataresource"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/inbo-${var.application}-pipeline-step-function"
 
-  definition = replace(file("${path.module}/step-function/process-single-data-resource.json"), "inbo-vbp-dev-pipelines", "inbo-vbp-${var.aws_env}-pipelines")
+  definition = replace(replace(file("${path.module}/step-function/process-single-data-resource.json"), "inbo-vbp-dev-pipelines", "inbo-vbp-${var.aws_env}-pipelines"), "632683202044", data.aws_caller_identity.current.account_id)
 }
 resource "aws_sfn_state_machine" "process_large_data_resource" {
   name     = "inbo-${var.application}-pipeline-process-large-dataresource"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/inbo-${var.application}-pipeline-step-function"
 
-  definition = replace(file("${path.module}/step-function/process-large-data-resource.json"), "inbo-vbp-dev-pipelines", "inbo-vbp-${var.aws_env}-pipelines")
+  definition = replace(replace(file("${path.module}/step-function/process-large-data-resource.json"), "inbo-vbp-dev-pipelines", "inbo-vbp-${var.aws_env}-pipelines"), "632683202044", data.aws_caller_identity.current.account_id)
 }
 
 resource "aws_sfn_state_machine" "get_or_create_emr_cluster" {
   name     = "inbo-${var.application}-pipeline-get-or-create-emr-cluster"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/inbo-${var.application}-pipeline-step-function"
 
-  definition = replace(file("${path.module}/step-function/get-or-create-emr-cluster.json"), "inbo-vbp-dev-pipelines", "inbo-vbp-${var.aws_env}-pipelines")
+  definition = replace(replace(file("${path.module}/step-function/get-or-create-emr-cluster.json"), "inbo-vbp-dev-pipelines", "inbo-vbp-${var.aws_env}-pipelines"), "632683202044", data.aws_caller_identity.current.account_id)
 }
 
 resource "aws_sfn_state_machine" "cleanup_emr_cluster" {
   name     = "inbo-${var.application}-pipeline-cleanup-emr-cluster"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/inbo-${var.application}-pipeline-step-function"
 
-  definition = replace(file("${path.module}/step-function/cleanup-emr-cluster.json"), "inbo-vbp-dev-pipelines", "inbo-vbp-${var.aws_env}-pipelines")
+  definition = replace(replace(file("${path.module}/step-function/cleanup-emr-cluster.json"), "inbo-vbp-dev-pipelines", "inbo-vbp-${var.aws_env}-pipelines"), "632683202044", data.aws_caller_identity.current.account_id)
 }
 
 resource "aws_cloudwatch_event_connection" "collectory_authenticated_connection_sf" {
