@@ -1,6 +1,6 @@
 #tfsec:ignore:aws-s3-enable-bucket-encryption tfsec:ignore:aws-s3-encryption-customer-key tfsec:ignore:aws-s3-enable-bucket-logging tfsec:ignore:aws-s3-enable-versioning
 resource "aws_s3_bucket" "pipelines" {
-  bucket = "inbo-${var.application}-${var.aws_env}-pipelines"
+  bucket = "inbo-${var.application}-pipelines"
 
   tags = {
     Backup = "false"
