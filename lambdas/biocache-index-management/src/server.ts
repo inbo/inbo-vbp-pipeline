@@ -39,12 +39,34 @@ const resolvers: Resolvers = {
 const server = new ApolloServer<UserContext>({
     typeDefs,
     resolvers,
+    csrfPrevention: false,
 });
 
 export const graphqlHandler = startServerAndCreateLambdaHandler(
     server,
     handlers.createALBEventRequestHandler(),
     {
+        middleware: [
+            async (event) => {
+                if (event.httpMethod === "OPTIONS") {
+                    return {
+                        statusCode: 200,
+                        body: "",
+                        headers: {
+                            "Access-Control-Allow-Origin": "*",
+                            "Access-Control-Allow-Methods": "POST,GET,OPTIONS",
+                            "Access-Control-Allow-Headers": "*",
+                        },
+                    };
+                }
+
+                console.info("REQUEST: ", event);
+                return async (result) => {
+                    console.info("RESULT: ", result);
+                    return result;
+                };
+            },
+        ],
         context: async (
             { event, context },
         ) => {
@@ -54,12 +76,14 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
                         ? null
                         : await authService.authenticate(event.headers);
 
+                console.info("USER: ", user);
                 return {
                     ...context,
                     user,
                 };
             } catch (error) {
                 if (error instanceof AuthError) {
+                    console.warn("Authentication error:", error);
                     throw new GraphQLError("User authentication failed", {
                         extensions: {
                             code: error.code,
