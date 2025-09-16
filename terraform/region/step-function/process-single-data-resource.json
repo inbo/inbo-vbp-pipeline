@@ -372,7 +372,7 @@
                     "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
                   },
                   "SK": {
-                    "S": "{% $join(['HISTORY#', $lastUpdated, $now(), 'INDEXED'], '#') %}"
+                    "S": "{% $join(['HISTORY', $lastUpdated, $now(), 'INDEXED'], '#') %}"
                   },
                   "RootPipelineId": {
                     "S": "{% $rootPipelineId %}"
@@ -536,7 +536,7 @@
                             "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
                           },
                           "SK": {
-                            "S": "{% $join(['HISTORY#', $lastUpdated, $now(), 'SAMPLED'], '#') %}"
+                            "S": "{% $join(['HISTORY', $lastUpdated, $now(), 'SAMPLED'], '#') %}"
                           },
                           "RootPipelineId": {
                             "S": "{% $rootPipelineId %}"
@@ -636,7 +636,7 @@
                             "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
                           },
                           "SK": {
-                            "S": "{% $join(['HISTORY#', $lastUpdated, $now(), 'SOLR_UPLOADED'], '#') %}"
+                            "S": "{% $join(['HISTORY', $lastUpdated, $now(), 'SOLR_UPLOADED'], '#') %}"
                           },
                           "RootPipelineId": {
                             "S": "{% $rootPipelineId %}"
