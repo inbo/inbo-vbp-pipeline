@@ -1,3 +1,5 @@
+scalar Date
+
 schema {
 	query: Query
 	mutation: Mutation
@@ -13,6 +15,10 @@ type Query {
 	pipeline(id: ID!): Pipeline
 	pipelines: [Pipeline!]!
 	dataResourceHistory(input: DataResourceHistoryInput!): DataResourceHistoryOutput!
+
+	############ DATA RESOURCE ###########
+	dataResource(id: ID!): DataResource
+	dataResources: [DataResource!]!
 }
 
 type Mutation {
@@ -30,6 +36,7 @@ type Mutation {
 ############## INDEX #############
 type Index {
 	id: ID!
+	active: Boolean
 }
 
 input GetOrCreateIndexInput {
@@ -64,12 +71,19 @@ input SetActiveIndexInput {
 }
 
 type SetActiveIndexOutput {
-	indexId: ID!
+	index: Index!
 }
 
 ############ PIPELINE ###########
 type Pipeline {
 	id: ID!
+	status: String!
+	startedAt: Date
+	stoppedAt: Date
+	input: String
+	output: String
+	error: String
+	cause: String
 }
 
 input DataResourceHistoryInput {
@@ -105,4 +119,11 @@ input CancelPipelineInput {
 
 type CancelPipelineOutput {
 	pipeline: Pipeline!
+}
+
+############ DATA RESOURCE ###########
+type DataResource {
+	id: ID!
+	name: String
+	description: String
 }

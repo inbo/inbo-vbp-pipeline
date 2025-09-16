@@ -14,6 +14,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  Date: { input: any; output: any; }
 };
 
 export type CancelPipelineInput = {
@@ -34,6 +35,13 @@ export type ClearDataResourceFromIndexOutput = {
   __typename?: 'ClearDataResourceFromIndexOutput';
   dataResourceId: Scalars['ID']['output'];
   indexId: Scalars['ID']['output'];
+};
+
+export type DataResource = {
+  __typename?: 'DataResource';
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  name?: Maybe<Scalars['String']['output']>;
 };
 
 export type DataResourceEvent = {
@@ -75,6 +83,7 @@ export type GetOrCreateIndexOutput = {
 
 export type Index = {
   __typename?: 'Index';
+  active?: Maybe<Scalars['Boolean']['output']>;
   id: Scalars['ID']['output'];
 };
 
@@ -120,17 +129,31 @@ export type MutationStartPipelineArgs = {
 
 export type Pipeline = {
   __typename?: 'Pipeline';
+  cause?: Maybe<Scalars['String']['output']>;
+  error?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
+  input?: Maybe<Scalars['String']['output']>;
+  output?: Maybe<Scalars['String']['output']>;
+  startedAt?: Maybe<Scalars['Date']['output']>;
+  status: Scalars['String']['output'];
+  stoppedAt?: Maybe<Scalars['Date']['output']>;
 };
 
 export type Query = {
   __typename?: 'Query';
   activeIndex?: Maybe<Index>;
+  dataResource?: Maybe<DataResource>;
   dataResourceHistory: DataResourceHistoryOutput;
+  dataResources: Array<DataResource>;
   index?: Maybe<Index>;
   indices: Array<Index>;
   pipeline?: Maybe<Pipeline>;
   pipelines: Array<Pipeline>;
+};
+
+
+export type QueryDataResourceArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -154,7 +177,7 @@ export type SetActiveIndexInput = {
 
 export type SetActiveIndexOutput = {
   __typename?: 'SetActiveIndexOutput';
-  indexId: Scalars['ID']['output'];
+  index: Index;
 };
 
 export type StartPipelineInput = {
@@ -167,10 +190,78 @@ export type StartPipelineOutput = {
   pipeline: Pipeline;
 };
 
+export type GetAllDataResourcesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetAllDataResourcesQuery = { __typename?: 'Query', dataResources: Array<{ __typename?: 'DataResource', id: string, name?: string | null }> };
+
+export type GetDataResourceQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetDataResourceQuery = { __typename?: 'Query', dataResource?: { __typename?: 'DataResource', id: string, name?: string | null } | null };
+
+export type GetDataResourceHistoryQueryVariables = Exact<{
+  input: DataResourceHistoryInput;
+}>;
+
+
+export type GetDataResourceHistoryQuery = { __typename?: 'Query', dataResourceHistory: { __typename?: 'DataResourceHistoryOutput', events: Array<{ __typename?: 'DataResourceEvent', event: string }> } };
+
 export type GetIndicesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetIndicesQuery = { __typename?: 'Query', indices: Array<{ __typename?: 'Index', id: string }> };
+export type GetIndicesQuery = { __typename?: 'Query', indices: Array<{ __typename?: 'Index', id: string, active?: boolean | null }> };
+
+export type SetActiveIndexMutationVariables = Exact<{
+  input: SetActiveIndexInput;
+}>;
 
 
-export const GetIndicesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetIndices"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"indices"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}}]}}]}}]} as unknown as DocumentNode<GetIndicesQuery, GetIndicesQueryVariables>;
+export type SetActiveIndexMutation = { __typename?: 'Mutation', setActiveIndex: { __typename?: 'SetActiveIndexOutput', index: { __typename?: 'Index', id: string, active?: boolean | null } } };
+
+export type DeleteIndexMutationVariables = Exact<{
+  input: DeleteIndexInput;
+}>;
+
+
+export type DeleteIndexMutation = { __typename?: 'Mutation', deleteIndex: { __typename?: 'DeleteIndexOutput', indexId: string } };
+
+export type GetAllPipelinesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetAllPipelinesQuery = { __typename?: 'Query', pipelines: Array<{ __typename?: 'Pipeline', id: string, status: string, startedAt?: any | null, stoppedAt?: any | null }> };
+
+export type GetPipelineQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetPipelineQuery = { __typename?: 'Query', pipeline?: { __typename?: 'Pipeline', id: string, status: string, startedAt?: any | null, stoppedAt?: any | null, input?: string | null, output?: string | null, error?: string | null, cause?: string | null } | null };
+
+export type StartPipelineMutationVariables = Exact<{
+  input: StartPipelineInput;
+}>;
+
+
+export type StartPipelineMutation = { __typename?: 'Mutation', startPipeline: { __typename?: 'StartPipelineOutput', pipeline: { __typename?: 'Pipeline', id: string, status: string, startedAt?: any | null, stoppedAt?: any | null, input?: string | null, output?: string | null, error?: string | null, cause?: string | null } } };
+
+export type CancelPipelineMutationVariables = Exact<{
+  input: CancelPipelineInput;
+}>;
+
+
+export type CancelPipelineMutation = { __typename?: 'Mutation', cancelPipeline: { __typename?: 'CancelPipelineOutput', pipeline: { __typename?: 'Pipeline', id: string, status: string, startedAt?: any | null, stoppedAt?: any | null, input?: string | null, output?: string | null, error?: string | null, cause?: string | null } } };
+
+
+export const GetAllDataResourcesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetAllDataResources"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dataResources"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<GetAllDataResourcesQuery, GetAllDataResourcesQueryVariables>;
+export const GetDataResourceDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetDataResource"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dataResource"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<GetDataResourceQuery, GetDataResourceQueryVariables>;
+export const GetDataResourceHistoryDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetDataResourceHistory"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DataResourceHistoryInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dataResourceHistory"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"events"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"event"}}]}}]}}]}}]} as unknown as DocumentNode<GetDataResourceHistoryQuery, GetDataResourceHistoryQueryVariables>;
+export const GetIndicesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetIndices"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"indices"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"active"}}]}}]}}]} as unknown as DocumentNode<GetIndicesQuery, GetIndicesQueryVariables>;
+export const SetActiveIndexDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SetActiveIndex"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SetActiveIndexInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"setActiveIndex"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"index"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"active"}}]}}]}}]}}]} as unknown as DocumentNode<SetActiveIndexMutation, SetActiveIndexMutationVariables>;
+export const DeleteIndexDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteIndex"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DeleteIndexInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteIndex"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"indexId"}}]}}]}}]} as unknown as DocumentNode<DeleteIndexMutation, DeleteIndexMutationVariables>;
+export const GetAllPipelinesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetAllPipelines"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pipelines"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"startedAt"}},{"kind":"Field","name":{"kind":"Name","value":"stoppedAt"}}]}}]}}]} as unknown as DocumentNode<GetAllPipelinesQuery, GetAllPipelinesQueryVariables>;
+export const GetPipelineDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetPipeline"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pipeline"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"startedAt"}},{"kind":"Field","name":{"kind":"Name","value":"stoppedAt"}},{"kind":"Field","name":{"kind":"Name","value":"input"}},{"kind":"Field","name":{"kind":"Name","value":"output"}},{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"cause"}}]}}]}}]} as unknown as DocumentNode<GetPipelineQuery, GetPipelineQueryVariables>;
+export const StartPipelineDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"StartPipeline"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"StartPipelineInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"startPipeline"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pipeline"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"startedAt"}},{"kind":"Field","name":{"kind":"Name","value":"stoppedAt"}},{"kind":"Field","name":{"kind":"Name","value":"input"}},{"kind":"Field","name":{"kind":"Name","value":"output"}},{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"cause"}}]}}]}}]}}]} as unknown as DocumentNode<StartPipelineMutation, StartPipelineMutationVariables>;
+export const CancelPipelineDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CancelPipeline"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CancelPipelineInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cancelPipeline"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"pipeline"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"startedAt"}},{"kind":"Field","name":{"kind":"Name","value":"stoppedAt"}},{"kind":"Field","name":{"kind":"Name","value":"input"}},{"kind":"Field","name":{"kind":"Name","value":"output"}},{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"cause"}}]}}]}}]}}]} as unknown as DocumentNode<CancelPipelineMutation, CancelPipelineMutationVariables>;

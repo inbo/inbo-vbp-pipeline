@@ -1,5 +1,15 @@
 export type Pipeline = {
     id: string;
+    status: string;
+    startedAt?: Date;
+    stoppedAt?: Date;
+};
+
+export type PipelineDetails = Pipeline & {
+    input?: string;
+    output?: string;
+    error?: string;
+    cause?: string;
 };
 
 export type DataResourceHistory = {
@@ -12,7 +22,7 @@ export type DataResourceHistory = {
 };
 
 export type PipelineService = {
-    getPipeline(id: string): Promise<Pipeline | null>;
+    getPipeline(id: string): Promise<PipelineDetails | null>;
     getPipelines(): Promise<Pipeline[]>;
 
     startPipeline(

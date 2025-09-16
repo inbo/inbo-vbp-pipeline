@@ -8,7 +8,7 @@ import { SolrClient } from "../solr/solr";
 
 const solrClient = new SolrClient(config);
 
-export const IndexQuery: QueryResolvers = {
+export const Query: QueryResolvers = {
     index: async (_, { id }) => {
         return solrClient.getIndex(id);
     },
@@ -16,11 +16,27 @@ export const IndexQuery: QueryResolvers = {
         return solrClient.getIndices();
     },
     activeIndex: async () => {
-        return solrClient.getActiveIndex();
+        if (context.activeIndex === undefined) {
+            context.activeIndex = await solrClient.getActiveIndex();
+        }
+        return context.activeIndex;
     },
 };
 
-export const IndexMutation: MutationResolvers = {
+export const IndexQuery: IndexResolvers = {
+    active: async (parent, context) => {
+        if (context.activeIndex === undefined) {
+            context.activeIndex = await solrClient.getActiveIndex();
+        }
+        if (context.activeIndex === null) {
+            return null;
+        }
+
+        return context.activeIndex?.id === parent.id;
+    },
+};
+
+export const Mutation: MutationResolvers = {
     getOrCreateIndex: async (_, { input }) => {
         const index = await solrClient.getIndex(input.indexId);
         if (index) {
@@ -42,7 +58,9 @@ export const IndexMutation: MutationResolvers = {
     setActiveIndex: async (_, { input }) => {
         await solrClient.setActiveIndex(input.indexId);
         return {
-            indexId: input.indexId,
+            index: {
+                id: input.indexId,
+            },
         };
     },
 
@@ -59,4 +77,10 @@ export const IndexMutation: MutationResolvers = {
             dataResourceId: input.dataResourceId,
         };
     },
+};
+
+export default {
+    Query: Query,
+    Mutation: Mutation,
+    Index: IndexQuery,
 };

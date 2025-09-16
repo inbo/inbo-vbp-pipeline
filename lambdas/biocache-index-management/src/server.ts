@@ -11,8 +11,9 @@ import { User } from "./core/user";
 import { AuthError, AuthService } from "./auth";
 import { GraphQLError } from "graphql";
 
-import { IndexMutation, IndexQuery } from "./graphql/index-resolvers";
-import { PipelineMutation, PipelineQuery } from "./graphql/pipeline-resolvers";
+import IndexResolvers from "./graphql/index-resolvers";
+import PipelineResolvers from "./graphql/pipeline-resolvers";
+import DataResourceResolvers from "./graphql/data-resource-resolver";
 
 const authService = new AuthService(config);
 
@@ -27,12 +28,16 @@ interface UserContext {
 
 const resolvers: Resolvers = {
     Query: {
-        ...IndexQuery,
-        ...PipelineQuery,
+        ...IndexResolvers.Query,
+        ...DataResourceResolvers.Query,
+        ...PipelineResolvers.Query,
     },
     Mutation: {
-        ...IndexMutation,
-        ...PipelineMutation,
+        ...IndexResolvers.Mutation,
+        ...PipelineResolvers.Mutation,
+    },
+    Index: {
+        ...IndexResolvers.Index,
     },
 };
 

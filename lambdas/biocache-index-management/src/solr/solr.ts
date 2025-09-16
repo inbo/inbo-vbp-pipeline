@@ -3,6 +3,7 @@ import { IndexService } from "../core/index-service";
 
 export class SolrClient implements IndexService {
     private readonly solrBaseUrl: string;
+    private readonly solrBiocacheIndexNamePrefix: string;
     private readonly solrBiocacheSchemaConfig: string;
     private readonly solrBiocacheActiveAlias: string;
     private readonly solrBiocacheNumberOfShards: number;
@@ -11,12 +12,14 @@ export class SolrClient implements IndexService {
     constructor(
         {
             solrBaseUrl,
+            solrBiocacheIndexNamePrefix,
             solrBiocacheSchemaConfig,
             solrBiocacheActiveAlias,
             solrBiocacheNumberOfShards,
             solrBiocacheMaxShardsPerNode,
         }: {
             solrBaseUrl: string;
+            solrBiocacheIndexNamePrefix: string;
             solrBiocacheSchemaConfig: string;
             solrBiocacheActiveAlias: string;
             solrBiocacheNumberOfShards: number;
@@ -24,6 +27,7 @@ export class SolrClient implements IndexService {
         },
     ) {
         this.solrBaseUrl = solrBaseUrl;
+        this.solrBiocacheIndexNamePrefix = solrBiocacheIndexNamePrefix;
         this.solrBiocacheSchemaConfig = solrBiocacheSchemaConfig;
         this.solrBiocacheActiveAlias = solrBiocacheActiveAlias;
         this.solrBiocacheNumberOfShards = solrBiocacheNumberOfShards;
@@ -55,7 +59,12 @@ export class SolrClient implements IndexService {
         );
         const data = await response.json();
         console.debug("List collections data:", data);
-        return data.collections?.map((id: string) => ({ id }));
+        return data.collections
+            ?.filter((id: string) =>
+                id.startsWith(this.solrBiocacheIndexNamePrefix)
+            )
+            .map((id: string) => ({ id }))
+            .sort((a: Index, b: Index) => -a.id.localeCompare(b.id)) || [];
     }
 
     async createIndex(id: string): Promise<Index> {

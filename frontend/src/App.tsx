@@ -1,17 +1,31 @@
-import { useQuery } from "@apollo/client/react";
-import "./App.css";
-import { GET_INDICES } from "./graphql/indices";
+import "./styles/App.css";
 import { withAuthenticationRequired } from "react-oidc-context";
+import { PipelineList } from "./components/PipelineList";
+import { IndexList } from "./components/IndexList";
 
 function App() {
-  const { data, refetch } = useQuery(GET_INDICES);
-
   return (
     <>
-      <p>Welcome back!</p>
-      {data?.indices.map((index: { id: string }) => (
-        <div key={index.id}>{index.id}</div>
-      ))}
+      <h1>VBP Data Pipeline</h1>
+      <div id="main">
+        <a href="/start-pipeline">
+          Start New Pipeline
+        </a>
+        <div id="overview">
+          <div id="indices">
+            <h2>Available Indices:</h2>
+            <div>
+              <IndexList />
+            </div>
+          </div>
+          <div id="pipelines">
+            <h2>Pipelines:</h2>
+            <div>
+              <PipelineList />
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 }

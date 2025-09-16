@@ -1,6 +1,7 @@
 import {
     DataResourceHistory,
     Pipeline,
+    PipelineDetails,
     PipelineService,
 } from "../core/pipeline-service";
 
@@ -9,6 +10,7 @@ import { DynamoDB } from "@aws-sdk/client-dynamodb";
 
 export class AwsPipelineServiceImpl implements PipelineService {
     private readonly awsStateMachineArn: string;
+    private readonly awsStateExecutionArnPrefix: string;
     private readonly awsDynamoDBTableName: string;
     private readonly sfn: SFN;
     private readonly dynamoDB: DynamoDB;
@@ -21,6 +23,10 @@ export class AwsPipelineServiceImpl implements PipelineService {
         },
     ) {
         this.awsStateMachineArn = awsStateMachineArn;
+        this.awsStateExecutionArnPrefix = awsStateMachineArn.replace(
+            "stateMachine",
+            "execution",
+        );
         this.awsDynamoDBTableName = awsDynamoDBTableName;
         this.sfn = new SFN({
             endpoint: awsBaseUrl,
@@ -29,48 +35,81 @@ export class AwsPipelineServiceImpl implements PipelineService {
             endpoint: awsBaseUrl,
         });
     }
-    async getPipeline(id: string): Promise<Pipeline | null> {
+    async getPipeline(id: string): Promise<PipelineDetails | null> {
+        console.debug("Getting pipeline with id:", id);
+
         const output = await this.sfn.describeExecution({
-            executionArn: id,
+            executionArn: `${this.awsStateExecutionArnPrefix}:${id}`,
         });
+
         return output.executionArn
             ? {
-                id: output.executionArn,
+                id: output.name!,
+                status: output.status!,
+                startedAt: output.startDate,
+                stoppedAt: output.stopDate,
+                input: output.input,
+                output: output.output,
+                error: output.error,
+                cause: output.cause,
             }
             : null;
     }
     async getPipelines(): Promise<Pipeline[]> {
+        console.debug("Getting all pipelines");
+
         const output = await this.sfn.listExecutions({
             stateMachineArn: this.awsStateMachineArn,
+            maxResults: 10,
         });
         return output.executions
             ?.map((execution) => ({
-                id: execution.executionArn!,
+                id: execution.name!,
+                status: execution.status!,
+                startedAt: execution.startDate,
+                stoppedAt: execution.stopDate,
             })) || [];
     }
     async startPipeline(
         dataResourceIds?: string[],
         solrCollection?: string,
     ): Promise<Pipeline> {
+        console.debug(
+            "Starting pipeline with input:",
+            dataResourceIds,
+            solrCollection,
+        );
+
         const output = await this.sfn.startExecution({
             stateMachineArn: this.awsStateMachineArn,
             input: JSON.stringify({
-                dataResourceIds,
+                dataResources: dataResourceIds,
                 solrCollection,
             }),
         });
         return {
-            id: output.executionArn!,
+            id: output.executionArn!.replace(
+                `${this.awsStateExecutionArnPrefix}:`,
+                "",
+            ),
+            status: "RUNNING",
+            startedAt: output.startDate,
         };
     }
+
     async cancelPipeline(id: string): Promise<void> {
-        await this.sfn.stopExecution({
-            executionArn: id,
+        console.debug("Cancelling pipeline with id:", id);
+
+        const output = await this.sfn.stopExecution({
+            executionArn: `${this.awsStateExecutionArnPrefix}:${id}`,
         });
     }
+
     async getDataResourceHistory(
         dataResourceId: string,
     ): Promise<DataResourceHistory[]> {
+        console.debug("Getting data resource history for id:", dataResourceId);
+
         const output = await this.dynamoDB.query({
             TableName: this.awsDynamoDBTableName,
             KeyConditionExpression: "PK = :pk and begins_with(SK, :sk)",

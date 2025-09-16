@@ -1,6 +1,6 @@
+import "./styles/index.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
 import App from "./App.tsx";
 import { ApolloProvider } from "@apollo/client/react";
 import {
@@ -16,6 +16,9 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import { User } from "oidc-client-ts";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorLink } from "@apollo/client/link/error";
+import Pipeline from "./Pipeline.tsx";
+import DataResource from "./components/DataResourceList.tsx";
+import { StartPipeline } from "./StartPipeline.tsx";
 
 const oidcConfig = {
   authority: "https://auth-dev.inbo.be/realms/vbp",
@@ -95,6 +98,9 @@ createRoot(document.getElementById("root")!).render(
           <BrowserRouter>
             <Routes>
               <Route element={<App />} path="/" />
+              <Route element={<StartPipeline />} path="/start-pipeline" />
+              <Route element={<Pipeline />} path="/pipeline/:id" />
+              <Route element={<DataResource />} path="/data_resource/:id" />
             </Routes>
           </BrowserRouter>
         </ApolloProvider>

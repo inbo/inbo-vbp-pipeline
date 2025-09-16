@@ -4,7 +4,7 @@ import config from "../config";
 
 const pipelineService = new AwsPipelineServiceImpl(config);
 
-export const PipelineQuery: QueryResolvers = {
+export const Query: QueryResolvers = {
     pipeline: async (_, { id }) => {
         return pipelineService.getPipeline(id);
     },
@@ -30,7 +30,7 @@ export const PipelineQuery: QueryResolvers = {
     },
 };
 
-export const PipelineMutation: MutationResolvers = {
+export const Mutation: MutationResolvers = {
     startPipeline: async (
         _,
         { input: { dataResourceIds, solrCollection } },
@@ -50,4 +50,9 @@ export const PipelineMutation: MutationResolvers = {
             pipeline: pipeline!,
         };
     },
+};
+
+export default {
+    Query: Query,
+    Mutation: Mutation,
 };
