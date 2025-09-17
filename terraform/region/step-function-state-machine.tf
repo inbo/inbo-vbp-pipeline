@@ -17,7 +17,7 @@ locals {
     process_large_dataresource_state_machine_arn  = aws_sfn_state_machine.process_large_data_resource.arn
     get_or_create_emr_cluster_state_machine_arn   = aws_sfn_state_machine.get_or_create_emr_cluster.arn
     cleanup_emr_cluster_state_machine_arn         = aws_sfn_state_machine.cleanup_emr_cluster.arn
-    lambda_biocache_index_management_arn          = aws_lambda_function.biocache_index_management_lambda.invoke_arn
+    lambda_biocache_index_management_arn          = aws_lambda_function.biocache_index_management_lambda.qualified_arn
     job_queue_arn                                 = aws_batch_job_queue.pipelines_queue.arn
     dynamodb_table_name                           = aws_dynamodb_table.biodiversiteitsportaal_pipelines.name
     apikey_secret_value                           = aws_secretsmanager_secret_version.apikey_credentials.secret_string
