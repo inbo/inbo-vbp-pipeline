@@ -58,7 +58,7 @@ resource "aws_lambda_function" "biocache_index_management_lambda" {
   role              = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/inbo-${var.application}-biocache-index-management-lambda"
   runtime           = "nodejs22.x"
   handler           = "server.graphqlHandler"
-  timeout           = 10
+  timeout           = 30
 
   vpc_config {
     security_group_ids = [aws_security_group.biocache_index_management.id]
