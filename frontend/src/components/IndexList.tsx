@@ -5,7 +5,16 @@ import {
     SET_ACTIVE_INDEX,
 } from "../graphql/indices";
 import { useState } from "react";
-import { gql } from "../__generated__/biocache-index-management";
+import type { Reference } from "@apollo/client";
+import type { MutationUpdaterFunction } from "@apollo/client";
+import type { ApolloCache } from "@apollo/client";
+import type {
+    DeleteIndexInput,
+    DeleteIndexMutation,
+    Exact,
+    SetActiveIndexInput,
+    SetActiveIndexMutation,
+} from "../__generated__/biocache-index-management/graphql";
 
 export function IndexList() {
     const { data: IndexListData } = useQuery(GET_INDICES);
@@ -16,52 +25,23 @@ export function IndexList() {
     const [
         setActiveIndex,
         {
-            data: setActiveIndexData,
             loading: setActiveIndexLoading,
-            error: setActiveIndexError,
         },
     ] = useMutation(
         SET_ACTIVE_INDEX,
         {
-            update(cache, { data: { index: { id } } }) {
-                cache.modify({
-                    fields: {
-                        indices(existingIndices = []) {
-                            const newIndexRef = cache.modify({
-                                id: cache.identify(id),
-                                fields: {
-                                    active: () => true,
-                                },
-                            });
-                            return [...existingIndices, newIndexRef];
-                        },
-                    },
-                });
-            },
+            update: updateActiveIndexLocally,
         },
     );
     const [
         deleteIndex,
         {
-            data: deleteIndexData,
             loading: deleteIndexLoading,
-            error: deleteIndexError,
         },
     ] = useMutation(
         DELETE_INDEX,
         {
-            update(cache, { data: { indexId } }) {
-                cache.modify({
-                    fields: {
-                        indices(existingIndices = []) {
-                            const newIndexRef = cache.removeOptimistic({
-                                id: cache.identify(indexId)!,
-                            });
-                            return [...existingIndices, newIndexRef];
-                        },
-                    },
-                });
-            },
+            update: deleteIndexLocally,
         },
     );
 
@@ -69,7 +49,8 @@ export function IndexList() {
         <ul>
             {IndexListData?.indices.map((index) => (
                 <li key={index.id}>
-                    {index.id} {index.active ? " (active)" : " (inactive)"}
+                    {index.id}[{index.counts?.total}]{" "}
+                    {index.active ? " (active)" : " (inactive)"}
                     {!index.active && (
                         <>
                             <button
@@ -117,3 +98,59 @@ export function IndexList() {
         </ul>
     );
 }
+
+const updateActiveIndexLocally: MutationUpdaterFunction<
+    SetActiveIndexMutation,
+    Exact<{
+        input: SetActiveIndexInput;
+    }>,
+    ApolloCache
+> = (cache, { data }) => {
+    const index = data?.setActiveIndex.index;
+    if (index) {
+        cache.modify({
+            fields: {
+                indices(existingIndices = [], { readField }) {
+                    // Set the active field of the selected index to true
+                    cache.modify({
+                        id: cache.identify(index),
+                        fields: {
+                            active: () => true,
+                        },
+                    });
+
+                    // Set the active field of the previously active index to false
+                    const oldActiveIndex = existingIndices.find(
+                        (ref: Reference) => readField("active", ref) === true,
+                    );
+                    if (oldActiveIndex) {
+                        cache.modify({
+                            id: cache.identify(oldActiveIndex),
+                            fields: {
+                                active: () => false,
+                            },
+                        });
+                    }
+                },
+            },
+        });
+    }
+};
+
+const deleteIndexLocally: MutationUpdaterFunction<
+    DeleteIndexMutation,
+    Exact<{
+        input: DeleteIndexInput;
+    }>,
+    ApolloCache
+> = (cache, { data }) => {
+    const indexId = data?.deleteIndex.indexId;
+    if (indexId) {
+        const normalizedId = cache.identify({
+            __typename: "Index",
+            id: indexId,
+        });
+        cache.evict({ id: normalizedId });
+        cache.gc();
+    }
+};

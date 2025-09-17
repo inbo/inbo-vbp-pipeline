@@ -17,7 +17,7 @@ type Documents = {
     "\n  query GetAllDataResources {\n    dataResources {\n      id\n      name\n    }\n  }\n": typeof types.GetAllDataResourcesDocument,
     "\n  query GetDataResource($id: ID!) {\n    dataResource(id: $id) {\n      id\n      name\n    }\n  }\n": typeof types.GetDataResourceDocument,
     "\n  query GetDataResourceHistory($input: DataResourceHistoryInput!) {\n    dataResourceHistory(input: $input) {\n      events {\n        event\n      }\n    }\n  }\n": typeof types.GetDataResourceHistoryDocument,
-    "\n  query GetIndices {\n    indices {\n      id\n      active\n    }\n  }\n": typeof types.GetIndicesDocument,
+    "\n  query GetIndices {\n    indices {\n      id\n      active\n      counts {\n        total\n        dataResourceCounts {\n          dataResourceId\n          count\n        }\n      }\n    }\n  }\n": typeof types.GetIndicesDocument,
     "\n  mutation SetActiveIndex($input: SetActiveIndexInput!) {\n    setActiveIndex(input: $input) {\n      index {\n        id\n        active\n      }\n    }\n  }\n": typeof types.SetActiveIndexDocument,
     "\n  mutation DeleteIndex($input: DeleteIndexInput!) {\n    deleteIndex(input: $input) {\n      indexId\n    }\n  }\n": typeof types.DeleteIndexDocument,
     "\n  query GetAllPipelines {\n    pipelines {\n      id\n      status\n      startedAt\n      stoppedAt\n      \n    }\n  }\n": typeof types.GetAllPipelinesDocument,
@@ -29,7 +29,7 @@ const documents: Documents = {
     "\n  query GetAllDataResources {\n    dataResources {\n      id\n      name\n    }\n  }\n": types.GetAllDataResourcesDocument,
     "\n  query GetDataResource($id: ID!) {\n    dataResource(id: $id) {\n      id\n      name\n    }\n  }\n": types.GetDataResourceDocument,
     "\n  query GetDataResourceHistory($input: DataResourceHistoryInput!) {\n    dataResourceHistory(input: $input) {\n      events {\n        event\n      }\n    }\n  }\n": types.GetDataResourceHistoryDocument,
-    "\n  query GetIndices {\n    indices {\n      id\n      active\n    }\n  }\n": types.GetIndicesDocument,
+    "\n  query GetIndices {\n    indices {\n      id\n      active\n      counts {\n        total\n        dataResourceCounts {\n          dataResourceId\n          count\n        }\n      }\n    }\n  }\n": types.GetIndicesDocument,
     "\n  mutation SetActiveIndex($input: SetActiveIndexInput!) {\n    setActiveIndex(input: $input) {\n      index {\n        id\n        active\n      }\n    }\n  }\n": types.SetActiveIndexDocument,
     "\n  mutation DeleteIndex($input: DeleteIndexInput!) {\n    deleteIndex(input: $input) {\n      indexId\n    }\n  }\n": types.DeleteIndexDocument,
     "\n  query GetAllPipelines {\n    pipelines {\n      id\n      status\n      startedAt\n      stoppedAt\n      \n    }\n  }\n": types.GetAllPipelinesDocument,
@@ -67,7 +67,7 @@ export function gql(source: "\n  query GetDataResourceHistory($input: DataResour
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  query GetIndices {\n    indices {\n      id\n      active\n    }\n  }\n"): (typeof documents)["\n  query GetIndices {\n    indices {\n      id\n      active\n    }\n  }\n"];
+export function gql(source: "\n  query GetIndices {\n    indices {\n      id\n      active\n      counts {\n        total\n        dataResourceCounts {\n          dataResourceId\n          count\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetIndices {\n    indices {\n      id\n      active\n      counts {\n        total\n        dataResourceCounts {\n          dataResourceId\n          count\n        }\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

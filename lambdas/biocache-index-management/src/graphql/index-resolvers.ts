@@ -15,24 +15,38 @@ export const Query: QueryResolvers = {
     indices: async () => {
         return solrClient.getIndices();
     },
-    activeIndex: async () => {
-        if (context.activeIndex === undefined) {
-            context.activeIndex = await solrClient.getActiveIndex();
+    activeIndex: async (_parent, _args, contextValue, _info) => {
+        if (contextValue.activeIndex === undefined) {
+            contextValue.activeIndex = await solrClient.getActiveIndex();
         }
-        return context.activeIndex;
+        return contextValue.activeIndex;
     },
 };
 
 export const IndexQuery: IndexResolvers = {
-    active: async (parent, context) => {
-        if (context.activeIndex === undefined) {
-            context.activeIndex = await solrClient.getActiveIndex();
+    active: async (parent, _args, contextValue, _info) => {
+        if (contextValue.activeIndex === undefined) {
+            contextValue.activeIndex = await solrClient.getActiveIndex();
         }
-        if (context.activeIndex === null) {
+        if (contextValue.activeIndex === null) {
             return null;
         }
 
-        return context.activeIndex?.id === parent.id;
+        return contextValue.activeIndex?.id === parent.id;
+    },
+    counts: async (parent) => {
+        const details = await solrClient.getIndex(parent.id);
+        return {
+            total: details?.totalCount ?? 0,
+            dataResourceCounts: Object.entries(
+                details?.dataResourceCounts ?? {},
+            ).map(
+                ([dataResourceId, count]) => ({
+                    dataResourceId,
+                    count,
+                }),
+            ),
+        };
     },
 };
 

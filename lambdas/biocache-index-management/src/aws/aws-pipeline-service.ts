@@ -35,6 +35,7 @@ export class AwsPipelineServiceImpl implements PipelineService {
             endpoint: awsBaseUrl,
         });
     }
+
     async getPipeline(id: string): Promise<PipelineDetails | null> {
         console.debug("Getting pipeline with id:", id);
 
@@ -55,6 +56,7 @@ export class AwsPipelineServiceImpl implements PipelineService {
             }
             : null;
     }
+
     async getPipelines(): Promise<Pipeline[]> {
         console.debug("Getting all pipelines");
 

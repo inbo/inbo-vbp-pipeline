@@ -5,6 +5,13 @@ export const GET_INDICES = gql(`
     indices {
       id
       active
+      counts {
+        total
+        dataResourceCounts {
+          dataResourceId
+          count
+        }
+      }
     }
   }
 `);

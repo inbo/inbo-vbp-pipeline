@@ -1,4 +1,4 @@
-import { Index } from "../core/index-service";
+import { Index, IndexDetails } from "../core/index-service";
 import { IndexService } from "../core/index-service";
 
 export class SolrClient implements IndexService {
@@ -34,23 +34,43 @@ export class SolrClient implements IndexService {
         this.solrBiocacheMaxShardsPerNode = solrBiocacheMaxShardsPerNode;
     }
 
-    async getIndex(id: string): Promise<Index | null> {
+    async getIndex(id: string): Promise<IndexDetails | null> {
         const response = await fetch(
-            `${this.solrBaseUrl}/admin/collections?action=COLSTATUS&collection=${id}&coreInfo=true&segments=true&fieldInfo=true&sizeInfo=true&omitHeader=true`,
+            `${this.solrBaseUrl}/${id}/query?q=*:*&q.op=OR&indent=true&rows=0&facet=true&facet.field=dataResourceUid&omitHeader=true`,
         );
         if (!response.ok) {
+            if (response.status === 404) {
+                return null;
+            }
+
             const errorBody = await response.text();
             throw new Error(
                 `Failed to get index ${id}: ${response.statusText}\n${errorBody}`,
             );
         }
         const data = await response.json();
-        console.debug("Get collection data:", data);
-        if (data[id]) {
-            return { id: id };
-        } else {
-            return null;
-        }
+        console.debug("Get collection counts:", data);
+
+        return {
+            id,
+            totalCount: data.response.numFound,
+            dataResourceCounts: data.facet_counts.facet_fields.dataResourceUid
+                .reduce(
+                    (
+                        acc: { [dataResourceId: string]: number },
+                        val: string,
+                        idx: number,
+                    ) => {
+                        if (idx % 2 === 0) {
+                            acc[val] =
+                                data.facet_counts.facet_fields
+                                    .dataResourceUid[idx + 1];
+                        }
+                        return acc;
+                    },
+                    {},
+                ),
+        };
     }
 
     async getIndices(): Promise<Index[]> {

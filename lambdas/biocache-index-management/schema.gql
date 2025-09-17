@@ -37,6 +37,17 @@ type Mutation {
 type Index {
 	id: ID!
 	active: Boolean
+	counts: IndexCounts
+}
+
+type IndexCounts {
+	total: Int!
+	dataResourceCounts: [DataResourceCount!]!
+}
+
+type DataResourceCount {
+	dataResourceId: ID!
+	count: Int!
 }
 
 input GetOrCreateIndexInput {
