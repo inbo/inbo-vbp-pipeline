@@ -158,6 +158,7 @@
                     "S": "{% 'HISTORY#' & $lastUpdated %}"
                   }
                 },
+                "ScanIndexForward": false,
                 "Limit": 1
               },
               "Resource": "arn:aws:states:::aws-sdk:dynamodb:query",
