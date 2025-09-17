@@ -19,7 +19,7 @@
       "Resource": "arn:aws:states:::lambda:invoke",
       "Output": "{% $states.result.Payload %}",
       "Arguments": {
-        "FunctionName": "arn:aws:lambda:eu-west-1:632683202044:function:inbo-vbp-biocache-index-management:$LATEST",
+        "FunctionName": "{% config.lambda_biocache_index_management_arn %}",
         "Payload": {
           "httpMethod": "POST",
           "version": "2",
@@ -150,7 +150,7 @@
       "Resource": "arn:aws:states:::lambda:invoke",
       "Output": "{% $states.result.Payload %}",
       "Arguments": {
-        "FunctionName": "arn:aws:lambda:eu-west-1:632683202044:function:inbo-vbp-biocache-index-management:$LATEST",
+        "FunctionName": "{% config.lambda_biocache_index_management_arn %}",
         "Payload": {
           "httpMethod": "POST",
           "version": "2",
