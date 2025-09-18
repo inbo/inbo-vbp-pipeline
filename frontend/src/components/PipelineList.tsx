@@ -3,7 +3,6 @@ import { CANCEL_PIPELINE, GET_ALL_PIPELINES } from "../graphql/pipelines";
 
 export function PipelineList() {
     const { data: pipelinesData } = useQuery(GET_ALL_PIPELINES);
-
     const [
         cancelPipeline,
         {

@@ -23,7 +23,7 @@
               "TableName": "{% $config.dynamodb_table_name %}",
               "Item": {
                 "PK": {
-                  "S": "{% 'RUN#' & $states.context.Execution.Input.rootPipelineId %}"
+                  "S": "{% 'RUN#' & $states.context.Execution.Input.rootPipelineName %}"
                 },
                 "SK": {
                   "S": "RUN"
@@ -65,7 +65,7 @@
         "TableName": "{% $config.dynamodb_table_name %}",
         "Key": {
           "PK": {
-            "S": "{% 'RUN#' & $states.context.Execution.Input.rootPipelineId %}"
+            "S": "{% 'RUN#' & $states.context.Execution.Input.rootPipelineName %}"
           },
           "SK": {
             "S": "RUN"
@@ -245,7 +245,7 @@
               "TableName": "{% $config.dynamodb_table_name %}",
               "Item": {
                 "PK": {
-                  "S": "{% 'RUN#' & $states.context.Execution.Input.rootPipelineId %}"
+                  "S": "{% 'RUN#' & $states.context.Execution.Input.rootPipelineName %}"
                 },
                 "SK": {
                   "S": "RUN"

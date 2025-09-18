@@ -21,6 +21,20 @@ export type DataResourceHistory = {
     lastUpdated: Date;
 };
 
+export type DataResourceProgress = {
+    dataResourceId: string;
+    state:
+        | "Started"
+        | "Downloading"
+        | "Indexing"
+        | "Sampling"
+        | "Uploading"
+        | "Completed"
+        | "Failed";
+    startedAt?: Date;
+    stoppedAt?: Date;
+};
+
 export type PipelineService = {
     getPipeline(id: string): Promise<PipelineDetails | null>;
     getPipelines(): Promise<Pipeline[]>;
@@ -34,4 +48,8 @@ export type PipelineService = {
     getDataResourceHistory(
         dataResourceId: string,
     ): Promise<DataResourceHistory[]>;
+
+    getPipelineRunDataResourceProgress(
+        pipelineId: string,
+    ): Promise<DataResourceProgress[]>;
 };
