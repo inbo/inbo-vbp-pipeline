@@ -7,7 +7,6 @@ export const GET_ALL_PIPELINES = gql(`
       status
       startedAt
       stoppedAt
-      
     }
   }
 `);
@@ -56,6 +55,21 @@ export const CANCEL_PIPELINE = gql(`
       output
       error
       cause
+      }
+    }
+  }
+`);
+
+export const GET_PIPELINE_DATA_RESOURCE_PROGRESS = gql(`
+  query GetPipelineDataResourceProgress($id: ID!) {
+    pipeline(id: $id) {
+      id
+      dataResourceProgress {
+        dataResource {
+          id
+          name
+        }
+        state
       }
     }
   }

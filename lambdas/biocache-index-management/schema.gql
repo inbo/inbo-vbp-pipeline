@@ -34,7 +34,7 @@ type Mutation {
 }
 
 ############## INDEX #############
-type Index {
+type Index  {
 	id: ID!
 	active: Boolean
 	counts: IndexCounts
@@ -95,6 +95,8 @@ type Pipeline {
 	output: String
 	error: String
 	cause: String
+
+	dataResourceProgress: [DataResourceProgress!]
 }
 
 input DataResourceHistoryInput {
@@ -108,6 +110,23 @@ type DataResourceEvent {
 	event: String!
 	timestamp: String!
 	lastUpdated: String!
+}
+
+enum DataResourceProgressState {
+	STARTED
+	DOWNLOADING
+	INDEXING
+	SAMPLING
+	UPLOADING
+	COMPLETED
+	FAILED
+}
+
+type DataResourceProgress {
+	dataResource: DataResource
+	state: DataResourceProgressState!
+	startedAt: String
+	stoppedAt: String
 }
 
 type DataResourceHistoryOutput {

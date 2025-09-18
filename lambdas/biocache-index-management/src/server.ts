@@ -39,6 +39,9 @@ const resolvers: Resolvers = {
     Index: {
         ...IndexResolvers.Index,
     },
+    Pipeline: {
+        ...PipelineResolvers.Pipeline,
+    },
 };
 
 const server = new ApolloServer<UserContext>({

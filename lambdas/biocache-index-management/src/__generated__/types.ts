@@ -69,6 +69,24 @@ export type DataResourceHistoryOutput = {
   events: Array<DataResourceEvent>;
 };
 
+export type DataResourceProgress = {
+  __typename?: 'DataResourceProgress';
+  dataResource?: Maybe<DataResource>;
+  startedAt?: Maybe<Scalars['String']['output']>;
+  state: DataResourceProgressState;
+  stoppedAt?: Maybe<Scalars['String']['output']>;
+};
+
+export enum DataResourceProgressState {
+  Completed = 'COMPLETED',
+  Downloading = 'DOWNLOADING',
+  Failed = 'FAILED',
+  Indexing = 'INDEXING',
+  Sampling = 'SAMPLING',
+  Started = 'STARTED',
+  Uploading = 'UPLOADING'
+}
+
 export type DeleteIndexInput = {
   indexId: Scalars['ID']['input'];
 };
@@ -143,6 +161,7 @@ export type MutationStartPipelineArgs = {
 export type Pipeline = {
   __typename?: 'Pipeline';
   cause?: Maybe<Scalars['String']['output']>;
+  dataResourceProgress?: Maybe<Array<DataResourceProgress>>;
   error?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   input?: Maybe<Scalars['String']['output']>;
@@ -284,6 +303,8 @@ export type ResolversTypes = {
   DataResourceEvent: ResolverTypeWrapper<DataResourceEvent>;
   DataResourceHistoryInput: DataResourceHistoryInput;
   DataResourceHistoryOutput: ResolverTypeWrapper<DataResourceHistoryOutput>;
+  DataResourceProgress: ResolverTypeWrapper<DataResourceProgress>;
+  DataResourceProgressState: DataResourceProgressState;
   Date: ResolverTypeWrapper<Scalars['Date']['output']>;
   DeleteIndexInput: DeleteIndexInput;
   DeleteIndexOutput: ResolverTypeWrapper<DeleteIndexOutput>;
@@ -315,6 +336,7 @@ export type ResolversParentTypes = {
   DataResourceEvent: DataResourceEvent;
   DataResourceHistoryInput: DataResourceHistoryInput;
   DataResourceHistoryOutput: DataResourceHistoryOutput;
+  DataResourceProgress: DataResourceProgress;
   Date: Scalars['Date']['output'];
   DeleteIndexInput: DeleteIndexInput;
   DeleteIndexOutput: DeleteIndexOutput;
@@ -373,6 +395,14 @@ export type DataResourceHistoryOutputResolvers<ContextType = any, ParentType ext
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type DataResourceProgressResolvers<ContextType = any, ParentType extends ResolversParentTypes['DataResourceProgress'] = ResolversParentTypes['DataResourceProgress']> = {
+  dataResource?: Resolver<Maybe<ResolversTypes['DataResource']>, ParentType, ContextType>;
+  startedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  state?: Resolver<ResolversTypes['DataResourceProgressState'], ParentType, ContextType>;
+  stoppedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any> {
   name: 'Date';
 }
@@ -411,6 +441,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 
 export type PipelineResolvers<ContextType = any, ParentType extends ResolversParentTypes['Pipeline'] = ResolversParentTypes['Pipeline']> = {
   cause?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  dataResourceProgress?: Resolver<Maybe<Array<ResolversTypes['DataResourceProgress']>>, ParentType, ContextType>;
   error?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   input?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -449,6 +480,7 @@ export type Resolvers<ContextType = any> = {
   DataResourceCount?: DataResourceCountResolvers<ContextType>;
   DataResourceEvent?: DataResourceEventResolvers<ContextType>;
   DataResourceHistoryOutput?: DataResourceHistoryOutputResolvers<ContextType>;
+  DataResourceProgress?: DataResourceProgressResolvers<ContextType>;
   Date?: GraphQLScalarType;
   DeleteIndexOutput?: DeleteIndexOutputResolvers<ContextType>;
   GetOrCreateIndexOutput?: GetOrCreateIndexOutputResolvers<ContextType>;

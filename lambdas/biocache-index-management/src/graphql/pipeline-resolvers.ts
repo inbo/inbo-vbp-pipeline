@@ -1,4 +1,10 @@
-import { MutationResolvers, QueryResolvers } from "../__generated__/types";
+import {
+    DataResourceProgressResolvers,
+    DataResourceProgressState,
+    MutationResolvers,
+    PipelineResolvers,
+    QueryResolvers,
+} from "../__generated__/types";
 import { AwsPipelineServiceImpl } from "../aws/aws-pipeline-service";
 import config from "../config";
 
@@ -52,7 +58,21 @@ export const Mutation: MutationResolvers = {
     },
 };
 
+export const PipelineQuery: PipelineResolvers = {
+    dataResourceProgress: async (parent) => {
+        return (await pipelineService.getPipelineRunDataResourceProgress(
+            parent.id,
+        )).map((progress) => ({
+            dataResourceId: progress.dataResourceId,
+            state: DataResourceProgressState[progress.state],
+            startedAt: progress.startedAt?.toISOString(),
+            stoppedAt: progress.stoppedAt?.toISOString(),
+        }));
+    },
+};
+
 export default {
     Query: Query,
     Mutation: Mutation,
+    Pipeline: PipelineQuery,
 };

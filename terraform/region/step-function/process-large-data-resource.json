@@ -21,7 +21,7 @@
         "StateMachineArn": "{% $config.get_or_create_emr_cluster_state_machine_arn %}",
         "Input": {
           "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
-          "rootPipelineId": "{% $states.context.Execution.Input.rootPipelineId %}"
+          "rootPipelineName": "{% $states.context.Execution.Input.rootPipelineName %}"
         }
       },
       "Assign": {

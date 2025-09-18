@@ -108,7 +108,7 @@
               "Input": {
                 "dataResourceId": "{% $states.input %}",
                 "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
-                "rootPipelineId": "{% $states.context.Execution.Id %}",
+                "rootPipelineName": "{% $states.context.Execution.Name %}",
                 "solrCollection": "{% $solrCollection %}",
                 "shouldCleanupOldPipelineData": "{% $exists($states.context.Execution.Input.shouldCleanupOldPipelineData)? $states.context.Execution.Input.shouldCleanupOldPipelineData : false %}",
                 "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}"
@@ -140,7 +140,7 @@
         "StateMachineArn": "{% $config.cleanup_emr_cluster_state_machine_arn %}",
         "Input": {
           "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
-          "rootPipelineId": "{% $states.context.Execution.Id %}"
+          "rootPipelineName": "{% $states.context.Execution.Name %}"
         }
       },
       "Next": "Switch Active Index"

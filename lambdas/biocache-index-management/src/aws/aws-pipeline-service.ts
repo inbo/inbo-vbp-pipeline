@@ -1,5 +1,6 @@
 import {
     DataResourceHistory,
+    DataResourceProgress,
     Pipeline,
     PipelineDetails,
     PipelineService,
@@ -129,5 +130,36 @@ export class AwsPipelineServiceImpl implements PipelineService {
             timestamp: new Date(item.timestamp?.S || "1970-01-01"),
             lastUpdated: new Date(item.lastUpdated?.S || "1970-01-01"),
         })) || [];
+    }
+
+    async getPipelineRunDataResourceProgress(
+        pipelineId: string,
+    ): Promise<DataResourceProgress[]> {
+        console.debug(
+            "Getting data resource progress for pipeline id:",
+            pipelineId,
+        );
+
+        const output = await this.dynamoDB.query({
+            TableName: this.awsDynamoDBTableName,
+            KeyConditionExpression: "PK = :pk and begins_with(SK, :sk)",
+            ExpressionAttributeValues: {
+                ":pk": { S: `RUN#${pipelineId}` },
+                ":sk": { S: "DATA_RESOURCE#STATE#" },
+            },
+        });
+
+        return (
+            output.Items?.map((item) => ({
+                dataResourceId: item.DataResourceId.S!,
+                state: item.State.S as DataResourceProgress["state"],
+                startedAt: item.startedAt?.S
+                    ? new Date(item.startedAt.S)
+                    : undefined,
+                stoppedAt: item.stoppedAt?.S
+                    ? new Date(item.stoppedAt.S)
+                    : undefined,
+            })) || []
+        );
     }
 }
