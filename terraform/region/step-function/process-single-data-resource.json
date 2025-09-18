@@ -568,7 +568,7 @@
                       "Resource": "arn:aws:states:::lambda:invoke",
                       "Output": "{% $states.result.Payload %}",
                       "Arguments": {
-                        "FunctionName": "{% config.lambda_biocache_index_management_arn %}",
+                        "FunctionName": "{% $config.lambda_biocache_index_management_arn %}",
                         "Payload": {
                           "httpMethod": "POST",
                           "version": "2",
