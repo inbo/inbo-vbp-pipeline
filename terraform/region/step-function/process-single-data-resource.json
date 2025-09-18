@@ -522,6 +522,7 @@
               "Arguments": {
                 "TransactItems": [
                   {
+                    "TableName": "{% $config.dynamodb_table_name %}",
                     "ConditionCheck": {
                       "Key": {
                         "PK": {
@@ -730,6 +731,7 @@
               "Arguments": {
                 "TransactItems": [
                   {
+                    "TableName": "{% $config.dynamodb_table_name %}",
                     "ConditionCheck": {
                       "Key": {
                         "PK": {
@@ -825,6 +827,7 @@
               "Arguments": {
                 "TransactItems": [
                   {
+                    "TableName": "{% $config.dynamodb_table_name %}",
                     "ConditionCheck": {
                       "Key": {
                         "PK": {
@@ -992,6 +995,7 @@
               "Arguments": {
                 "TransactItems": [
                   {
+                    "TableName": "{% $config.dynamodb_table_name %}",
                     "ConditionCheck": {
                       "Key": {
                         "PK": {
