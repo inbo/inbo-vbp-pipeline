@@ -8,19 +8,49 @@ import { SolrClient } from "../solr/solr";
 
 const solrClient = new SolrClient(config);
 
-export const IndexQuery: QueryResolvers = {
+export const Query: QueryResolvers = {
     index: async (_, { id }) => {
         return solrClient.getIndex(id);
     },
     indices: async () => {
         return solrClient.getIndices();
     },
-    activeIndex: async () => {
-        return solrClient.getActiveIndex();
+    activeIndex: async (_parent, _args, contextValue, _info) => {
+        if (contextValue.activeIndex === undefined) {
+            contextValue.activeIndex = await solrClient.getActiveIndex();
+        }
+        return contextValue.activeIndex;
     },
 };
 
-export const IndexMutation: MutationResolvers = {
+export const IndexQuery: IndexResolvers = {
+    active: async (parent, _args, contextValue, _info) => {
+        if (contextValue.activeIndex === undefined) {
+            contextValue.activeIndex = await solrClient.getActiveIndex();
+        }
+        if (contextValue.activeIndex === null) {
+            return null;
+        }
+
+        return contextValue.activeIndex?.id === parent.id;
+    },
+    counts: async (parent) => {
+        const details = await solrClient.getIndex(parent.id);
+        return {
+            total: details?.totalCount ?? 0,
+            dataResourceCounts: Object.entries(
+                details?.dataResourceCounts ?? {},
+            ).map(
+                ([dataResourceId, count]) => ({
+                    dataResourceId,
+                    count,
+                }),
+            ),
+        };
+    },
+};
+
+export const Mutation: MutationResolvers = {
     getOrCreateIndex: async (_, { input }) => {
         const index = await solrClient.getIndex(input.indexId);
         if (index) {
@@ -42,7 +72,9 @@ export const IndexMutation: MutationResolvers = {
     setActiveIndex: async (_, { input }) => {
         await solrClient.setActiveIndex(input.indexId);
         return {
-            indexId: input.indexId,
+            index: {
+                id: input.indexId,
+            },
         };
     },
 
@@ -59,4 +91,10 @@ export const IndexMutation: MutationResolvers = {
             dataResourceId: input.dataResourceId,
         };
     },
+};
+
+export default {
+    Query: Query,
+    Mutation: Mutation,
+    Index: IndexQuery,
 };

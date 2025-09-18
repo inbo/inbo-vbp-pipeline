@@ -11,8 +11,9 @@ import { User } from "./core/user";
 import { AuthError, AuthService } from "./auth";
 import { GraphQLError } from "graphql";
 
-import { IndexMutation, IndexQuery } from "./graphql/index-resolvers";
-import { PipelineMutation, PipelineQuery } from "./graphql/pipeline-resolvers";
+import IndexResolvers from "./graphql/index-resolvers";
+import PipelineResolvers from "./graphql/pipeline-resolvers";
+import DataResourceResolvers from "./graphql/data-resource-resolver";
 
 const authService = new AuthService(config);
 
@@ -27,24 +28,50 @@ interface UserContext {
 
 const resolvers: Resolvers = {
     Query: {
-        ...IndexQuery,
-        ...PipelineQuery,
+        ...IndexResolvers.Query,
+        ...DataResourceResolvers.Query,
+        ...PipelineResolvers.Query,
     },
     Mutation: {
-        ...IndexMutation,
-        ...PipelineMutation,
+        ...IndexResolvers.Mutation,
+        ...PipelineResolvers.Mutation,
+    },
+    Index: {
+        ...IndexResolvers.Index,
     },
 };
 
 const server = new ApolloServer<UserContext>({
     typeDefs,
     resolvers,
+    csrfPrevention: false,
 });
 
 export const graphqlHandler = startServerAndCreateLambdaHandler(
     server,
     handlers.createALBEventRequestHandler(),
     {
+        middleware: [
+            async (event) => {
+                if (event.httpMethod === "OPTIONS") {
+                    return {
+                        statusCode: 200,
+                        body: "",
+                        headers: {
+                            "Access-Control-Allow-Origin": "*",
+                            "Access-Control-Allow-Methods": "POST,GET,OPTIONS",
+                            "Access-Control-Allow-Headers": "*",
+                        },
+                    };
+                }
+
+                console.info("REQUEST: ", event);
+                return async (result) => {
+                    console.info("RESULT: ", result);
+                    return result;
+                };
+            },
+        ],
         context: async (
             { event, context },
         ) => {
@@ -54,12 +81,14 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
                         ? null
                         : await authService.authenticate(event.headers);
 
+                console.info("USER: ", user);
                 return {
                     ...context,
                     user,
                 };
             } catch (error) {
                 if (error instanceof AuthError) {
+                    console.warn("Authentication error:", error);
                     throw new GraphQLError("User authentication failed", {
                         extensions: {
                             code: error.code,

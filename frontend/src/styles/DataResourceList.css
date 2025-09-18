@@ -1,0 +1,15 @@
+.data-resource-list {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 15px;
+    max-width: 600px;
+    margin: 20px auto;
+}
+.data-resource-list-header {
+    display: grid;
+    grid-template-columns: 1fr 2fr 9fr;
+}
+.data-resource-item {
+    display: grid;
+    grid-template-columns: 1fr 2fr 9fr;
+}
