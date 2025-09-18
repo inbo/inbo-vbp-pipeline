@@ -13,7 +13,7 @@ export function DataResourceProgress({ pipelineId }: { pipelineId: string }) {
         <ul>
             {data?.pipeline?.dataResourceProgress?.map((progress: any) => (
                 <li key={progress.dataResource.id}>
-                    {progress.dataResource.name}: {progress.state}%
+                    {progress.dataResource.name}: {progress.state}
                 </li>
             ))}
             {loading && <li>Loading...</li>}

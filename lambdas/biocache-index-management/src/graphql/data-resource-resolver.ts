@@ -2,7 +2,7 @@ import { QueryResolvers } from "../__generated__/types";
 import { CollectoryClient } from "../ala/collectory";
 import config from "../config";
 
-const dataResourceService = new CollectoryClient(config);
+export const dataResourceService = new CollectoryClient(config);
 
 export const Query: QueryResolvers = {
     dataResources: async () => {

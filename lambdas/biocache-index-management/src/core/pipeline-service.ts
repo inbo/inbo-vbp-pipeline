@@ -24,13 +24,13 @@ export type DataResourceHistory = {
 export type DataResourceProgress = {
     dataResourceId: string;
     state:
-        | "Started"
-        | "Downloading"
-        | "Indexing"
-        | "Sampling"
-        | "Uploading"
-        | "Completed"
-        | "Failed";
+        | "STARTED"
+        | "DOWNLOADING"
+        | "INDEXING"
+        | "SAMPLING"
+        | "UPLOADING"
+        | "COMPLETED"
+        | "FAILED";
     startedAt?: Date;
     stoppedAt?: Date;
 };

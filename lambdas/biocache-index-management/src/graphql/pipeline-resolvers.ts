@@ -7,6 +7,7 @@ import {
 } from "../__generated__/types";
 import { AwsPipelineServiceImpl } from "../aws/aws-pipeline-service";
 import config from "../config";
+import { dataResourceService } from "./data-resource-resolver";
 
 const pipelineService = new AwsPipelineServiceImpl(config);
 
@@ -63,11 +64,17 @@ export const PipelineQuery: PipelineResolvers = {
         return (await pipelineService.getPipelineRunDataResourceProgress(
             parent.id,
         )).map((progress) => ({
-            dataResourceId: progress.dataResourceId,
-            state: DataResourceProgressState[progress.state],
+            dataResource: { id: progress.dataResourceId },
+            state: progress.state as DataResourceProgressState,
             startedAt: progress.startedAt?.toISOString(),
             stoppedAt: progress.stoppedAt?.toISOString(),
         }));
+    },
+};
+
+export const DataResourceProgressQuery: DataResourceProgressResolvers = {
+    dataResource: async (parent) => {
+        return dataResourceService.getDataResource(parent.dataResource!.id);
     },
 };
 
@@ -75,4 +82,5 @@ export default {
     Query: Query,
     Mutation: Mutation,
     Pipeline: PipelineQuery,
+    DataResourceProgress: DataResourceProgressQuery,
 };

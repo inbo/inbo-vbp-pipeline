@@ -31,6 +31,9 @@
           "State": {
             "S": "STARTED"
           },
+          "DataResourceId": {
+            "S": "{% $dataResourceId %}"
+          },
           "ExecutionName": {
             "S": "{% $states.context.Execution.Name %}"
           },
@@ -96,16 +99,19 @@
             "S": "{% 'RUN#' & $rootPipelineName %}"
           },
           "SK": {
-            "S": "{% $join(['RUN', $dataResourceId, $now(), 'FAILED'], '#') %}"
+            "S": "{% $join(['DATA_RESOURCE', 'STATE', $dataResourceId], '#') %}"
           },
-          "State": {
-            "S": "FAILED"
+          "DataResourceId": {
+            "S": "{% $dataResourceId %}"
           },
           "ExecutionName": {
             "S": "{% $states.context.Execution.Name %}"
           },
           "LastUpdated": {
             "S": "{% $lastUpdated %}"
+          },
+          "State": {
+            "S": "FAILED"
           },
           "Error": {
             "S": "{% $states.input.Error %}"
@@ -405,7 +411,7 @@
                       "Value": "{% $now() %}"
                     },
                     {
-                      "Name": "ROOT_PIPELINE_ID",
+                      "Name": "ROOT_PIPELINE_NAME",
                       "Value": "{% $rootPipelineName %}"
                     },
                     {
@@ -596,10 +602,10 @@
                         "SK": {
                           "S": "{% $join(['RUN', $dataResourceId, $now(), 'INDEXED'], '#') %}"
                         },
-                        "ExecutionName": {
-                          "S": "{% $states.context.Execution.Name %}"
+                        "DataResourceId": {
+                          "S": "{% $dataResourceId %}"
                         },
-                        "DataResourceName": {
+                        "ExecutionName": {
                           "S": "{% $states.context.Execution.Name %}"
                         },
                         "LastUpdated": {
@@ -805,10 +811,10 @@
                         "SK": {
                           "S": "{% $join(['RUN', $dataResourceId, $now(), 'SAMPLED'], '#') %}"
                         },
-                        "ExecutionName": {
-                          "S": "{% $states.context.Execution.Name %}"
+                        "DataResourceId": {
+                          "S": "{% $dataResourceId %}"
                         },
-                        "DataResourceName": {
+                        "ExecutionName": {
                           "S": "{% $states.context.Execution.Name %}"
                         },
                         "LastUpdated": {
@@ -909,11 +915,11 @@
                         "SK": {
                           "S": "{% $join(['RUN', $dataResourceId, $now(), 'SOLR_RESET'], '#') %}"
                         },
-                        "ExecutionName": {
-                          "S": "{% $states.context.Execution.Name %}"
-                        },
                         "DataResourceId": {
                           "S": "{% $dataResourceId %}"
+                        },
+                        "ExecutionName": {
+                          "S": "{% $states.context.Execution.Name %}"
                         },
                         "LastUpdated": {
                           "S": "{% $lastUpdated %}"
@@ -943,7 +949,7 @@
                   "rawPath": "/",
                   "routeKey": "/",
                   "originatesFromStepFunction": true,
-                  "body": "{% $string({\n  'query': 'mutation ClearDataResourceFromIndex($input: ClearDataResourceFromIndexInput!) { clearDataResourceFromIndex(input: $input) { indexId dataResourceId } }',\n'variables': {\n  'input': {\n    'indexId': $states.context.Execution.Input.solrCollection,\n  'dataResourceId': $dataResourceId\n  }\n}\n}) %}"
+                  "body": "{% $string({\n  'query': 'mutation ClearDataResourceFromIndex($input: ClearDataResourceFromIndexInput!) { clearDataResourceFromIndex(input: $input) { indexId $dataResourceId } }',\n'variables': {\n  'input': {\n    'indexId': $states.context.Execution.Input.solrCollection,\n  'dataResourceId': $dataResourceId\n  }\n}\n}) %}"
                 }
               },
               "Retry": [
@@ -1080,11 +1086,11 @@
                         "SK": {
                           "S": "{% $join(['RUN', $dataResourceId, $now(), 'SOLR_UPLOADED'], '#') %}"
                         },
-                        "ExecutionName": {
-                          "S": "{% $states.context.Execution.Name %}"
-                        },
                         "DataResourceId": {
                           "S": "{% $dataResourceId %}"
+                        },
+                        "ExecutionName": {
+                          "S": "{% $states.context.Execution.Name %}"
                         },
                         "LastUpdated": {
                           "S": "{% $lastUpdated %}"
