@@ -61,63 +61,63 @@ resource "aws_s3_object" "statemachine_pipelines_config" {
 }
 
 resource "aws_sfn_state_machine" "pipeline" {
-  name     = "${var.resource_prefix}pipeline"
+  name     = "${var.resource_prefix}pipelines-pipeline"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/pipeline.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 }
 
 resource "aws_sfn_state_machine" "step_wrapper" {
-  name     = "${var.resource_prefix}step-wrapper"
+  name     = "${var.resource_prefix}pipelines-step-wrapper"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/step-wrapper.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 }
 
 resource "aws_sfn_state_machine" "lock" {
-  name     = "${var.resource_prefix}lock"
+  name     = "${var.resource_prefix}pipelines-lock"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/lock.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 }
 
 resource "aws_sfn_state_machine" "download" {
-  name     = "${var.resource_prefix}download"
+  name     = "${var.resource_prefix}pipelines-download"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/download-data-resource.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 }
 
 resource "aws_sfn_state_machine" "index" {
-  name     = "${var.resource_prefix}index"
+  name     = "${var.resource_prefix}pipelines-index"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/index-data-resource.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 }
 
 resource "aws_sfn_state_machine" "sample" {
-  name     = "${var.resource_prefix}sample"
+  name     = "${var.resource_prefix}pipelines-sample"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/sample-data-resource.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 }
 
 resource "aws_sfn_state_machine" "solr" {
-  name     = "${var.resource_prefix}solr"
+  name     = "${var.resource_prefix}pipelines-solr"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/solr-data-resource.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 }
 
 resource "aws_sfn_state_machine" "get_or_create_emr_cluster" {
-  name     = "${var.resource_prefix}pipeline-get-or-create-emr-cluster"
+  name     = "${var.resource_prefix}pipelines-pipeline-get-or-create-emr-cluster"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/get-or-create-emr-cluster.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 }
 
 resource "aws_sfn_state_machine" "cleanup_emr_cluster" {
-  name     = "${var.resource_prefix}pipeline-cleanup-emr-cluster"
+  name     = "${var.resource_prefix}pipelines-pipeline-cleanup-emr-cluster"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/cleanup-emr-cluster.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
