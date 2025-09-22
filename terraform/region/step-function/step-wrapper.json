@@ -271,7 +271,10 @@
           }
         }
       },
-      "Next": "Fail"
+      "End": true,
+      "Output": {
+        "state": "FAILED"
+      }
     },
     "Set State to Succeeded": {
       "Type": "Task",
@@ -296,10 +299,10 @@
           }
         }
       },
-      "End": true
-    },
-    "Fail": {
-      "Type": "Fail"
+      "End": true,
+      "Output": {
+        "state": "SUCCEEDED"
+      }
     }
   },
   "QueryLanguage": "JSONata"
