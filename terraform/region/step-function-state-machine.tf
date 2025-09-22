@@ -8,6 +8,7 @@ locals {
     batch_security_group                         = aws_security_group.batch.id
     service_access_security_group                = aws_security_group.emr_service_access.id
     portal_authenticated_connection_arn          = aws_cloudwatch_event_connection.portal_authenticated_connection_sf.arn
+    biocache_service_base_url                    = "https://${var.base_domain}/biocache-service"
     collectory_base_url                          = "https://${var.base_domain}/collectory"
     species_list_base_url                        = "https://${var.base_domain}/species-list"
     spatial_service_base_url                     = "https://${var.base_domain}/spatial-service"

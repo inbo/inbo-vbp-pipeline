@@ -32,10 +32,10 @@
       "Type": "Task",
       "Resource": "arn:aws:states:::http:invoke",
       "Arguments": {
-        "ApiEndpoint": "{% 'https://' & $config.base_domain & '/collectory/ws/dataResource/' %}",
+        "ApiEndpoint": "{% $config.portal_authenticated_connection_arn & '/ws/dataResource/' %}",
         "Method": "GET",
         "Authentication": {
-          "ConnectionArn": "{% $config.collectory_authenticated_connection_arn %}"
+          "ConnectionArn": "{% $config.por %}"
         }
       },
       "Retry": [
@@ -211,10 +211,10 @@
       "Type": "Task",
       "Resource": "arn:aws:states:::http:invoke",
       "Arguments": {
-        "ApiEndpoint": "{% 'https://' & $config.base_domain & '/biocache-service/sync' %}",
+        "ApiEndpoint": "{% $config.biocache_service_base_url & '/biocache-service/sync' %}",
         "Method": "GET",
         "Authentication": {
-          "ConnectionArn": "{% $config.collectory_authenticated_connection_arn %}"
+          "ConnectionArn": "{% $config.portal_authenticated_connection_arn %}"
         }
       },
       "Retry": [
