@@ -119,10 +119,10 @@
               "Type": "Task",
               "Resource": "arn:aws:states:::http:invoke",
               "Arguments": {
-                "ApiEndpoint": "{% 'https://' & $config.base_domain & '/collectory/ws/dataResource/' & $dataResourceId %}",
+                "ApiEndpoint": "{% $config.collectory_base_url & '/ws/dataResource/' & $dataResourceId %}",
                 "Method": "GET",
                 "Authentication": {
-                  "ConnectionArn": "{% $config.collectory_authenticated_connection_arn %}"
+                  "ConnectionArn": "{% $config.portal_authenticated_connection_arn %}"
                 }
               },
               "Retry": [

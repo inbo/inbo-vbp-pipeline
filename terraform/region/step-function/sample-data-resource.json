@@ -21,10 +21,10 @@
       "Type": "Task",
       "Resource": "arn:aws:states:::http:invoke",
       "Arguments": {
-        "ApiEndpoint": "https://natuurdata.dev.inbo.be/spatial-service/fieldsdb",
+        "ApiEndpoint": "{% $config.spatial_service_base_url & '/fieldsdb' %}",
         "Method": "GET",
         "InvocationConfig": {
-          "ConnectionArn": "arn:aws:events:eu-west-1:632683202044:connection/inbo-vbp-pipelines-step-function/b14e6368-8a2b-49fd-a8e2-c6b3e64d51b0"
+          "ConnectionArn": "{% $config.portal_authenticated_connection_arn %}"
         }
       },
       "Retry": [
