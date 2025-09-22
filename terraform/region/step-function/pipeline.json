@@ -32,10 +32,10 @@
       "Type": "Task",
       "Resource": "arn:aws:states:::http:invoke",
       "Arguments": {
-        "ApiEndpoint": "{% $config.portal_authenticated_connection_arn & '/ws/dataResource/' %}",
+        "ApiEndpoint": "{% $config.collectory_base_url & '/ws/dataResource/' %}",
         "Method": "GET",
         "Authentication": {
-          "ConnectionArn": "{% $config.por %}"
+          "ConnectionArn": "{% $config.portal_authenticated_connection_arn %}"
         }
       },
       "Retry": [
