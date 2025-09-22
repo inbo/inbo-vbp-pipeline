@@ -36,20 +36,20 @@ locals {
         Application                              = var.application
       }) : { Key = key, Value = value }
     ]
-    ebs_root_volume_size            = 40
-    efs_data_volume_id              = aws_efs_file_system.data_volume.id
-    efs_data_access_point_id        = aws_efs_access_point.data_volume.id
-    api_key_secret_arn              = aws_secretsmanager_secret.apikey_credentials.arn,
-    s3_bucket_name_pipeline         = aws_s3_bucket.pipelines.bucket
-    ec2_subnet_id                   = var.private_subnet_ids[0]
-    state_machine_step_wrapper_arn  = aws_sfn_state_machine.step_wrapper.arn
-    state_machine_lock_arn          = aws_sfn_state_machine.lock.arn
-    state_machine_download_arn      = aws_sfn_state_machine.download.arn
-    state_machine_index_arn         = aws_sfn_state_machine.index.arn
-    state_machine_sample_arn        = aws_sfn_state_machine.sample.arn
-    state_machine_solr_arn          = aws_sfn_state_machine.solr.arn
-    concurrency_lock_check_interval = 10
-    concurrency_lock_timeout        = 360
+    ebs_root_volume_size              = 40
+    efs_data_volume_id                = aws_efs_file_system.data_volume.id
+    efs_data_access_point_id          = aws_efs_access_point.data_volume.id
+    api_key_secret_arn                = aws_secretsmanager_secret.apikey_credentials.arn,
+    s3_bucket_name_pipeline           = aws_s3_bucket.pipelines.bucket
+    ec2_subnet_id                     = var.private_subnet_ids[0]
+    state_machine_step_wrapper_arn    = aws_sfn_state_machine.step_wrapper.arn
+    state_machine_lock_arn            = aws_sfn_state_machine.lock.arn
+    state_machine_download_arn        = aws_sfn_state_machine.download.arn
+    state_machine_index_arn           = aws_sfn_state_machine.index.arn
+    state_machine_sample_arn          = aws_sfn_state_machine.sample.arn
+    state_machine_solr_arn            = aws_sfn_state_machine.solr.arn
+    concurrency_lock_check_interval_s = 10
+    concurrency_lock_timeout_ms       = 360 * 1000
   })
 }
 

@@ -6,7 +6,7 @@ DATA_RESOURCE_URL=${DATA_RESOURCE_URL:?DATA_RESOURCE_URL is required as env var}
 DATA_RESOURCE_LAST_UPDATED=${DATA_RESOURCE_LAST_UPDATED:?DATA_RESOURCE_LAST_UPDATED is required as env var}
 DOWNLOADED_EVENT_TIMESTAMP=${DOWNLOADED_EVENT_TIMESTAMP:?DOWNLOADED_EVENT_TIMESTAMP is required as env var}
 ROOT_PIPELINE_NAME=${ROOT_PIPELINE_NAME:?ROOT_PIPELINE_NAME is required as env var}
-EXECUTION_PIPELINE_NAME=${EXECUTION_PIPELINE_NAME:?EXECUTION_PIPELINE_NAME is required as env var}
+EXECUTION_PIPELINE_ID=${EXECUTION_PIPELINE_ID:?EXECUTION_PIPELINE_ID is required as env var}
 APIKEY=${APIKEY:?AWS_SECRET_ID is required as env var}
 
 # Optional env vars
@@ -42,8 +42,8 @@ aws dynamodb put-item \
   "RootPipelineName": {
     "S": "$ROOT_PIPELINE_NAME"
   },
-  "ExecutionName": {
-    "S": "$EXECUTION_PIPELINE_NAME"
+  "ExecutionId": {
+    "S": "$EXECUTION_PIPELINE_ID"
   },
   "DataResourceId": {
     "S": "$DATA_RESOURCE_ID"

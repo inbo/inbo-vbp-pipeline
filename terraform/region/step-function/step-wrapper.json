@@ -84,8 +84,8 @@
                   "dynamodbTableName": "{% $config.dynamodb_table_name %}",
                   "lockKey": "{% $states.context.Execution.Input.stepArn %}",
                   "lockLimit": "{% $states.context.Execution.Input.concurrencyLimit %}",
-                  "lockCheckInterval": "{% $config.concurrency_lock_check_interval %}",
-                  "lockTimeout": "{% $config.concurrency_lock_timeout %}"
+                  "lockCheckInterval": "{% $config.concurrency_lock_check_interval_s %}",
+                  "lockTimeout": "{% $config.concurrency_lock_timeout_ms %}"
                 }
               },
               "Next": "Acquire Data Resource Lock"
@@ -236,7 +236,18 @@
       },
       "Resource": "arn:aws:states:::aws-sdk:dynamodb:transactWriteItems",
       "Next": "Choice",
-      "Output": "{% $states.input %}"
+      "Output": "{% $states.input %}",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "BackoffRate": 2,
+          "IntervalSeconds": 1,
+          "MaxAttempts": 10,
+          "JitterStrategy": "FULL"
+        }
+      ]
     },
     "Choice": {
       "Type": "Choice",
