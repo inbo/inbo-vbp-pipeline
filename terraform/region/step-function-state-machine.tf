@@ -61,7 +61,7 @@ resource "aws_s3_object" "statemachine_pipelines_config" {
 }
 
 resource "aws_sfn_state_machine" "pipeline" {
-  name     = "${var.resource_prefix}pipelines-pipeline"
+  name     = "${var.resource_prefix}pipelines"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/pipeline.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
@@ -110,14 +110,14 @@ resource "aws_sfn_state_machine" "solr" {
 }
 
 resource "aws_sfn_state_machine" "get_or_create_emr_cluster" {
-  name     = "${var.resource_prefix}pipelines-pipeline-get-or-create-emr-cluster"
+  name     = "${var.resource_prefix}pipelines-get-or-create-emr-cluster"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/get-or-create-emr-cluster.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 }
 
 resource "aws_sfn_state_machine" "cleanup_emr_cluster" {
-  name     = "${var.resource_prefix}pipelines-pipeline-cleanup-emr-cluster"
+  name     = "${var.resource_prefix}pipelines-cleanup-emr-cluster"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/cleanup-emr-cluster.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
