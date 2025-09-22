@@ -12,7 +12,7 @@ data "aws_iam_policy_document" "step_function_assume_role_sf" {
 }
 
 resource "aws_iam_role" "pipeline" {
-  name = "inbo-${var.application}-pipeline-step-function"
+  name = "${var.resource_prefix}pipeline-step-function"
 
   assume_role_policy = data.aws_iam_policy_document.step_function_assume_role_sf.json
 }
@@ -26,7 +26,7 @@ data "aws_iam_policy_document" "pipeline" {
     ]
     #tfsec:ignore:aws-iam-no-policy-wildcards
     resources = [
-      "arn:aws:states:${var.aws_region}:${data.aws_caller_identity.current.account_id}:stateMachine:inbo-${var.application}-pipeline*"
+      "arn:aws:states:${var.aws_region}:${data.aws_caller_identity.current.account_id}:stateMachine:${var.resource_prefix}pipeline*"
     ]
 
     condition {
@@ -51,7 +51,7 @@ data "aws_iam_policy_document" "pipeline" {
 
     #tfsec:ignore:aws-iam-no-policy-wildcards
     resources = [
-      "arn:aws:events:${var.aws_region}:${data.aws_caller_identity.current.account_id}:connection/inbo-${var.application}-pipelines-step-function/*"
+      "arn:aws:events:${var.aws_region}:${data.aws_caller_identity.current.account_id}:connection/${var.resource_prefix}pipelines-step-function/*"
     ]
   }
 
@@ -64,7 +64,7 @@ data "aws_iam_policy_document" "pipeline" {
     ]
     #tfsec:ignore:aws-iam-no-policy-wildcards
     resources = [
-      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/inbo/${var.application}/pipelines-*",
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.organisation}/${var.application}/pipelines-*",
       "arn:aws:secretsmanager:*:*:secret:events!connection/*"
     ]
   }
@@ -121,7 +121,7 @@ data "aws_iam_policy_document" "pipeline" {
       "arn:aws:batch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:job-definition/dwca-to-index:*",
       "arn:aws:batch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:job-definition/index-to-solr:*",
       "arn:aws:batch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:job-definition/spatial-sampling:*",
-      "arn:aws:batch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:job-queue/inbo-${var.application}-pipelines"
+      "arn:aws:batch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:job-queue/${var.resource_prefix}pipelines"
     ]
   }
 
@@ -137,7 +137,7 @@ data "aws_iam_policy_document" "pipeline" {
     ]
     #tfsec:ignore:aws-iam-no-policy-wildcards
     resources = [
-      "arn:aws:states:${var.aws_region}:${data.aws_caller_identity.current.account_id}:stateMachine:inbo-${var.application}-pipeline-*",
+      "arn:aws:states:${var.aws_region}:${data.aws_caller_identity.current.account_id}:stateMachine:${var.resource_prefix}pipeline-*",
     ]
   }
 
@@ -165,7 +165,7 @@ data "aws_iam_policy_document" "pipeline" {
       "dynamodb:Query"
     ]
     resources = [
-      "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/inbo-${var.application}-pipelines"
+      "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.resource_prefix}pipelines"
     ]
   }
 
@@ -176,8 +176,8 @@ data "aws_iam_policy_document" "pipeline" {
       "s3:GetObject"
     ]
     resources = [
-      "arn:aws:s3:::inbo-${var.application}-${var.aws_env}-pipelines",
-      "arn:aws:s3:::inbo-${var.application}-${var.aws_env}-pipelines/*"
+      "arn:aws:s3:::${var.resource_prefix}${var.aws_env}-pipelines",
+      "arn:aws:s3:::${var.resource_prefix}${var.aws_env}-pipelines/*"
     ]
   }
 
@@ -187,7 +187,7 @@ data "aws_iam_policy_document" "pipeline" {
       "lambda:InvokeFunction",
     ]
     resources = [
-      "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:inbo-${var.application}-biocache-index-management:*",
+      "arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:function:${var.resource_prefix}biocache-index-management:*",
     ]
   }
 

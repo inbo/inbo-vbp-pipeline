@@ -1,0 +1,175 @@
+{
+  "Comment": "Starts an EMR cluster, processes data resources in parallel, and terminates the cluster",
+  "StartAt": "Get State-machine Config",
+  "States": {
+    "Get State-machine Config": {
+      "Type": "Task",
+      "Arguments": {
+        "Bucket": "inbo-vbp-dev-pipelines",
+        "Key": "config/state-machine.json"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
+      "Next": "Can Skip?",
+      "Assign": {
+        "dataResourceId": "{% $states.input.dataResource.uid %}",
+        "lastUpdated": "{% $states.input.dataResource.lastUpdated %}",
+        "config": "{% $parse($states.result.Body) %}",
+        "rootPipelineName": "{% $exists($states.context.Execution.Input.rootPipelineName) ? $states.context.Execution.Input.rootPipelineName : $states.context.Execution.Name %}"
+      }
+    },
+    "Can Skip?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "Do Nothing",
+          "Condition": "{% $toMillis($states.context.Execution.Input.dataResourceProcessingState.SolrAt.S) > $toMillis($states.context.Execution.Input.dataResourceProcessingState.IndexedAt.S) and $toMillis($states.context.Execution.Input.dataResourceProcessingState.SolrAt.S) > $toMillis($states.context.Execution.Input.dataResourceProcessingState.SampledAt.S) and ($states.context.Execution.Input.solrCollection in $states.context.Execution.Input.dataResourceProcessingState.SolrCollections.SS) %}"
+        }
+      ],
+      "Default": "Get or create EMR Cluster"
+    },
+    "Do Nothing": {
+      "Type": "Pass",
+      "End": true
+    },
+    "Get or create EMR Cluster": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::states:startExecution.sync:2",
+      "Arguments": {
+        "StateMachineArn": "{% $config.get_or_create_emr_cluster_state_machine_arn %}",
+        "Input": {
+          "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
+          "rootPipelineName": "{% $rootPipelineName %}"
+        }
+      },
+      "Assign": {
+        "clusterId": "{% $states.result.Output.clusterId %}"
+      },
+      "Next": "Sync EFS Data to HDFS",
+      "Output": {
+        "skipSamplingSync": true
+      }
+    },
+    "Sync EFS Data to HDFS": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Arguments": {
+        "ClusterId": "{% $clusterId %}",
+        "Step": {
+          "Name": "{% 'sync-efs-index-data-to-hdfs-' & $dataResourceId %}",
+          "ActionOnFailure": "CONTINUE",
+          "HadoopJarStep": {
+            "Jar": "s3://eu-west-1.elasticmapreduce/libs/script-runner/script-runner.jar",
+            "Args": [
+              "file:/opt/inbo/pipelines/bootstrap-actions/sync-index-data-to-hdfs.sh",
+              "{% $dataResourceId %}"
+            ]
+          }
+        }
+      },
+      "Next": "Clear Old Records",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed"
+          ],
+          "BackoffRate": 2,
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "Comment": "Fails sometimes waiting for file copy?"
+        }
+      ]
+    },
+    "Clear Old Records": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Output": "{% $states.result.Payload %}",
+      "Arguments": {
+        "FunctionName": "{% $config.lambda_biocache_index_management_arn %}",
+        "Payload": {
+          "httpMethod": "POST",
+          "version": "2",
+          "headers": {
+            "content-type": "application/json"
+          },
+          "isBase64Encoded": false,
+          "rawQueryString": "",
+          "rawPath": "/",
+          "routeKey": "/",
+          "originatesFromStepFunction": true,
+          "body": "{% $string({\n  'query': 'mutation ClearDataResourceFromIndex($input: ClearDataResourceFromIndexInput!) { clearDataResourceFromIndex(input: $input) { indexId dataResourceId } }',\n'variables': {\n  'input': {\n    'indexId': $states.context.Execution.Input.solrCollection,\n  'dataResourceId': $dataResourceId\n  }\n}\n}) %}"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "Solr"
+    },
+    "Solr": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Arguments": {
+        "ClusterId": "{% $clusterId %}",
+        "Step": {
+          "Name": "{% 'solr-' & $dataResourceId %}",
+          "ActionOnFailure": "CONTINUE",
+          "HadoopJarStep": {
+            "Jar": "command-runner.jar",
+            "Args": [
+              "spark-submit",
+              "--deploy-mode",
+              "client",
+              "--conf",
+              "spark.yarn.executor.memoryOverheadFactor=0.5",
+              "--class",
+              "au.org.ala.pipelines.beam.IndexRecordToSolrPipeline",
+              "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
+              "{% '--datasetId=' & $dataResourceId %}",
+              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
+              "{% '--solrCollection=' & $states.context.Execution.Input.solrCollection %}"
+            ]
+          }
+        }
+      },
+      "Next": "Update Solr Timestamp"
+    },
+    "Update Solr Timestamp": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Arguments": {
+        "TableName": "{% $config.dynamodb_table_name %}",
+        "Key": {
+          "PK": {
+            "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
+          },
+          "SK": {
+            "S": "STATE"
+          }
+        },
+        "UpdateExpression": "SET SolrAt = :instant ADD SolrCollections :solrCollection",
+        "ExpressionAttributeValues": {
+          ":instant": {
+            "S": "{% $now() %}"
+          },
+          ":solrCollection": {
+            "SS": [
+              "{% $states.context.Execution.Input.solrCollection %}"
+            ]
+          }
+        }
+      },
+      "End": true
+    }
+  },
+  "QueryLanguage": "JSONata"
+}

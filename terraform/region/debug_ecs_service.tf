@@ -6,7 +6,7 @@ resource "aws_ecs_task_definition" "deployment" {
   container_definitions = jsonencode([
     {
       name      = var.name
-      image     = "${var.ecr_repo}/inbo-${var.application}-pipelines:${var.docker_version}"
+      image     = "${var.ecr_repo}/${var.resource_prefix}pipelines:${var.docker_version}"
       user      = var.user
       essential = true
       entrypoint = ["sleep", "999999"]
@@ -49,8 +49,8 @@ resource "aws_ecs_task_definition" "deployment" {
     }
   }
 
-  task_role_arn      = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/inbo-${var.application}-pipelines-batch-role"
-  execution_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/inbo-${var.application}-pipelines-batch-role"
+  task_role_arn      = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipelines-batch-role"
+  execution_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipelines-batch-role"
   network_mode       = "awsvpc"
   requires_compatibilities = ["FARGATE"]
 

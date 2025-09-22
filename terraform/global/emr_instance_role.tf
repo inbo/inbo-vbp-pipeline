@@ -13,13 +13,13 @@ data "aws_iam_policy_document" "ec2_assume_role" {
 }
 
 resource "aws_iam_role" "iam_emr_instance_role" {
-  name = "inbo-${var.application}-pipelines-emr-instance-role"
+  name = "${var.resource_prefix}pipelines-emr-instance-role"
 
   assume_role_policy = data.aws_iam_policy_document.ec2_assume_role.json
 }
 
 resource "aws_iam_instance_profile" "emr_profile" {
-  name = "inbo-${var.application}-pipelines-emr-instance-profile"
+  name = "${var.resource_prefix}pipelines-emr-instance-profile"
 
   role = aws_iam_role.iam_emr_instance_role.name
 }
@@ -50,8 +50,8 @@ data "aws_iam_policy_document" "iam_emr_instance_profile_policy" {
 
     #tfsec:ignore:aws-iam-no-policy-wildcards
     resources = [
-      "arn:aws:s3:::inbo-${var.application}-${var.aws_env}-pipelines",
-      "arn:aws:s3:::inbo-${var.application}-${var.aws_env}-pipelines}/*",
+      "arn:aws:s3:::${var.resource_prefix}${var.aws_env}-pipelines",
+      "arn:aws:s3:::${var.resource_prefix}${var.aws_env}-pipelines}/*",
       "arn:aws:s3:::elasticmapreduce",
       "arn:aws:s3:::elasticmapreduce/*"
     ]
@@ -65,7 +65,7 @@ data "aws_iam_policy_document" "iam_emr_instance_profile_policy" {
     ]
 
     #tfsec:ignore:aws-iam-no-policy-wildcards
-    resources = ["arn:aws:s3:::inbo-${var.application}-${var.aws_env}-pipelines/logs/*"]
+    resources = ["arn:aws:s3:::${var.resource_prefix}${var.aws_env}-pipelines/logs/*"]
   }
 
   statement {
@@ -119,7 +119,7 @@ data "aws_iam_policy_document" "iam_emr_instance_profile_policy" {
     ]
     #tfsec:ignore:aws-iam-no-policy-wildcards
     resources = [
-      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/inbo/${var.application}/pipelines-*"
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.organisation}/${var.application}/pipelines-*"
     ]
   }
   statement {
@@ -134,7 +134,7 @@ data "aws_iam_policy_document" "iam_emr_instance_profile_policy" {
       test = "StringLike"
       #tfsec:ignore:aws-iam-no-policy-wildcards
       values = [
-        "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/inbo/${var.application}/pipelines-*"
+        "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.organisation}/${var.application}/pipelines-*"
       ]
       variable = "kms:EncryptionContext:SecretARN"
     }

@@ -15,7 +15,7 @@ docker login -u AWS -p $(aws ecr get-login-password) ${var.ecr_repo}
 docker rm -v download-pipeline-jar || true
 
 # Copy jar from th docker image
-docker create --name download-pipeline-jar ${var.ecr_repo}/inbo-${var.application}-pipelines:${var.docker_version}
+docker create --name download-pipeline-jar ${var.ecr_repo}/${var.resource_prefix}pipelines:${var.docker_version}
 docker cp download-pipeline-jar:/app/livingatlas/pipelines/target/pipelines-2.18.6-SNAPSHOT-shaded.jar ./pipelines-${var.docker_version}.jar
 
 # Upload jar to S3

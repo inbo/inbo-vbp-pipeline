@@ -1,0 +1,158 @@
+{
+  "Comment": "Starts an EMR cluster, processes data resources in parallel, and terminates the cluster",
+  "StartAt": "Get State-machine Config",
+  "States": {
+    "Get State-machine Config": {
+      "Type": "Task",
+      "Arguments": {
+        "Bucket": "inbo-vbp-dev-pipelines",
+        "Key": "config/state-machine.json"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
+      "Next": "Has a download URL",
+      "Assign": {
+        "dataResourceId": "{% $states.input.dataResource.uid %}",
+        "lastUpdated": "{% $states.input.dataResource.lastUpdated %}",
+        "config": "{% $parse($states.result.Body) %}",
+        "rootPipelineName": "{% $exists($states.context.Execution.Input.rootPipelineName) ? $states.context.Execution.Input.rootPipelineName : $states.context.Execution.Name %}"
+      }
+    },
+    "Has a download URL": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Condition": "{% $exists($states.context.Execution.Input.dataResource.connectionParameters.url) %}",
+          "Next": "Can Skip?",
+          "Assign": {
+            "dataResourceUrl": "{% $states.context.Execution.Input.dataResource.connectionParameters.url %}"
+          }
+        }
+      ],
+      "Default": "Fail",
+      "Output": {
+        "Error": "MissingConnectionParams",
+        "Cause": "The Data Resources does not have any connection params configured"
+      }
+    },
+    "Can Skip?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "Do Nothing",
+          "Condition": "{% $exists($states.context.Execution.Input.dataResourceProcessingState.DownloadedAt.S) and $toMillis($states.context.Execution.Input.dataResourceProcessingState.DownloadedAt.S) > $toMillis($lastUpdated) %}"
+        }
+      ],
+      "Default": "Download Data Resource"
+    },
+    "Do Nothing": {
+      "Type": "Pass",
+      "End": true
+    },
+    "Download Data Resource": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::batch:submitJob.sync",
+      "Arguments": {
+        "JobDefinition": "{% $config.download_data_resource_job_definition_arn %}",
+        "JobName": "{% 'download-data-' & $dataResourceId %}",
+        "JobQueue": "{% $config.job_queue_arn %}",
+        "ContainerOverrides": {
+          "Environment": [
+            {
+              "Name": "DATA_RESOURCE_ID",
+              "Value": "{% $dataResourceId %}"
+            },
+            {
+              "Name": "DATA_RESOURCE_URL",
+              "Value": "{% $dataResourceUrl %}"
+            },
+            {
+              "Name": "DATA_RESOURCE_LAST_UPDATED",
+              "Value": "{% $lastUpdated %}"
+            },
+            {
+              "Name": "DOWNLOADED_EVENT_TIMESTAMP",
+              "Value": "{% $now() %}"
+            },
+            {
+              "Name": "ROOT_PIPELINE_NAME",
+              "Value": "{% $rootPipelineName %}"
+            },
+            {
+              "Name": "EXECUTION_PIPELINE_ID",
+              "Value": "{% $states.context.Execution.Id %}"
+            }
+          ]
+        }
+      },
+      "Next": "Get Download File Size and Hash",
+      "Output": {
+        "downloadedTimeStamp": "{% $states.result.Container.Environment[Name='DOWNLOADED_EVENT_TIMESTAMP'].Value %}"
+      }
+    },
+    "Get Download File Size and Hash": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:getItem",
+      "Arguments": {
+        "TableName": "{% $config.dynamodb_table_name %}",
+        "Key": {
+          "PK": {
+            "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
+          },
+          "SK": {
+            "S": "{% $join(['HISTORY', $lastUpdated, $states.input.downloadedTimeStamp, 'DOWNLOADED'], '#') %}"
+          }
+        }
+      },
+      "Next": "Still has the same File Hash?",
+      "Assign": {
+        "fileSize": "{% $number($states.result.Item.FileSize.N) %}",
+        "fileHash": "{% $states.result.Item.FileHash.S %}"
+      }
+    },
+    "Still has the same File Hash?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "Do Nothing",
+          "Condition": "{% ($exists($states.context.Execution.Input.FileHash.S) and ($states.context.Execution.Input.FileHash.S) = ($states.input.FileHash.S)) %}"
+        }
+      ],
+      "Default": "Update Downloaded Timestamp",
+      "Output": "{% $fileSize %}"
+    },
+    "Update Downloaded Timestamp": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Arguments": {
+        "TableName": "{% $config.dynamodb_table_name %}",
+        "Key": {
+          "PK": {
+            "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
+          },
+          "SK": {
+            "S": "STATE"
+          }
+        },
+        "UpdateExpression": "SET DownloadedAt = :instant, FileHash = :fileHash, FileSize = :fileSize",
+        "ExpressionAttributeValues": {
+          ":instant": {
+            "S": "{% $now() %}"
+          },
+          ":fileHash": {
+            "S": "{% $fileHash %}"
+          },
+          ":fileSize": {
+            "N": "{% $string($fileSize) %}"
+          }
+        }
+      },
+      "End": true
+    },
+    "Fail": {
+      "Type": "Fail",
+      "Error": "{% $states.input.Error %}",
+      "Cause": "{% $states.input.Cause %}"
+    }
+  },
+  "QueryLanguage": "JSONata"
+}

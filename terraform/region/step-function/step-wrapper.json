@@ -1,0 +1,306 @@
+{
+  "Comment": "Utility wrapper to handle concurrency limits, state tracking and failure",
+  "StartAt": "Get State-machine Config",
+  "States": {
+    "Get State-machine Config": {
+      "Type": "Task",
+      "Arguments": {
+        "Bucket": "inbo-vbp-dev-pipelines",
+        "Key": "config/state-machine.json"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
+      "Next": "Catch Errors",
+      "Assign": {
+        "dataResourceId": "{% $states.input.dataResourceId %}",
+        "config": "{% $parse($states.result.Body) %}",
+        "rootPipelineName": "{% $exists($states.context.Execution.Input.rootPipelineName) ? $states.context.Execution.Input.rootPipelineName : $states.context.Execution.Name %}"
+      }
+    },
+    "Catch Errors": {
+      "Type": "Parallel",
+      "Next": "Cleanup locks",
+      "Branches": [
+        {
+          "StartAt": "Should Limit Concurrency?",
+          "States": {
+            "Should Limit Concurrency?": {
+              "Type": "Choice",
+              "Choices": [
+                {
+                  "Next": "Set State to Waiting for Concurrency Lock",
+                  "Condition": "{% $exists($states.context.Execution.Input.concurrencyLimit) %}"
+                }
+              ],
+              "Default": "Acquire Data Resource Lock"
+            },
+            "Acquire Data Resource Lock": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::states:startExecution.sync:2",
+              "Arguments": {
+                "StateMachineArn": "{% $config.state_machine_lock_arn %}",
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
+                  "dynamodbTableName": "{% $config.dynamodb_table_name %}",
+                  "lockKey": "{% $states.context.Execution.Input.dataResourceId %}",
+                  "lockLimit": 1,
+                  "lockCheckInterval": 0,
+                  "lockTimeout": 0
+                }
+              },
+              "Next": "Set State to Running"
+            },
+            "Set State to Waiting for Concurrency Lock": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::dynamodb:updateItem",
+              "Arguments": {
+                "TableName": "{% $config.dynamodb_table_name %}",
+                "Key": {
+                  "PK": {
+                    "S": "{% 'RUN#' & $states.context.Execution.Input.rootPipelineName %}"
+                  },
+                  "SK": {
+                    "S": "{% 'DATA_RESOURCE#' & $states.context.Execution.Input.dataResourceId %}"
+                  }
+                },
+                "UpdateExpression": "SET #state = :state",
+                "ExpressionAttributeNames": {
+                  "#state": "State"
+                },
+                "ExpressionAttributeValues": {
+                  ":state": {
+                    "S": "WAITING_FOR_LOCK"
+                  }
+                }
+              },
+              "Next": "Acquire Concurrency Lock"
+            },
+            "Acquire Concurrency Lock": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::states:startExecution.sync:2",
+              "Arguments": {
+                "StateMachineArn": "{% $config.state_machine_lock_arn %}",
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
+                  "dynamodbTableName": "{% $config.dynamodb_table_name %}",
+                  "lockKey": "{% $states.context.Execution.Input.stepArn %}",
+                  "lockLimit": "{% $states.context.Execution.Input.concurrencyLimit %}",
+                  "lockCheckInterval": "{% $config.concurrency_lock_check_interval %}",
+                  "lockTimeout": "{% $config.concurrency_lock_timeout %}"
+                }
+              },
+              "Next": "Acquire Data Resource Lock"
+            },
+            "Set State to Running": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::dynamodb:updateItem",
+              "Arguments": {
+                "TableName": "{% $config.dynamodb_table_name %}",
+                "Key": {
+                  "PK": {
+                    "S": "{% 'RUN#' & $states.context.Execution.Input.rootPipelineName %}"
+                  },
+                  "SK": {
+                    "S": "{% 'DATA_RESOURCE#' & $states.context.Execution.Input.dataResourceId %}"
+                  }
+                },
+                "UpdateExpression": "SET #state = :state",
+                "ExpressionAttributeNames": {
+                  "#state": "State"
+                },
+                "ExpressionAttributeValues": {
+                  ":state": {
+                    "S": "RUNNING"
+                  }
+                }
+              },
+              "Next": "Get Data Resource Details"
+            },
+            "Get Data Resource Details": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::http:invoke",
+              "Arguments": {
+                "ApiEndpoint": "{% $config.collectory_base_url & '/ws/dataResource/' & $dataResourceId %}",
+                "Method": "GET",
+                "Authentication": {
+                  "ConnectionArn": "{% $config.portal_authenticated_connection_arn %}"
+                }
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "BackoffRate": 2,
+                  "IntervalSeconds": 1,
+                  "MaxAttempts": 3,
+                  "JitterStrategy": "FULL"
+                }
+              ],
+              "Next": "Get Data Resource Processing State",
+              "Output": "{%  $states.result.ResponseBody %}"
+            },
+            "Get Data Resource Processing State": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::dynamodb:getItem",
+              "Arguments": {
+                "TableName": "{% $config.dynamodb_table_name %}",
+                "Key": {
+                  "PK": {
+                    "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
+                  },
+                  "SK": {
+                    "S": "STATE"
+                  }
+                }
+              },
+              "Next": "Run Step Function",
+              "Output": {
+                "dataResource": "{% $states.input %}",
+                "dataResourceProcessingState": "{% $exists($states.result.Item) ? $states.result.Item : null %}"
+              }
+            },
+            "Run Step Function": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::states:startExecution.sync:2",
+              "Arguments": {
+                "StateMachineArn": "{% $states.context.Execution.Input.stepArn %}",
+                "Input": "{% $merge([$states.context.Execution.Input, {\"AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID\": $states.context.Execution.Id, \"dataResource\": $states.input.dataResource, \"dataResourceProcessingState\": $states.input.dataResourceProcessingState, \"rootPipelineName\": $states.context.Execution.Input.rootPipelineName}]) %}"
+              },
+              "End": true
+            }
+          }
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "Next": "Cleanup locks"
+        }
+      ]
+    },
+    "Cleanup locks": {
+      "Type": "Task",
+      "Arguments": {
+        "TransactItems": [
+          {
+            "Update": {
+              "TableName": "{% $config.dynamodb_table_name %}",
+              "Key": {
+                "PK": {
+                  "S": "{% 'LOCK#' & $dataResourceId %}"
+                },
+                "SK": {
+                  "S": "{% 'LOCK#' & $dataResourceId  %}"
+                }
+              },
+              "UpdateExpression": "DELETE #executionIds :executionId",
+              "ExpressionAttributeNames": {
+                "#executionIds": "ExecutionIds"
+              },
+              "ExpressionAttributeValues": {
+                ":executionId": {
+                  "Ss": [
+                    "{% $states.context.Execution.Id %}"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "Update": {
+              "TableName": "{% $config.dynamodb_table_name %}",
+              "Key": {
+                "PK": {
+                  "S": "{% 'LOCK#' & $states.context.Execution.Input.stepArn %}"
+                },
+                "SK": {
+                  "S": "{% 'LOCK#' & $states.context.Execution.Input.stepArn  %}"
+                }
+              },
+              "UpdateExpression": "DELETE #executionIds :executionId",
+              "ExpressionAttributeNames": {
+                "#executionIds": "ExecutionIds"
+              },
+              "ExpressionAttributeValues": {
+                ":executionId": {
+                  "Ss": [
+                    "{% $states.context.Execution.Id %}"
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      },
+      "Resource": "arn:aws:states:::aws-sdk:dynamodb:transactWriteItems",
+      "Next": "Choice",
+      "Output": "{% $states.input %}"
+    },
+    "Choice": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "Set State to Failed",
+          "Condition": "{% $exists($states.input.Error) %}"
+        }
+      ],
+      "Default": "Set State to Succeeded"
+    },
+    "Set State to Failed": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Arguments": {
+        "TableName": "{% $config.dynamodb_table_name %}",
+        "Key": {
+          "PK": {
+            "S": "{% 'RUN#' & $states.context.Execution.Input.rootPipelineName %}"
+          },
+          "SK": {
+            "S": "{% 'DATA_RESOURCE#' & $states.context.Execution.Input.dataResourceId %}"
+          }
+        },
+        "UpdateExpression": "SET #state = :state",
+        "ExpressionAttributeNames": {
+          "#state": "State"
+        },
+        "ExpressionAttributeValues": {
+          ":state": {
+            "S": "FAILED"
+          }
+        }
+      },
+      "Next": "Fail"
+    },
+    "Set State to Succeeded": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Arguments": {
+        "TableName": "{% $config.dynamodb_table_name %}",
+        "Key": {
+          "PK": {
+            "S": "{% 'RUN#' & $states.context.Execution.Input.rootPipelineName %}"
+          },
+          "SK": {
+            "S": "{% 'DATA_RESOURCE#' & $states.context.Execution.Input.dataResourceId %}"
+          }
+        },
+        "UpdateExpression": "SET #state = :state",
+        "ExpressionAttributeNames": {
+          "#state": "State"
+        },
+        "ExpressionAttributeValues": {
+          ":state": {
+            "S": "RUNNING"
+          }
+        }
+      },
+      "End": true
+    },
+    "Fail": {
+      "Type": "Fail"
+    }
+  },
+  "QueryLanguage": "JSONata"
+}

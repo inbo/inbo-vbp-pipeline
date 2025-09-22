@@ -3,7 +3,7 @@ resource "aws_iam_service_linked_role" "emr" {
 }
 
 resource "aws_iam_role" "iam_emr_service_role" {
-  name = "inbo-${var.application}-pipelines-emr-service-role"
+  name = "${var.resource_prefix}pipelines-emr-service-role"
 
   assume_role_policy = data.aws_iam_policy_document.emr_role_assume_policy.json
 }
@@ -53,7 +53,7 @@ data "aws_iam_policy_document" "emr_service_role" {
 }
 
 resource "aws_iam_role_policy" "emr_service_role" {
-  name   = "inbo-${var.application}-pipelines-emr-pass-ec2-instance-role"
+  name   = "${var.resource_prefix}pipelines-emr-pass-ec2-instance-role"
   policy = data.aws_iam_policy_document.emr_service_role.json
   role   = aws_iam_role.iam_emr_service_role.id
 }

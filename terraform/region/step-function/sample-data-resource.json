@@ -1,0 +1,200 @@
+{
+  "Comment": "Starts an EMR cluster, processes data resources in parallel, and terminates the cluster",
+  "StartAt": "Get State-machine Config",
+  "States": {
+    "Get State-machine Config": {
+      "Type": "Task",
+      "Arguments": {
+        "Bucket": "inbo-vbp-dev-pipelines",
+        "Key": "config/state-machine.json"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
+      "Next": "Get Spatial Fields to Index",
+      "Assign": {
+        "dataResourceId": "{% $states.input.dataResource.uid %}",
+        "lastUpdated": "{% $states.input.dataResource.lastUpdated %}",
+        "config": "{% $parse($states.result.Body) %}",
+        "rootPipelineName": "{% $exists($states.context.Execution.Input.rootPipelineName) ? $states.context.Execution.Input.rootPipelineName : $states.context.Execution.Name %}"
+      }
+    },
+    "Get Spatial Fields to Index": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::http:invoke",
+      "Arguments": {
+        "ApiEndpoint": "{% $config.spatial_service_base_url & '/fieldsdb' %}",
+        "Method": "GET",
+        "InvocationConfig": {
+          "ConnectionArn": "{% $config.portal_authenticated_connection_arn %}"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "BackoffRate": 2,
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "Can Skip?",
+      "Assign": {
+        "spatialFields": "{% $states.result.ResponseBody.id%}"
+      }
+    },
+    "Can Skip?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "Do Nothing",
+          "Condition": "{% $toMillis($states.context.Execution.Input.dataResourceProcessingState.SampledAt.S) > $toMillis($states.context.Execution.Input.dataResourceProcessingState.DownloadedAt.S) and $sort($spatialFields) = $sort($states.context.Execution.Input.dataResourceProcessingState.SpatialFields.SS) or false %}"
+        }
+      ],
+      "Default": "Get or create EMR Cluster"
+    },
+    "Do Nothing": {
+      "Type": "Pass",
+      "End": true
+    },
+    "Get or create EMR Cluster": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::states:startExecution.sync:2",
+      "Arguments": {
+        "StateMachineArn": "{% $config.get_or_create_emr_cluster_state_machine_arn %}",
+        "Input": {
+          "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
+          "rootPipelineName": "{% $rootPipelineName %}"
+        }
+      },
+      "Assign": {
+        "clusterId": "{% $states.result.Output.clusterId %}"
+      },
+      "Next": "Sync EFS Data to HDFS"
+    },
+    "Sync EFS Data to HDFS": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Arguments": {
+        "ClusterId": "{% $clusterId %}",
+        "Step": {
+          "Name": "{% 'sync-efs-index-data-to-hdfs-' & $dataResourceId %}",
+          "ActionOnFailure": "CONTINUE",
+          "HadoopJarStep": {
+            "Jar": "s3://eu-west-1.elasticmapreduce/libs/script-runner/script-runner.jar",
+            "Args": [
+              "file:/opt/inbo/pipelines/bootstrap-actions/sync-index-data-to-hdfs.sh",
+              "{% $dataResourceId %}"
+            ]
+          }
+        }
+      },
+      "Next": "Sampling",
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed"
+          ],
+          "BackoffRate": 2,
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "Comment": "Fails sometimes waiting for file copy?"
+        }
+      ]
+    },
+    "Sampling": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Arguments": {
+        "ClusterId": "{% $clusterId %}",
+        "Step": {
+          "Name": "{% 'sampling-' & $dataResourceId %}",
+          "ActionOnFailure": "CONTINUE",
+          "HadoopJarStep": {
+            "Jar": "command-runner.jar",
+            "Args": [
+              "spark-submit",
+              "--deploy-mode",
+              "client",
+              "--class",
+              "au.org.ala.pipelines.beam.SamplingPipeline",
+              "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
+              "{% '--datasetId=' & $dataResourceId %}",
+              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
+            ]
+          }
+        }
+      },
+      "Next": "Sample layers"
+    },
+    "Sample layers": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Arguments": {
+        "ClusterId": "{% $clusterId %}",
+        "Step": {
+          "Name": "{% 'sample-layers-' & $dataResourceId %}",
+          "ActionOnFailure": "CONTINUE",
+          "HadoopJarStep": {
+            "Jar": "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
+            "MainClass": "au.org.ala.sampling.LayerCrawler",
+            "Args": [
+              "{% '--datasetId=' & $dataResourceId %}",
+              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
+              "--inputPath=hdfs:///."
+            ]
+          }
+        }
+      },
+      "Next": "Sync Indexed and Sampled EFS Data to HDFS",
+      "Output": {
+        "skipSamplingSync": false
+      }
+    },
+    "Sync Indexed and Sampled EFS Data to HDFS": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Arguments": {
+        "ClusterId": "{% $clusterId %}",
+        "Step": {
+          "Name": "{% 'sync-hdfs-index-data-to-efs-' & $dataResourceId %}",
+          "ActionOnFailure": "CONTINUE",
+          "HadoopJarStep": {
+            "Jar": "s3://eu-west-1.elasticmapreduce/libs/script-runner/script-runner.jar",
+            "Args": [
+              "file:/opt/inbo/pipelines/bootstrap-actions/sync-to-efs.sh",
+              "{% $dataResourceId %}"
+            ]
+          }
+        }
+      },
+      "Next": "Update Sampled Timestamp"
+    },
+    "Update Sampled Timestamp": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Arguments": {
+        "TableName": "{% $config.dynamodb_table_name %}",
+        "Key": {
+          "PK": {
+            "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
+          },
+          "SK": {
+            "S": "STATE"
+          }
+        },
+        "UpdateExpression": "SET SampledAt = :instant, SpatialFields = :spatialFields",
+        "ExpressionAttributeValues": {
+          ":instant": {
+            "S": "{% $now() %}"
+          },
+          ":spatialFields": {
+            "SS": "{% $spatialFields %}"
+          }
+        }
+      },
+      "End": true
+    }
+  },
+  "QueryLanguage": "JSONata"
+}

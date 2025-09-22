@@ -12,7 +12,7 @@ data "aws_iam_policy_document" "batch_assume_role" {
 }
 
 resource "aws_iam_role" "aws_batch_service_role" {
-  name = "inbo-${var.application}-pipelines-batch-service-role"
+  name = "${var.resource_prefix}pipelines-batch-service-role"
 
   assume_role_policy = data.aws_iam_policy_document.batch_assume_role.json
 }
