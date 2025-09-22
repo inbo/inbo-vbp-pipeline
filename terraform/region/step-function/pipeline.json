@@ -1,5 +1,5 @@
 {
-  "Comment": "Starts an EMR cluster, processes data resources in parallel, and terminates the cluster",
+  "Comment": "Utility wrapper to handle concurrency limits, state tracking and failure",
   "StartAt": "Get State-machine Config",
   "States": {
     "Get State-machine Config": {
@@ -9,226 +9,300 @@
         "Key": "config/state-machine.json"
       },
       "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
-      "Next": "Check if list of dataresources are specified",
+      "Next": "Catch Errors",
       "Assign": {
+        "dataResourceId": "{% $states.input.dataResourceId %}",
         "config": "{% $parse($states.result.Body) %}",
-        "solrCollection": "test"
+        "rootPipelineName": "{% $exists($states.context.Execution.Input.rootPipelineName) ? $states.context.Execution.Input.rootPipelineName : $states.context.Execution.Name %}"
       }
     },
-    "Check if list of dataresources are specified": {
-      "Type": "Choice",
-      "Choices": [
+    "Catch Errors": {
+      "Type": "Parallel",
+      "Next": "Cleanup locks",
+      "Branches": [
         {
-          "Next": "Process Data Resources",
-          "Condition": "{% $exists($states.context.Execution.Input.dataResources)  %}",
-          "Assign": {
-            "dataResources": "{% $states.context.Execution.Input.dataResources %}"
+          "StartAt": "Should Limit Concurrency?",
+          "States": {
+            "Should Limit Concurrency?": {
+              "Type": "Choice",
+              "Choices": [
+                {
+                  "Next": "Set State to Waiting for Concurrency Lock",
+                  "Condition": "{% $exists($states.context.Execution.Input.concurrencyLimit) %}"
+                }
+              ],
+              "Default": "Acquire Data Resource Lock"
+            },
+            "Acquire Data Resource Lock": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::states:startExecution.sync:2",
+              "Arguments": {
+                "StateMachineArn": "{% $config.state_machine_lock_arn %}",
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
+                  "dynamodbTableName": "{% $config.dynamodb_table_name %}",
+                  "lockKey": "{% $states.context.Execution.Input.dataResourceId %}",
+                  "lockLimit": 1,
+                  "lockCheckInterval": 0,
+                  "lockTimeout": 0
+                }
+              },
+              "Next": "Set State to Running"
+            },
+            "Set State to Waiting for Concurrency Lock": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::dynamodb:updateItem",
+              "Arguments": {
+                "TableName": "{% $config.dynamodb_table_name %}",
+                "Key": {
+                  "PK": {
+                    "S": "{% 'RUN#' & $states.context.Execution.Input.rootPipelineName %}"
+                  },
+                  "SK": {
+                    "S": "{% 'DATA_RESOURCE#' & $states.context.Execution.Input.dataResourceId %}"
+                  }
+                },
+                "UpdateExpression": "SET #state = :state",
+                "ExpressionAttributeNames": {
+                  "#state": "State"
+                },
+                "ExpressionAttributeValues": {
+                  ":state": {
+                    "S": "WAITING_FOR_LOCK"
+                  }
+                }
+              },
+              "Next": "Acquire Concurrency Lock"
+            },
+            "Acquire Concurrency Lock": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::states:startExecution.sync:2",
+              "Arguments": {
+                "StateMachineArn": "{% $config.state_machine_lock_arn %}",
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
+                  "dynamodbTableName": "{% $config.dynamodb_table_name %}",
+                  "lockKey": "{% $states.context.Execution.Input.stepArn %}",
+                  "lockLimit": "{% $states.context.Execution.Input.concurrencyLimit %}",
+                  "lockCheckInterval": "{% $config.concurrency_lock_check_interval %}",
+                  "lockTimeout": "{% $config.concurrency_lock_timeout %}"
+                }
+              },
+              "Next": "Acquire Data Resource Lock"
+            },
+            "Set State to Running": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::dynamodb:updateItem",
+              "Arguments": {
+                "TableName": "{% $config.dynamodb_table_name %}",
+                "Key": {
+                  "PK": {
+                    "S": "{% 'RUN#' & $states.context.Execution.Input.rootPipelineName %}"
+                  },
+                  "SK": {
+                    "S": "{% 'DATA_RESOURCE#' & $states.context.Execution.Input.dataResourceId %}"
+                  }
+                },
+                "UpdateExpression": "SET #state = :state",
+                "ExpressionAttributeNames": {
+                  "#state": "State"
+                },
+                "ExpressionAttributeValues": {
+                  ":state": {
+                    "S": "RUNNING"
+                  }
+                }
+              },
+              "Next": "Get Data Resource Details"
+            },
+            "Get Data Resource Details": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::http:invoke",
+              "Arguments": {
+                "ApiEndpoint": "{% 'https://' & $config.base_domain & '/collectory/ws/dataResource/' & $dataResourceId %}",
+                "Method": "GET",
+                "Authentication": {
+                  "ConnectionArn": "{% $config.collectory_authenticated_connection_arn %}"
+                }
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "BackoffRate": 2,
+                  "IntervalSeconds": 1,
+                  "MaxAttempts": 3,
+                  "JitterStrategy": "FULL"
+                }
+              ],
+              "Next": "Get Data Resource Processing State",
+              "Output": "{%  $states.result.ResponseBody %}"
+            },
+            "Get Data Resource Processing State": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::dynamodb:getItem",
+              "Arguments": {
+                "TableName": "{% $config.dynamodb_table_name %}",
+                "Key": {
+                  "PK": {
+                    "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
+                  },
+                  "SK": {
+                    "S": "STATE"
+                  }
+                }
+              },
+              "Next": "Run Step Function",
+              "Output": {
+                "dataResource": "{% $states.input %}",
+                "dataResourceProcessingState": "{% $exists($states.result.Item) ? $states.result.Item : null %}"
+              }
+            },
+            "Run Step Function": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::states:startExecution.sync:2",
+              "Arguments": {
+                "StateMachineArn": "{% $states.context.Execution.Input.stepArn %}",
+                "Input": "{% $merge([$states.context.Execution.Input, {\"AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID\": $states.context.Execution.Id, \"dataResource\": $states.input.dataResource, \"dataResourceProcessingState\": $states.input.dataResourceProcessingState, \"rootPipelineName\": $states.context.Execution.Input.rootPipelineName}]) %}"
+              },
+              "End": true
+            }
           }
         }
       ],
-      "Default": "Get list of all dataresources"
-    },
-    "Get list of all dataresources": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::http:invoke",
-      "Arguments": {
-        "ApiEndpoint": "{% 'https://' & $config.base_domain & '/collectory/ws/dataResource/' %}",
-        "Method": "GET",
-        "Authentication": {
-          "ConnectionArn": "{% $config.collectory_authenticated_connection_arn %}"
-        }
-      },
-      "Retry": [
-        {
-          "ErrorEquals": [
-            "States.ALL"
-          ],
-          "BackoffRate": 2,
-          "IntervalSeconds": 1,
-          "MaxAttempts": 3,
-          "JitterStrategy": "FULL"
-        }
-      ],
-      "Next": "Process Data Resources",
-      "Assign": {
-        "dataResources": "{% $states.result.ResponseBody.uid %}"
-      }
-    },
-    "Process Data Resources": {
-      "Type": "Map",
-      "ItemProcessor": {
-        "ProcessorConfig": {
-          "Mode": "INLINE"
-        },
-        "StartAt": "Download Data Resource",
-        "States": {
-          "Download Data Resource": {
-            "Type": "Task",
-            "Resource": "arn:aws:states:::states:startExecution.sync:2",
-            "Arguments": {
-              "StateMachineArn": "{% $config.state_machine_step_wrapper_arn %}",
-              "Input": {
-                "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
-                "stepArn": "{% $config.state_machine_download_arn %}",
-                "stepName": "Download",
-                "rootPipelineName": "{% $states.context.Execution.Name %}",
-                "dataResourceId": "{% $states.input %}",
-                "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}"
-              }
-            },
-            "Assign": {
-              "dataResourceId": "{% $states.input %}"
-            },
-            "Next": "Index Data Resource"
-          },
-          "Index Data Resource": {
-            "Type": "Task",
-            "Resource": "arn:aws:states:::states:startExecution.sync:2",
-            "Arguments": {
-              "StateMachineArn": "{% $config.state_machine_step_wrapper_arn %}",
-              "Input": {
-                "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
-                "stepArn": "{% $config.state_machine_index_arn %}",
-                "stepName": "Index",
-                "rootPipelineName": "{% $states.context.Execution.Name %}",
-                "dataResourceId": "{% $dataResourceId %}",
-                "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}"
-              }
-            },
-            "Next": "Sample Spatial Layers"
-          },
-          "Sample Spatial Layers": {
-            "Type": "Task",
-            "Resource": "arn:aws:states:::states:startExecution.sync:2",
-            "Arguments": {
-              "StateMachineArn": "{% $config.state_machine_step_wrapper_arn %}",
-              "Input": {
-                "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
-                "stepArn": "{% $config.state_machine_sample_arn %}",
-                "stepName": "Sample",
-                "rootPipelineName": "{% $states.context.Execution.Name %}",
-                "dataResourceId": "{% $dataResourceId %}",
-                "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
-                "concurrencyLimit": 2
-              }
-            },
-            "Next": "Upload to Solr"
-          },
-          "Upload to Solr": {
-            "Type": "Task",
-            "Resource": "arn:aws:states:::states:startExecution.sync:2",
-            "Arguments": {
-              "StateMachineArn": "{% $config.state_machine_step_wrapper_arn %}",
-              "Input": {
-                "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
-                "stepArn": "{% $config.state_machine_solr_arn %}",
-                "stepName": "Solr",
-                "rootPipelineName": "{% $states.context.Execution.Name %}",
-                "dataResourceId": "{% $dataResourceId %}",
-                "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
-                "concurrencyLimit": 1,
-                "solrCollection": "{% $solrCollection %}"
-              }
-            },
-            "End": true
-          }
-        }
-      },
-      "Next": "Cleanup EMR Cluster",
-      "Items": "{% $dataResources %}",
       "Catch": [
         {
           "ErrorEquals": [
             "States.ALL"
           ],
-          "Next": "Cleanup EMR Cluster"
+          "Next": "Cleanup locks"
         }
       ]
     },
-    "Cleanup EMR Cluster": {
+    "Cleanup locks": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::states:startExecution.sync:2",
       "Arguments": {
-        "StateMachineArn": "{% $config.cleanup_emr_cluster_state_machine_arn %}",
-        "Input": {
-          "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
-          "rootPipelineName": "{% $states.context.Execution.Name %}"
-        }
+        "TransactItems": [
+          {
+            "Update": {
+              "TableName": "{% $config.dynamodb_table_name %}",
+              "Key": {
+                "PK": {
+                  "S": "{% 'LOCK#' & $dataResourceId %}"
+                },
+                "SK": {
+                  "S": "{% 'LOCK#' & $dataResourceId  %}"
+                }
+              },
+              "UpdateExpression": "DELETE #executionIds :executionId",
+              "ExpressionAttributeNames": {
+                "#executionIds": "ExecutionIds"
+              },
+              "ExpressionAttributeValues": {
+                ":executionId": {
+                  "Ss": [
+                    "{% $states.context.Execution.Id %}"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "Update": {
+              "TableName": "{% $config.dynamodb_table_name %}",
+              "Key": {
+                "PK": {
+                  "S": "{% 'LOCK#' & $states.context.Execution.Input.stepArn %}"
+                },
+                "SK": {
+                  "S": "{% 'LOCK#' & $states.context.Execution.Input.stepArn  %}"
+                }
+              },
+              "UpdateExpression": "DELETE #executionIds :executionId",
+              "ExpressionAttributeNames": {
+                "#executionIds": "ExecutionIds"
+              },
+              "ExpressionAttributeValues": {
+                ":executionId": {
+                  "Ss": [
+                    "{% $states.context.Execution.Id %}"
+                  ]
+                }
+              }
+            }
+          }
+        ]
       },
-      "Next": "Has Errors?",
+      "Resource": "arn:aws:states:::aws-sdk:dynamodb:transactWriteItems",
+      "Next": "Choice",
       "Output": "{% $states.input %}"
     },
-    "Has Errors?": {
+    "Choice": {
       "Type": "Choice",
       "Choices": [
         {
-          "Next": "Fail",
+          "Next": "Set State to Failed",
           "Condition": "{% $exists($states.input.Error) %}"
         }
       ],
-      "Default": "Switch Active Index"
+      "Default": "Set State to Succeeded"
     },
-    "Fail": {
-      "Type": "Fail"
-    },
-    "Switch Active Index": {
+    "Set State to Failed": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke",
-      "Output": "{% $states.result.Payload %}",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Arguments": {
-        "FunctionName": "{% $config.lambda_biocache_index_management_arn %}",
-        "Payload": {
-          "httpMethod": "POST",
-          "version": "2",
-          "headers": {
-            "content-type": "application/json"
+        "TableName": "{% $config.dynamodb_table_name %}",
+        "Key": {
+          "PK": {
+            "S": "{% 'RUN#' & $states.context.Execution.Input.rootPipelineName %}"
           },
-          "isBase64Encoded": false,
-          "rawQueryString": "",
-          "rawPath": "/",
-          "routeKey": "/",
-          "originatesFromStepFunction": true,
-          "body": "{% $string({\n  'query': 'mutation SetActiveIndex($input: SetActiveIndexInput!) { setActiveIndex(input: $input) { indexId }}',\n'variables': {\n  'input': {\n    'indexId': $solrCollection\n  }\n}\n}) %}"
+          "SK": {
+            "S": "{% 'DATA_RESOURCE#' & $states.context.Execution.Input.dataResourceId %}"
+          }
+        },
+        "UpdateExpression": "SET #state = :state",
+        "ExpressionAttributeNames": {
+          "#state": "State"
+        },
+        "ExpressionAttributeValues": {
+          ":state": {
+            "S": "FAILED"
+          }
         }
       },
-      "Retry": [
-        {
-          "ErrorEquals": [
-            "Lambda.ServiceException",
-            "Lambda.AWSLambdaException",
-            "Lambda.SdkClientException",
-            "Lambda.TooManyRequestsException"
-          ],
-          "IntervalSeconds": 1,
-          "MaxAttempts": 3,
-          "BackoffRate": 2,
-          "JitterStrategy": "FULL"
-        }
-      ],
-      "Next": "Sync Occurrence Record Assertions"
+      "End": true,
+      "Output": {
+        "state": "Failed"
+      }
     },
-    "Sync Occurrence Record Assertions": {
+    "Set State to Succeeded": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::http:invoke",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Arguments": {
-        "ApiEndpoint": "{% 'https://' & $config.base_domain & '/biocache-service/sync' %}",
-        "Method": "GET",
-        "Authentication": {
-          "ConnectionArn": "{% $config.collectory_authenticated_connection_arn %}"
+        "TableName": "{% $config.dynamodb_table_name %}",
+        "Key": {
+          "PK": {
+            "S": "{% 'RUN#' & $states.context.Execution.Input.rootPipelineName %}"
+          },
+          "SK": {
+            "S": "{% 'DATA_RESOURCE#' & $states.context.Execution.Input.dataResourceId %}"
+          }
+        },
+        "UpdateExpression": "SET #state = :state",
+        "ExpressionAttributeNames": {
+          "#state": "State"
+        },
+        "ExpressionAttributeValues": {
+          ":state": {
+            "S": "SUCCEEDED"
+          }
         }
       },
-      "Retry": [
-        {
-          "ErrorEquals": [
-            "States.ALL"
-          ],
-          "BackoffRate": 2,
-          "IntervalSeconds": 1,
-          "MaxAttempts": 3,
-          "JitterStrategy": "FULL"
-        }
-      ],
-      "End": true
+      "End": true,
+      "Output": {
+        "state": "SUCCEEDED"
+      }
     }
   },
   "QueryLanguage": "JSONata"
