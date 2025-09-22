@@ -63,49 +63,49 @@ resource "aws_sfn_state_machine" "pipeline" {
   name     = "${var.resource_prefix}pipeline"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
-  definition = replace(file("${path.module}/step-function/pipeline.json"), "${var.resource_prefix}-dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
+  definition = replace(file("${path.module}/step-function/pipeline.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 }
 
 resource "aws_sfn_state_machine" "step_wrapper" {
   name     = "${var.resource_prefix}step-wrapper"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
-  definition = replace(file("${path.module}/step-function/step-wrapper.json"), "${var.resource_prefix}-dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
+  definition = replace(file("${path.module}/step-function/step-wrapper.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 }
 
 resource "aws_sfn_state_machine" "lock" {
   name     = "${var.resource_prefix}lock"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
-  definition = replace(file("${path.module}/step-function/lock.json"), "${var.resource_prefix}-dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
+  definition = replace(file("${path.module}/step-function/lock.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 }
 
 resource "aws_sfn_state_machine" "download" {
   name     = "${var.resource_prefix}download"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
-  definition = replace(file("${path.module}/step-function/download-data-resource.json"), "${var.resource_prefix}-dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
+  definition = replace(file("${path.module}/step-function/download-data-resource.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 }
 
 resource "aws_sfn_state_machine" "index" {
   name     = "${var.resource_prefix}index"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
-  definition = replace(file("${path.module}/step-function/index-data-resource.json"), "${var.resource_prefix}-dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
+  definition = replace(file("${path.module}/step-function/index-data-resource.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 }
 
 resource "aws_sfn_state_machine" "sample" {
   name     = "${var.resource_prefix}sample"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
-  definition = replace(file("${path.module}/step-function/sample-data-resource.json"), "${var.resource_prefix}-dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
+  definition = replace(file("${path.module}/step-function/sample-data-resource.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 }
 
 resource "aws_sfn_state_machine" "solr" {
   name     = "${var.resource_prefix}solr"
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
-  definition = replace(file("${path.module}/step-function/solr-data-resource.json"), "${var.resource_prefix}-dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
+  definition = replace(file("${path.module}/step-function/solr-data-resource.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 }
 
 resource "aws_sfn_state_machine" "get_or_create_emr_cluster" {
