@@ -1,5 +1,5 @@
 resource "aws_security_group" "batch" {
-  name        = "inbo-${var.application}-sgr-${var.name}-batch"
+  name        = "${var.resource_prefix}sgr-${var.name}-batch"
   description = "Security Group for ${var.name} ecs container"
   vpc_id      = var.main_vpc_id
 
@@ -9,7 +9,7 @@ resource "aws_security_group" "batch" {
 }
 
 resource "aws_security_group" "efs_volumes" {
-  name        = "inbo-${var.application}-sgr-${var.name}-efs-volumes"
+  name        = "${var.resource_prefix}sgr-${var.name}-efs-volumes"
   description = "Securty Group for EFS"
   vpc_id      = var.main_vpc_id
 }

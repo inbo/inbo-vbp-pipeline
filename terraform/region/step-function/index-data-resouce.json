@@ -1,5 +1,5 @@
 {
-  "Comment": "Processes a single large data resource using LA Pipelines on EMR",
+  "Comment": "Starts an EMR cluster, processes data resources in parallel, and terminates the cluster",
   "StartAt": "Get State-machine Config",
   "States": {
     "Get State-machine Config": {
@@ -9,10 +9,85 @@
         "Key": "config/state-machine.json"
       },
       "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
-      "Next": "Get or create EMR Cluster",
+      "Next": "Get Species Lists to Index",
       "Assign": {
-        "config": "{% $parse($states.result.Body) %}"
+        "dataResourceId": "{% $states.input.dataResource.uid %}",
+        "lastUpdated": "{% $states.input.dataResource.lastUpdated %}",
+        "config": "{% $parse($states.result.Body) %}",
+        "rootPipelineName": "{% $exists($states.context.Execution.Input.rootPipelineName) ? $states.context.Execution.Input.rootPipelineName : $states.context.Execution.Name %}"
       }
+    },
+    "Get Species Lists to Index": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::http:invoke",
+      "Arguments": {
+        "ApiEndpoint": "https://natuurdata.dev.inbo.be/species-list/ws/speciesList",
+        "Method": "GET",
+        "InvocationConfig": {
+          "ConnectionArn": "arn:aws:events:eu-west-1:632683202044:connection/inbo-vbp-pipelines-step-function/b14e6368-8a2b-49fd-a8e2-c6b3e64d51b0"
+        },
+        "QueryParameters": {
+          "isAuthoritative": "eq:true",
+          "max": 100
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "BackoffRate": 2,
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "Can Skip?",
+      "Assign": {
+        "speciesLists": "{% $states.result.ResponseBody.lists{`dataResourceUid`: lastUpdated} %}"
+      }
+    },
+    "Can Skip?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "Do Nothing",
+          "Condition": "{% $toMillis($states.context.Execution.Input.dataResourceProcessingState.IndexedAt.S) >$toMillis($states.context.Execution.Input.dataResourceProcessingState.DownloadedAt.S) and ($merge($each($states.context.Execution.Input.dataResourceProcessingState.SpeciesLists.M, function($v,$k){{$k: $v.S}})) = $speciesLists) or false %}"
+        }
+      ],
+      "Default": "Big or Small?"
+    },
+    "Do Nothing": {
+      "Type": "Pass",
+      "End": true
+    },
+    "Big or Small?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "Process Small Data Resource",
+          "Condition": "{% $number($states.context.Execution.Input.dataResourceProcessingState.FileSize.N) > $config.dataresource_size_threshold %}"
+        }
+      ],
+      "Default": "Get or create EMR Cluster"
+    },
+    "Process Small Data Resource": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::batch:submitJob.sync",
+      "Arguments": {
+        "JobDefinition": "{% $config.process_data_resource_job_definition_arn %}",
+        "JobName": "{% 'process-data-resource-' & $dataResourceId %}",
+        "JobQueue": "{% $config.job_queue_arn %}",
+        "ContainerOverrides": {
+          "Environment": [
+            {
+              "Name": "DATA_RESOURCE_ID",
+              "Value": "{% $dataResourceId %}"
+            }
+          ]
+        }
+      },
+      "Next": "Update Indexed Timestamp"
     },
     "Get or create EMR Cluster": {
       "Type": "Task",
@@ -35,13 +110,13 @@
       "Arguments": {
         "ClusterId": "{% $clusterId %}",
         "Step": {
-          "Name": "{% 'sync-efs-index-data-to-hdfs-' & $states.context.Execution.Input.dataResourceId %}",
+          "Name": "{% 'sync-efs-index-data-to-hdfs-' & $dataResourceId %}",
           "ActionOnFailure": "CONTINUE",
           "HadoopJarStep": {
             "Jar": "s3://eu-west-1.elasticmapreduce/libs/script-runner/script-runner.jar",
             "Args": [
               "file:/opt/inbo/pipelines/bootstrap-actions/sync-verbatim-data-to-hdfs.sh",
-              "{% $states.context.Execution.Input.dataResourceId %}"
+              "{% $dataResourceId %}"
             ]
           }
         }
@@ -54,7 +129,7 @@
       "Arguments": {
         "ClusterId": "{% $clusterId %}",
         "Step": {
-          "Name": "{% 'dwca-to-avro-' & $states.context.Execution.Input.dataResourceId %}",
+          "Name": "{% 'dwca-to-avro-' & $dataResourceId %}",
           "ActionOnFailure": "CONTINUE",
           "HadoopJarStep": {
             "Jar": "command-runner.jar",
@@ -65,7 +140,7 @@
               "--class",
               "au.org.ala.pipelines.beam.ALADwcaToVerbatimPipeline",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
-              "{% '--datasetId=' & $states.context.Execution.Input.dataResourceId %}",
+              "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
             ]
           }
@@ -79,7 +154,7 @@
       "Arguments": {
         "ClusterId": "{% $clusterId %}",
         "Step": {
-          "Name": "{% 'interpret-' & $states.context.Execution.Input.dataResourceId %}",
+          "Name": "{% 'interpret-' & $dataResourceId %}",
           "ActionOnFailure": "CONTINUE",
           "HadoopJarStep": {
             "Jar": "command-runner.jar",
@@ -90,7 +165,7 @@
               "--class",
               "au.org.ala.pipelines.beam.ALAVerbatimToInterpretedPipeline",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
-              "{% '--datasetId=' & $states.context.Execution.Input.dataResourceId %}",
+              "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
             ]
           }
@@ -104,7 +179,7 @@
       "Arguments": {
         "ClusterId": "{% $clusterId %}",
         "Step": {
-          "Name": "{% 'validate-' & $states.context.Execution.Input.dataResourceId %}",
+          "Name": "{% 'validate-' & $dataResourceId %}",
           "ActionOnFailure": "CONTINUE",
           "HadoopJarStep": {
             "Jar": "command-runner.jar",
@@ -115,7 +190,7 @@
               "--class",
               "au.org.ala.pipelines.beam.ALAUUIDValidationPipeline",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
-              "{% '--datasetId=' & $states.context.Execution.Input.dataResourceId %}",
+              "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
             ]
           }
@@ -129,7 +204,7 @@
       "Arguments": {
         "ClusterId": "{% $clusterId %}",
         "Step": {
-          "Name": "{% 'uuid-' & $states.context.Execution.Input.dataResourceId %}",
+          "Name": "{% 'uuid-' & $dataResourceId %}",
           "ActionOnFailure": "CONTINUE",
           "HadoopJarStep": {
             "Jar": "command-runner.jar",
@@ -140,7 +215,7 @@
               "--class",
               "au.org.ala.pipelines.beam.ALAUUIDMintingPipeline",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
-              "{% '--datasetId=' & $states.context.Execution.Input.dataResourceId %}",
+              "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
             ]
           }
@@ -154,7 +229,7 @@
       "Arguments": {
         "ClusterId": "{% $clusterId %}",
         "Step": {
-          "Name": "{% 'sensitive-' & $states.context.Execution.Input.dataResourceId %}",
+          "Name": "{% 'sensitive-' & $dataResourceId %}",
           "ActionOnFailure": "CONTINUE",
           "HadoopJarStep": {
             "Jar": "command-runner.jar",
@@ -165,7 +240,7 @@
               "--class",
               "au.org.ala.pipelines.beam.ALAInterpretedToSensitivePipeline",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
-              "{% '--datasetId=' & $states.context.Execution.Input.dataResourceId %}",
+              "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
             ]
           }
@@ -179,7 +254,7 @@
       "Arguments": {
         "ClusterId": "{% $clusterId %}",
         "Step": {
-          "Name": "{% 'image-sync-' & $states.context.Execution.Input.dataResourceId %}",
+          "Name": "{% 'image-sync-' & $dataResourceId %}",
           "ActionOnFailure": "CONTINUE",
           "HadoopJarStep": {
             "Jar": "command-runner.jar",
@@ -190,7 +265,7 @@
               "--class",
               "au.org.ala.pipelines.beam.ImageServiceSyncPipeline",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
-              "{% '--datasetId=' & $states.context.Execution.Input.dataResourceId %}",
+              "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
             ]
           }
@@ -204,7 +279,7 @@
       "Arguments": {
         "ClusterId": "{% $clusterId %}",
         "Step": {
-          "Name": "{% 'image-load-' & $states.context.Execution.Input.dataResourceId %}",
+          "Name": "{% 'image-load-' & $dataResourceId %}",
           "ActionOnFailure": "CONTINUE",
           "HadoopJarStep": {
             "Jar": "command-runner.jar",
@@ -215,7 +290,7 @@
               "--class",
               "au.org.ala.pipelines.beam.ImageServiceDiffLoadPipeline",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
-              "{% '--datasetId=' & $states.context.Execution.Input.dataResourceId %}",
+              "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
             ]
           }
@@ -237,7 +312,7 @@
       "Arguments": {
         "ClusterId": "{% $clusterId %}",
         "Step": {
-          "Name": "{% 'index-' & $states.context.Execution.Input.dataResourceId %}",
+          "Name": "{% 'index-' & $dataResourceId %}",
           "ActionOnFailure": "CONTINUE",
           "HadoopJarStep": {
             "Jar": "command-runner.jar",
@@ -248,7 +323,7 @@
               "--class",
               "au.org.ala.pipelines.beam.IndexRecordPipeline",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
-              "{% '--datasetId=' & $states.context.Execution.Input.dataResourceId %}",
+              "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
             ]
           }
@@ -262,14 +337,39 @@
       "Arguments": {
         "ClusterId": "{% $clusterId %}",
         "Step": {
-          "Name": "{% 'sync-to-efs-' & $states.context.Execution.Input.dataResourceId %}",
+          "Name": "{% 'sync-to-efs-' & $dataResourceId %}",
           "ActionOnFailure": "CONTINUE",
           "HadoopJarStep": {
             "Jar": "s3://eu-west-1.elasticmapreduce/libs/script-runner/script-runner.jar",
             "Args": [
               "file:/opt/inbo/pipelines/bootstrap-actions/sync-to-efs.sh",
-              "{% $states.context.Execution.Input.dataResourceId %}"
+              "{% $dataResourceId %}"
             ]
+          }
+        }
+      },
+      "Next": "Update Indexed Timestamp"
+    },
+    "Update Indexed Timestamp": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Arguments": {
+        "TableName": "{% $config.dynamodb_table_name %}",
+        "Key": {
+          "PK": {
+            "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
+          },
+          "SK": {
+            "S": "STATE"
+          }
+        },
+        "UpdateExpression": "SET IndexedAt = :instant, SpeciesLists = :speciesLists",
+        "ExpressionAttributeValues": {
+          ":instant": {
+            "S": "{% $now() %}"
+          },
+          ":speciesLists": {
+            "M": "{% $merge($each($speciesLists, function($v,$k){{$k: {\"S\":$v}}})) %}"
           }
         }
       },

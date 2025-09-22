@@ -10,7 +10,7 @@ data "aws_iam_policy_document" "lambda_assume_role_policy" {
 }
 
 resource "aws_iam_role" "biocache_index_management_role" {
-  name = "inbo-${var.application}-biocache-index-management-lambda"
+  name = "${var.resource_prefix}biocache-index-management-lambda"
 
   assume_role_policy = data.aws_iam_policy_document.lambda_assume_role_policy.json
 }
@@ -26,8 +26,8 @@ data "aws_iam_policy_document" "biocache_index_management_permission" {
 
     #tfsec:ignore:aws-iam-no-policy-wildcards
     resources = [
-      "arn:aws:logs:eu-west-1:${data.aws_caller_identity.current.account_id}:log-group:/inbo/${var.application}/lambda",
-      "arn:aws:logs:eu-west-1:${data.aws_caller_identity.current.account_id}:log-group:/inbo/${var.application}/lambda:log-stream:*",
+      "arn:aws:logs:eu-west-1:${data.aws_caller_identity.current.account_id}:log-group:/${var.organisation}/${var.application}/lambda",
+      "arn:aws:logs:eu-west-1:${data.aws_caller_identity.current.account_id}:log-group:/${var.organisation}/${var.application}/lambda:log-stream:*",
     ]
   }
   // Required for running Lambda inside private VPC
@@ -62,8 +62,8 @@ data "aws_iam_policy_document" "biocache_index_management_permission" {
     ]
     #tfsec:ignore:aws-iam-no-policy-wildcards
     resources = [
-      "arn:aws:states:${var.aws_region}:${data.aws_caller_identity.current.account_id}:stateMachine:inbo-${var.application}-pipeline*",
-      "arn:aws:states:${var.aws_region}:${data.aws_caller_identity.current.account_id}:execution:inbo-${var.application}-pipeline*",
+      "arn:aws:states:${var.aws_region}:${data.aws_caller_identity.current.account_id}:stateMachine:${var.resource_prefix}pipeline*",
+      "arn:aws:states:${var.aws_region}:${data.aws_caller_identity.current.account_id}:execution:${var.resource_prefix}pipeline*",
     ]
   }
 
@@ -78,7 +78,7 @@ data "aws_iam_policy_document" "biocache_index_management_permission" {
       "dynamodb:Query"
     ]
     resources = [
-      "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/inbo-${var.application}-pipelines"
+      "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.resource_prefix}pipelines"
     ]
   }
   statement {

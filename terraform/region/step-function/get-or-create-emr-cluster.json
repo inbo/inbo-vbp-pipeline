@@ -110,7 +110,7 @@
         "AutoTerminationPolicy": {
           "IdleTimeout": "{% $config.idle_timout_termination_seconds %}"
         },
-        "StepConcurrencyLevel": 4,
+        "StepConcurrencyLevel": 10,
         "Applications": [
           {
             "Name": "Hadoop"

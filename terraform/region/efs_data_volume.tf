@@ -1,9 +1,9 @@
 resource "aws_efs_file_system" "data_volume" {
-  creation_token = "inbo-${var.application}-${var.name}-data"
+  creation_token = "${var.resource_prefix}${var.name}-data"
   encrypted      = true
 
   tags = {
-    "Name" = "inbo-${var.application}-${var.name}-data"
+    "Name" = "${var.resource_prefix}${var.name}-data"
   }
 
   kms_key_id = var.efs_kms_key_arn

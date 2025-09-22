@@ -1,5 +1,5 @@
 resource "aws_lb_target_group" "biocache_index_management_lambda" {
-  name        = "inbo-${var.application}-biocache-index-mgmt"
+  name        = "${var.resource_prefix}biocache-index-mgmt"
   target_type = "lambda"
 }
 
@@ -29,7 +29,7 @@ set -e -x -o pipefail
 $(aws sts assume-role --role-arn ${var.aws_iam_role} --role-session-name tf-${var.application}-upload-branding --query 'Credentials.[`export#AWS_ACCESS_KEY_ID=`,AccessKeyId,`#AWS_SECRET_ACCESS_KEY=`,SecretAccessKey,`#AWS_SESSION_TOKEN=`,SessionToken]' --output text | sed $'s/\t//g' | sed 's/#/ /g')
 
 curl --fail --verbose -L \
-  https://github.com/inbo/inbo-vbp-pipeline/releases/download/lambda-biocache-index-management-v${var.lambdas.versions.biocache-index-management}/biocache-index-management-${var.lambdas.versions.biocache-index-management}.zip \
+  https://github.com/inbo/${var.resource_prefix}pipeline/releases/download/lambda-biocache-index-management-v${var.lambdas.versions.biocache-index-management}/biocache-index-management-${var.lambdas.versions.biocache-index-management}.zip \
   -o biocache-index-management-${var.lambdas.versions.biocache-index-management}.zip
 
 # Upload jar to S3
@@ -51,11 +51,11 @@ data "aws_s3_object" "biocache_index_management_lambda" {
 
 #tfsec:ignore:aws-lambda-enable-tracing - no other logs to correlate with
 resource "aws_lambda_function" "biocache_index_management_lambda" {
-  function_name     = "inbo-${var.application}-biocache-index-management"
+  function_name     = "${var.resource_prefix}biocache-index-management"
   s3_bucket         = data.aws_s3_object.biocache_index_management_lambda.bucket
   s3_key            = data.aws_s3_object.biocache_index_management_lambda.key
   s3_object_version = data.aws_s3_object.biocache_index_management_lambda.version_id
-  role              = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/inbo-${var.application}-biocache-index-management-lambda"
+  role              = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}biocache-index-management-lambda"
   runtime           = "nodejs22.x"
   handler           = "server.graphqlHandler"
   timeout           = 30
@@ -85,7 +85,7 @@ resource "aws_lambda_function" "biocache_index_management_lambda" {
 }
 
 resource "aws_security_group" "biocache_index_management" {
-  name        = "inbo-vbp-pipeline-biocache-index-management"
+  name        = "${var.resource_prefix}pipeline-biocache-index-management"
   description = "VBP Solr management Lambda security group"
   vpc_id      = var.main_vpc_id
 }

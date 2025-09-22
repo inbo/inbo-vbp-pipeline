@@ -1,6 +1,6 @@
 #tfsec:ignore:aws-dynamodb-enable-recovery
 resource "aws_dynamodb_table" "biodiversiteitsportaal_pipelines" {
-  name = "inbo-${var.application}-pipelines"
+  name = "${var.resource_prefix}pipelines"
 
   billing_mode = "PAY_PER_REQUEST"
 

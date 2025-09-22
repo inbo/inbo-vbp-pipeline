@@ -14,13 +14,13 @@ data "aws_iam_policy_document" "batch_assume_policy" {
 
 # Allow signing in from iam in root account
 resource "aws_iam_role" "batch_task_execution_role" {
-  name = "inbo-${var.application}-pipelines-batch-exec-role"
+  name = "${var.resource_prefix}pipelines-batch-exec-role"
 
   assume_role_policy = data.aws_iam_policy_document.batch_assume_policy.json
 }
 
 resource "aws_iam_role" "batch_task_role" {
-  name = "inbo-${var.application}-pipelines-batch-role"
+  name = "${var.resource_prefix}pipelines-batch-role"
 
   assume_role_policy = data.aws_iam_policy_document.batch_assume_policy.json
 }
@@ -39,7 +39,7 @@ data "aws_iam_policy_document" "batch" {
       "ecr:DescribeRepositories"
     ]
     resources = [
-      "arn:aws:ecr:${split(".", var.ecr_repo)[3]}:${split(".", var.ecr_repo)[0]}:repository/inbo-vbp-pipelines",
+      "arn:aws:ecr:${split(".", var.ecr_repo)[3]}:${split(".", var.ecr_repo)[0]}:repository/${var.resource_prefix}pipelines",
     ]
   }
 
@@ -83,7 +83,7 @@ data "aws_iam_policy_document" "batch" {
       "secretsmanager:GetSecretValue",
     ]
     resources = [
-      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/inbo/${var.application}/pipelines-*"
+      "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.organisation}/${var.application}/pipelines-*"
     ]
   }
 
@@ -98,7 +98,7 @@ data "aws_iam_policy_document" "batch" {
     condition {
       test = "StringLike"
       values = [
-        "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/inbo/${var.application}/pipelines-*"
+        "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.organisation}/${var.application}/pipelines-*"
       ]
       variable = "kms:EncryptionContext:SecretARN"
     }
@@ -111,7 +111,7 @@ data "aws_iam_policy_document" "batch" {
       "s3:ListBucket",
       "s3:ListBucketMultipartUploads"
     ]
-    resources = ["arn:aws:s3:::inbo-${var.application}-${var.aws_env}-pipelines"]
+    resources = ["arn:aws:s3:::${var.resource_prefix}${var.aws_env}-pipelines"]
   }
   statement {
     effect = "Allow"
@@ -125,7 +125,7 @@ data "aws_iam_policy_document" "batch" {
     ]
     #tfsec:ignore:aws-iam-no-policy-wildcards
     resources = [
-      "arn:aws:s3:::inbo-${var.application}-${var.aws_env}-pipelines/*"
+      "arn:aws:s3:::${var.resource_prefix}${var.aws_env}-pipelines/*"
     ]
   }
 
@@ -137,7 +137,7 @@ data "aws_iam_policy_document" "batch" {
       "dynamodb:DeleteItem",
     ]
     resources = [
-      "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/inbo-${var.application}-pipelines"
+      "arn:aws:dynamodb:${var.aws_region}:${data.aws_caller_identity.current.account_id}:table/${var.resource_prefix}pipelines"
     ]
   }
 
@@ -151,13 +151,13 @@ data "aws_iam_policy_document" "batch" {
 }
 
 resource "aws_iam_role_policy" "batch_task_role" {
-  name   = "inbo-${var.application}-batch-task"
+  name   = "${var.resource_prefix}batch-task"
   policy = data.aws_iam_policy_document.batch.json
   role   = aws_iam_role.batch_task_role.id
 }
 
 resource "aws_iam_role_policy" "batch_task_execution_role" {
-  name   = "inbo-${var.application}-batch-task-execution"
+  name   = "${var.resource_prefix}batch-task-execution"
   policy = data.aws_iam_policy_document.batch.json
   role   = aws_iam_role.batch_task_execution_role.id
 }

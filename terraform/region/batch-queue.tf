@@ -1,5 +1,5 @@
 resource "aws_batch_compute_environment" "fargate" {
-  compute_environment_name = "inbo-${var.application}-pipelines"
+  compute_environment_name = "${var.resource_prefix}pipelines"
 
   compute_resources {
     max_vcpus = 16
@@ -13,12 +13,12 @@ resource "aws_batch_compute_environment" "fargate" {
     type = "FARGATE"
   }
 
-  service_role = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/inbo-${var.application}-pipelines-batch-service-role"
+  service_role = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipelines-batch-service-role"
   type         = "MANAGED"
 }
 
 resource "aws_batch_compute_environment" "fargate_spot" {
-  compute_environment_name = "inbo-${var.application}-pipelines-spot"
+  compute_environment_name = "${var.resource_prefix}pipelines-spot"
 
   compute_resources {
     max_vcpus = 16
@@ -32,12 +32,12 @@ resource "aws_batch_compute_environment" "fargate_spot" {
     type = "FARGATE_SPOT"
   }
 
-  service_role = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/inbo-${var.application}-pipelines-batch-service-role"
+  service_role = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipelines-batch-service-role"
   type         = "MANAGED"
 }
 
 resource "aws_batch_job_queue" "pipelines_queue" {
-  name     = "inbo-${var.application}-pipelines"
+  name     = "${var.resource_prefix}pipelines"
   state    = "ENABLED"
   priority = 1
 

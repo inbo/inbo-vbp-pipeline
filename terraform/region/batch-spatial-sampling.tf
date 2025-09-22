@@ -23,8 +23,8 @@ resource "aws_batch_job_definition" "spatial_sampling" {
     command = [
       file("${path.module}/bootstrap-actions/sample-data-resource.sh")
     ]
-    image      = "${var.ecr_repo}/inbo-${var.application}-pipelines:${var.docker_version}"
-    jobRoleArn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/inbo-${var.application}-pipelines-batch-role"
+    image      = "${var.ecr_repo}/${var.resource_prefix}pipelines:${var.docker_version}"
+    jobRoleArn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipelines-batch-role"
 
     fargatePlatformConfiguration = {
       platformVersion = "LATEST"
@@ -69,7 +69,7 @@ resource "aws_batch_job_definition" "spatial_sampling" {
       }
     ]
 
-    executionRoleArn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/inbo-${var.application}-pipelines-batch-exec-role"
+    executionRoleArn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipelines-batch-exec-role"
 
     logConfiguration = {
       logDriver = "awslogs",

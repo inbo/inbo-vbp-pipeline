@@ -10,6 +10,16 @@ variable "name" {
   type = string
 }
 
+variable "organisation" {
+  type = string
+  default = "inbo"
+}
+
+variable "resource_prefix" {
+  type = string
+  default = "inbo-vbp-"
+}
+
 variable "ecs_cluster_arn" {
   type = string
 }

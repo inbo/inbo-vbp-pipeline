@@ -1,0 +1,76 @@
+{
+  "Comment": "Aquire lock",
+  "StartAt": "Attempt to aquire lock",
+  "States": {
+    "Attempt to aquire lock": {
+      "Type": "Task",
+      "Arguments": {
+        "TransactItems": [
+          {
+            "Update": {
+              "TableName": "{% $states.context.Execution.Input.dynamodbTableName %}",
+              "Key": {
+                "PK": {
+                  "S": "{% 'LOCK#' & $states.context.Execution.Input.lockKey %}"
+                },
+                "SK": {
+                  "S": "{% 'LOCK#' & $states.context.Execution.Input.lockKey  %}"
+                }
+              },
+              "UpdateExpression": "ADD #executionIds :executionId",
+              "ConditionExpression": "attribute_not_exists(#executionIds) or size(#executionIds) < :lockLimit",
+              "ExpressionAttributeNames": {
+                "#executionIds": "ExecutionIds"
+              },
+              "ExpressionAttributeValues": {
+                ":executionId": {
+                  "Ss": [
+                    "{% $states.context.Execution.Input.AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID %}"
+                  ]
+                },
+                ":lockLimit": {
+                  "N": "{% $string($states.context.Execution.Input.lockLimit) %}"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "Resource": "arn:aws:states:::aws-sdk:dynamodb:transactWriteItems",
+      "Next": "Pass",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "DynamoDb.TransactionCanceledException"
+          ],
+          "Next": "Has reached timeout?"
+        }
+      ]
+    },
+    "Has reached timeout?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "Timeout",
+          "Condition": "{% $millis() > $toMillis($states.context.Execution.StartTime) + $states.context.Execution.Input.lockTimeout %}"
+        }
+      ],
+      "Default": "Wait to reattempt lock"
+    },
+    "Wait to reattempt lock": {
+      "Type": "Wait",
+      "Seconds": "{% $states.context.Execution.Input.lockCheckInterval %}",
+      "Next": "Attempt to aquire lock"
+    },
+    "Pass": {
+      "Type": "Pass",
+      "End": true
+    },
+    "Timeout": {
+      "Type": "Fail",
+      "Error": "TimedOutWaitingForLock",
+      "Cause": "{% 'Timed out waiting for lock: ' & $states.context.Execution.Input.lockKey %}"
+    }
+  },
+  "QueryLanguage": "JSONata"
+}

@@ -4,7 +4,7 @@ data "aws_secretsmanager_random_password" "apikey_credentials" {
 }
 
 resource "aws_secretsmanager_secret" "apikey_credentials" {
-  name                    = "/inbo/${var.application}/pipelines"
+  name                    = "/${var.organisation}/${var.application}/pipelines"
   recovery_window_in_days = 0
 
   kms_key_id = var.secrets_kms_key_arn

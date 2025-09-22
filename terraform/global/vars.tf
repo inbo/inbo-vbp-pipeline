@@ -2,6 +2,16 @@ variable "application" {
   type = string
 }
 
+variable "organisation" {
+  type = string
+  default = "inbo"
+}
+
+variable "resource_prefix" {
+  type = string
+  default = "inbo-vbp-"
+}
+
 variable "log_group_name" {
   type = string
 }
