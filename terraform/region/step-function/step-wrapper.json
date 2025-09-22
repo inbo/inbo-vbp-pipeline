@@ -282,10 +282,13 @@
           }
         }
       },
-      "End": true,
-      "Output": {
-        "state": "FAILED"
-      }
+      "Output": "{% $states.input %}",
+      "Next": "Fail"
+    },
+    "Fail": {
+      "Type": "Fail",
+      "Error": "{% $states.input.Error %}",
+      "Cause": "{% $states.input.Cause %}"
     },
     "Set State to Succeeded": {
       "Type": "Task",

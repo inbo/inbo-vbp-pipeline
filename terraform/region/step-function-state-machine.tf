@@ -49,7 +49,7 @@ locals {
     state_machine_sample_arn          = aws_sfn_state_machine.sample.arn
     state_machine_solr_arn            = aws_sfn_state_machine.solr.arn
     concurrency_lock_check_interval_s = 10
-    concurrency_lock_timeout_ms       = 360 * 1000
+    concurrency_lock_timeout_ms       = 4 * 3600 * 1000
   })
 }
 
