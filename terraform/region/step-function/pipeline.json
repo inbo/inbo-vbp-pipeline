@@ -148,8 +148,8 @@
                 ],
                 "Next": "Ignore Error",
                 "Output": {
-                  "Error": "{% $states.input.Error %}",
-                  "state": "{% $states.input.state %}"
+                  "Error": "{% $states.result.Error %}",
+                  "state": "{% $states.result.state %}"
                 }
               }
             ],
