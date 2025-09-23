@@ -79,7 +79,8 @@
                         "stepName": "Download",
                         "rootPipelineName": "{% $states.context.Execution.Name %}",
                         "dataResourceId": "{% $states.input %}",
-                        "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}"
+                        "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
+                        "concurrencyLimit": "{% $config.generic_step_concurrency_limit %}"
                       }
                     },
                     "Assign": {
@@ -98,7 +99,8 @@
                         "stepName": "Index",
                         "rootPipelineName": "{% $states.context.Execution.Name %}",
                         "dataResourceId": "{% $dataResourceId %}",
-                        "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}"
+                        "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
+                        "concurrencyLimit": "{% $config.generic_step_concurrency_limit %}"
                       }
                     },
                     "Next": "Sample Spatial Layers"
