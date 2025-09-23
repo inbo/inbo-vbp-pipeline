@@ -14,7 +14,9 @@
         "dataResourceId": "{% $states.input.dataResource.uid %}",
         "lastUpdated": "{% $states.input.dataResource.lastUpdated %}",
         "config": "{% $parse($states.result.Body) %}",
-        "rootPipelineName": "{% $exists($states.context.Execution.Input.rootPipelineName) ? $states.context.Execution.Input.rootPipelineName : $states.context.Execution.Name %}"
+        "rootPipelineName": "{% $exists($states.context.Execution.Input.rootPipelineName) ? $states.context.Execution.Input.rootPipelineName : $states.context.Execution.Name %}",
+        "solrCollection": "{% $states.context.Execution.Input.solrCollection %}",
+        "solrAt": "{% $exists($states.context.Execution.Input.dataResourceProcessingState.SolrAt.M) ? $merge($each($states.context.Execution.Input.dataResourceProcessingState.SolrAt.M, function($v,$k){{$k: $v.S}})) : {} %}"
       }
     },
     "Can Skip?": {
@@ -22,7 +24,7 @@
       "Choices": [
         {
           "Next": "Do Nothing",
-          "Condition": "{% $toMillis($states.context.Execution.Input.dataResourceProcessingState.SolrAt.S) > $toMillis($states.context.Execution.Input.dataResourceProcessingState.IndexedAt.S) and $toMillis($states.context.Execution.Input.dataResourceProcessingState.SolrAt.S) > $toMillis($states.context.Execution.Input.dataResourceProcessingState.SampledAt.S) and ($states.context.Execution.Input.solrCollection in $states.context.Execution.Input.dataResourceProcessingState.SolrCollections.SS) %}"
+          "Condition": "{% ($toMillis($lookup($solrAt, $solrCollection)) > $max([$toMillis($states.context.Execution.Input.dataResourceProcessingState.IndexedAt.S),$toMillis($states.context.Execution.Input.dataResourceProcessingState.SampledAt.S)])) or false %}"
         }
       ],
       "Default": "Get or create EMR Cluster"
@@ -156,15 +158,10 @@
             "S": "STATE"
           }
         },
-        "UpdateExpression": "SET SolrAt = :instant ADD SolrCollections :solrCollection",
+        "UpdateExpression": "SET SolrAt = :solrAt",
         "ExpressionAttributeValues": {
-          ":instant": {
-            "S": "{% $now() %}"
-          },
-          ":solrCollection": {
-            "SS": [
-              "{% $states.context.Execution.Input.solrCollection %}"
-            ]
+          ":solrAt": {
+            "M": "{% $merge($each($merge([$solrAt, {$solrCollection: $now()}]), function($v,$k){{$k: {\"S\":$v}}})) %}"
           }
         }
       },

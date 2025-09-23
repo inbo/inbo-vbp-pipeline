@@ -132,7 +132,7 @@
                         "rootPipelineName": "{% $states.context.Execution.Name %}",
                         "dataResourceId": "{% $dataResourceId %}",
                         "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
-                        "concurrencyLimit": 1,
+                        "concurrencyLimit": 2,
                         "solrCollection": "{% $solrCollection %}"
                       }
                     },
@@ -146,10 +146,17 @@
                 "ErrorEquals": [
                   "States.ALL"
                 ],
-                "Next": "Ignore Error"
+                "Next": "Ignore Error",
+                "Output": {
+                  "Error": "{% $states.input.Error %}",
+                  "state": "{% $states.input.state %}"
+                }
               }
             ],
-            "End": true
+            "End": true,
+            "Output": {
+              "state": "{% $states.result.state %}"
+            }
           },
           "Ignore Error": {
             "Type": "Pass",
