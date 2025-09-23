@@ -9,38 +9,13 @@
         "Key": "config/state-machine.json"
       },
       "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
-      "Next": "Get Spatial Fields to Index",
+      "Next": "Can Skip?",
       "Assign": {
         "dataResourceId": "{% $states.input.dataResource.uid %}",
         "lastUpdated": "{% $states.input.dataResource.lastUpdated %}",
         "config": "{% $parse($states.result.Body) %}",
-        "rootPipelineName": "{% $exists($states.context.Execution.Input.rootPipelineName) ? $states.context.Execution.Input.rootPipelineName : $states.context.Execution.Name %}"
-      }
-    },
-    "Get Spatial Fields to Index": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::http:invoke",
-      "Arguments": {
-        "ApiEndpoint": "{% $config.spatial_service_base_url & '/fieldsdb' %}",
-        "Method": "GET",
-        "InvocationConfig": {
-          "ConnectionArn": "{% $config.portal_authenticated_connection_arn %}"
-        }
-      },
-      "Retry": [
-        {
-          "ErrorEquals": [
-            "States.ALL"
-          ],
-          "BackoffRate": 2,
-          "IntervalSeconds": 1,
-          "MaxAttempts": 3,
-          "JitterStrategy": "FULL"
-        }
-      ],
-      "Next": "Can Skip?",
-      "Assign": {
-        "spatialFields": "{% $states.result.ResponseBody.id%}"
+        "rootPipelineName": "{% $exists($states.context.Execution.Input.rootPipelineName) ? $states.context.Execution.Input.rootPipelineName : $states.context.Execution.Name %}",
+        "spatialFields": "{% $states.input.spatialFields %}"
       }
     },
     "Can Skip?": {

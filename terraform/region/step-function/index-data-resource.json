@@ -9,42 +9,13 @@
         "Key": "config/state-machine.json"
       },
       "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
-      "Next": "Get Species Lists to Index",
+      "Next": "Can Skip?",
       "Assign": {
         "dataResourceId": "{% $states.input.dataResource.uid %}",
         "lastUpdated": "{% $states.input.dataResource.lastUpdated %}",
         "config": "{% $parse($states.result.Body) %}",
-        "rootPipelineName": "{% $exists($states.context.Execution.Input.rootPipelineName) ? $states.context.Execution.Input.rootPipelineName : $states.context.Execution.Name %}"
-      }
-    },
-    "Get Species Lists to Index": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::http:invoke",
-      "Arguments": {
-        "ApiEndpoint": "{% $config.species_list_base_url & '/ws/speciesList' %}",
-        "Method": "GET",
-        "InvocationConfig": {
-          "ConnectionArn": "{% $config.portal_authenticated_connection_arn %}"
-        },
-        "QueryParameters": {
-          "isAuthoritative": "eq:true",
-          "max": 100
-        }
-      },
-      "Retry": [
-        {
-          "ErrorEquals": [
-            "States.ALL"
-          ],
-          "BackoffRate": 2,
-          "IntervalSeconds": 1,
-          "MaxAttempts": 3,
-          "JitterStrategy": "FULL"
-        }
-      ],
-      "Next": "Can Skip?",
-      "Assign": {
-        "speciesLists": "{% $states.result.ResponseBody.lists{`dataResourceUid`: lastUpdated} %}"
+        "rootPipelineName": "{% $exists($states.context.Execution.Input.rootPipelineName) ? $states.context.Execution.Input.rootPipelineName : $states.context.Execution.Name %}",
+        "speciesLists": "{% $states.input.speciesLists %}"
       }
     },
     "Can Skip?": {

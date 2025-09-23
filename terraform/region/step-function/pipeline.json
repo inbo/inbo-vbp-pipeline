@@ -9,49 +9,123 @@
         "Key": "config/state-machine.json"
       },
       "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
-      "Next": "Check if list of dataresources are specified",
+      "Next": "Parallel",
       "Assign": {
         "config": "{% $parse($states.result.Body) %}",
         "solrCollection": "{% $states.input.solrCollection %}"
       }
     },
-    "Check if list of dataresources are specified": {
-      "Type": "Choice",
-      "Choices": [
+    "Parallel": {
+      "Type": "Parallel",
+      "Next": "Process Data Resources",
+      "Branches": [
         {
-          "Next": "Process Data Resources",
-          "Condition": "{% $exists($states.context.Execution.Input.dataResources)  %}",
-          "Assign": {
-            "dataResources": "{% $states.context.Execution.Input.dataResources %}"
+          "StartAt": "Check if list of dataresources are specified",
+          "States": {
+            "Check if list of dataresources are specified": {
+              "Type": "Choice",
+              "Choices": [
+                {
+                  "Next": "Use Provided List of Data Resources",
+                  "Condition": "{% $exists($states.context.Execution.Input.dataResources)  %}"
+                }
+              ],
+              "Default": "Get list of all dataresources"
+            },
+            "Use Provided List of Data Resources": {
+              "Type": "Pass",
+              "End": true
+            },
+            "Get list of all dataresources": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::http:invoke",
+              "Arguments": {
+                "ApiEndpoint": "{% $config.collectory_base_url & '/ws/dataResource/' %}",
+                "Method": "GET",
+                "Authentication": {
+                  "ConnectionArn": "{% $config.portal_authenticated_connection_arn %}"
+                }
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "BackoffRate": 2,
+                  "IntervalSeconds": 1,
+                  "MaxAttempts": 3,
+                  "JitterStrategy": "FULL"
+                }
+              ],
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "Get Species Lists to Index",
+          "States": {
+            "Get Species Lists to Index": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::http:invoke",
+              "Arguments": {
+                "ApiEndpoint": "{% $config.species_list_base_url & '/ws/speciesList' %}",
+                "Method": "GET",
+                "InvocationConfig": {
+                  "ConnectionArn": "{% $config.portal_authenticated_connection_arn %}"
+                },
+                "QueryParameters": {
+                  "isAuthoritative": "eq:true",
+                  "max": 100
+                }
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "BackoffRate": 2,
+                  "IntervalSeconds": 1,
+                  "MaxAttempts": 3,
+                  "JitterStrategy": "FULL"
+                }
+              ],
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "Get Spatial Fields to Index",
+          "States": {
+            "Get Spatial Fields to Index": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::http:invoke",
+              "Arguments": {
+                "ApiEndpoint": "{% $config.spatial_service_base_url & '/fieldsdb' %}",
+                "Method": "GET",
+                "InvocationConfig": {
+                  "ConnectionArn": "{% $config.portal_authenticated_connection_arn %}"
+                }
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": [
+                    "States.ALL"
+                  ],
+                  "BackoffRate": 2,
+                  "IntervalSeconds": 1,
+                  "MaxAttempts": 3,
+                  "JitterStrategy": "FULL"
+                }
+              ],
+              "End": true
+            }
           }
         }
       ],
-      "Default": "Get list of all dataresources"
-    },
-    "Get list of all dataresources": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::http:invoke",
-      "Arguments": {
-        "ApiEndpoint": "{% $config.collectory_base_url & '/ws/dataResource/' %}",
-        "Method": "GET",
-        "Authentication": {
-          "ConnectionArn": "{% $config.portal_authenticated_connection_arn %}"
-        }
-      },
-      "Retry": [
-        {
-          "ErrorEquals": [
-            "States.ALL"
-          ],
-          "BackoffRate": 2,
-          "IntervalSeconds": 1,
-          "MaxAttempts": 3,
-          "JitterStrategy": "FULL"
-        }
-      ],
-      "Next": "Process Data Resources",
       "Assign": {
-        "dataResources": "{% $sort($states.result.ResponseBody.uid) %}"
+        "dataResources": "{% $sort($states.result[0].ResponseBody.uid) %}",
+        "speciesLists": "{% $states.result[1].ResponseBody.lists{`dataResourceUid`: lastUpdated} %}",
+        "spatialFields": "{% $states.result[2].ResponseBody.id%}"
       }
     },
     "Process Data Resources": {
@@ -80,7 +154,6 @@
                         "rootPipelineName": "{% $states.context.Execution.Name %}",
                         "dataResourceId": "{% $states.input %}",
                         "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
-                        "concurrencyLimit": "{% $config.generic_step_concurrency_limit %}"
                       }
                     },
                     "Assign": {
@@ -100,7 +173,7 @@
                         "rootPipelineName": "{% $states.context.Execution.Name %}",
                         "dataResourceId": "{% $dataResourceId %}",
                         "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
-                        "concurrencyLimit": "{% $config.generic_step_concurrency_limit %}"
+                        "speciesLists": "{% $speciesLists %}"
                       }
                     },
                     "Next": "Sample Spatial Layers"
@@ -117,7 +190,8 @@
                         "rootPipelineName": "{% $states.context.Execution.Name %}",
                         "dataResourceId": "{% $dataResourceId %}",
                         "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
-                        "concurrencyLimit": 2
+                        "concurrencyLimit": 2,
+                        "spatialFields": "{% $spatialFields %}"
                       }
                     },
                     "Next": "Upload to Solr"
