@@ -51,7 +51,7 @@
       ],
       "Next": "Process Data Resources",
       "Assign": {
-        "dataResources": "{% $states.result.ResponseBody.uid %}"
+        "dataResources": "{% $sort($states.result.ResponseBody.uid) %}"
       }
     },
     "Process Data Resources": {
