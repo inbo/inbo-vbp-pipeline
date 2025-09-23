@@ -12,7 +12,7 @@
       "Next": "Check if list of dataresources are specified",
       "Assign": {
         "config": "{% $parse($states.result.Body) %}",
-        "solrCollection": "test"
+        "solrCollection": "{% $states.input.solrCollection %}"
       }
     },
     "Check if list of dataresources are specified": {
