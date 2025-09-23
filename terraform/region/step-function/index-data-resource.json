@@ -36,11 +36,11 @@
       "Type": "Choice",
       "Choices": [
         {
-          "Next": "Process Small Data Resource",
+          "Next": "Get or create EMR Cluster",
           "Condition": "{% $number($states.context.Execution.Input.dataResourceProcessingState.FileSize.N) > $config.dataresource_size_threshold %}"
         }
       ],
-      "Default": "Get or create EMR Cluster"
+      "Default": "Process Small Data Resource"
     },
     "Process Small Data Resource": {
       "Type": "Task",
