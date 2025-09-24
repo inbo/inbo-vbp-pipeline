@@ -208,7 +208,7 @@
                         "rootPipelineName": "{% $states.context.Execution.Name %}",
                         "dataResourceId": "{% $dataResourceId %}",
                         "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
-                        "concurrencyLimit": 2,
+                        "concurrencyLimit": 1,
                         "solrCollection": "{% $solrCollection %}"
                       }
                     },
