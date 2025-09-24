@@ -1,9 +1,17 @@
 export type Pipeline = {
     id: string;
-    status: string;
+    status: PipelineStatus;
     startedAt?: Date;
     stoppedAt?: Date;
 };
+
+export enum PipelineStatus {
+    Aborted = "ABORTED",
+    Failed = "FAILED",
+    Running = "RUNNING",
+    Succeeded = "SUCCEEDED",
+    TimedOut = "TIMED_OUT",
+}
 
 export type PipelineDetails = Pipeline & {
     input?: string;
@@ -21,16 +29,34 @@ export type DataResourceHistory = {
     lastUpdated: Date;
 };
 
+export const PipelineSteps = [
+    "DOWNLOAD",
+    "INDEX",
+    "SAMPLE",
+    "SOLR",
+] as const;
+export type PipelineStep = typeof PipelineSteps[number];
+export type PipelineStepState = "SUCCEEDED" | "FAILED" | "QUEUED" | "RUNNING";
+
+export type PipelineStepProgress = {
+    queued: number;
+    running: number;
+    completed: number;
+    failed: number;
+};
+
+export type PipelineProgress = {
+    total: number;
+    completed: number;
+    failed: number;
+    dataResourceProgress: DataResourceProgress[];
+    stepProgress: { [step in PipelineStep]: PipelineStepProgress };
+};
+
 export type DataResourceProgress = {
     dataResourceId: string;
-    state:
-        | "STARTED"
-        | "DOWNLOADING"
-        | "INDEXING"
-        | "SAMPLING"
-        | "UPLOADING"
-        | "COMPLETED"
-        | "FAILED";
+    state: PipelineStepState;
+    step: PipelineStep;
     startedAt?: Date;
     stoppedAt?: Date;
 };
@@ -49,7 +75,7 @@ export type PipelineService = {
         dataResourceId: string,
     ): Promise<DataResourceHistory[]>;
 
-    getPipelineRunDataResourceProgress(
+    getPipelineProgress(
         pipelineId: string,
-    ): Promise<DataResourceProgress[]>;
+    ): Promise<PipelineProgress>;
 };

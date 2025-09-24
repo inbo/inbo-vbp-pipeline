@@ -20,11 +20,11 @@ type Documents = {
     "\n  query GetIndices {\n    indices {\n      id\n      active\n      counts {\n        total\n        dataResourceCounts {\n          dataResourceId\n          count\n        }\n      }\n    }\n  }\n": typeof types.GetIndicesDocument,
     "\n  mutation SetActiveIndex($input: SetActiveIndexInput!) {\n    setActiveIndex(input: $input) {\n      index {\n        id\n        active\n      }\n    }\n  }\n": typeof types.SetActiveIndexDocument,
     "\n  mutation DeleteIndex($input: DeleteIndexInput!) {\n    deleteIndex(input: $input) {\n      indexId\n    }\n  }\n": typeof types.DeleteIndexDocument,
-    "\n  query GetAllPipelines {\n    pipelines {\n      id\n      status\n      startedAt\n      stoppedAt\n    }\n  }\n": typeof types.GetAllPipelinesDocument,
-    "\n  query GetPipeline($id: ID!) {\n    pipeline(id: $id) {\n      id\n      status\n      startedAt\n      stoppedAt\n      input\n      output\n      error\n      cause\n    }\n  }\n": typeof types.GetPipelineDocument,
+    "\n  query GetAllPipelines($status: PipelineStatus) {\n    pipelines(status: $status) {\n      id\n      status\n      startedAt\n      stoppedAt\n    }\n  }\n": typeof types.GetAllPipelinesDocument,
+    "\n  query GetPipeline($id: ID!) {\n    pipeline(id: $id) {\n      id\n      status\n      startedAt\n      stoppedAt\n      input\n      output\n      error\n      cause\n\n      progress {\n        total\n        completed\n        failed\n\n        stepProgress {\n          step\n          queued\n          running\n          completed\n          failed\n        }\n      }\n    }\n  }\n": typeof types.GetPipelineDocument,
     "\n  mutation StartPipeline($input: StartPipelineInput!) {\n    startPipeline(input: $input) {\n      pipeline {\n      id\n      status\n      startedAt\n      stoppedAt\n      input\n      output\n      error\n      cause\n      }\n    }\n  }\n": typeof types.StartPipelineDocument,
     "\n  mutation CancelPipeline($input: CancelPipelineInput!) {\n    cancelPipeline(input: $input) {\n      pipeline {\n      id\n      status\n      startedAt\n      stoppedAt\n      input\n      output\n      error\n      cause\n      }\n    }\n  }\n": typeof types.CancelPipelineDocument,
-    "\n  query GetPipelineDataResourceProgress($id: ID!) {\n    pipeline(id: $id) {\n      id\n      dataResourceProgress {\n        dataResource {\n          id\n          name\n        }\n        state\n      }\n    }\n  }\n": typeof types.GetPipelineDataResourceProgressDocument,
+    "\n  query GetPipelineProgress($id: ID!) {\n    pipeline(id: $id) {\n      id\n      progress {\n        total\n        completed\n        failed\n\n        stepProgress {\n          step\n          queued\n          running\n          completed\n          failed\n        }\n        \n        dataResourceProgress {\n          dataResource {\n            id\n            name\n          }\n          state\n          startedAt\n          stoppedAt\n        }\n      }\n    }\n  }\n": typeof types.GetPipelineProgressDocument,
 };
 const documents: Documents = {
     "\n  query GetAllDataResources {\n    dataResources {\n      id\n      name\n    }\n  }\n": types.GetAllDataResourcesDocument,
@@ -33,11 +33,11 @@ const documents: Documents = {
     "\n  query GetIndices {\n    indices {\n      id\n      active\n      counts {\n        total\n        dataResourceCounts {\n          dataResourceId\n          count\n        }\n      }\n    }\n  }\n": types.GetIndicesDocument,
     "\n  mutation SetActiveIndex($input: SetActiveIndexInput!) {\n    setActiveIndex(input: $input) {\n      index {\n        id\n        active\n      }\n    }\n  }\n": types.SetActiveIndexDocument,
     "\n  mutation DeleteIndex($input: DeleteIndexInput!) {\n    deleteIndex(input: $input) {\n      indexId\n    }\n  }\n": types.DeleteIndexDocument,
-    "\n  query GetAllPipelines {\n    pipelines {\n      id\n      status\n      startedAt\n      stoppedAt\n    }\n  }\n": types.GetAllPipelinesDocument,
-    "\n  query GetPipeline($id: ID!) {\n    pipeline(id: $id) {\n      id\n      status\n      startedAt\n      stoppedAt\n      input\n      output\n      error\n      cause\n    }\n  }\n": types.GetPipelineDocument,
+    "\n  query GetAllPipelines($status: PipelineStatus) {\n    pipelines(status: $status) {\n      id\n      status\n      startedAt\n      stoppedAt\n    }\n  }\n": types.GetAllPipelinesDocument,
+    "\n  query GetPipeline($id: ID!) {\n    pipeline(id: $id) {\n      id\n      status\n      startedAt\n      stoppedAt\n      input\n      output\n      error\n      cause\n\n      progress {\n        total\n        completed\n        failed\n\n        stepProgress {\n          step\n          queued\n          running\n          completed\n          failed\n        }\n      }\n    }\n  }\n": types.GetPipelineDocument,
     "\n  mutation StartPipeline($input: StartPipelineInput!) {\n    startPipeline(input: $input) {\n      pipeline {\n      id\n      status\n      startedAt\n      stoppedAt\n      input\n      output\n      error\n      cause\n      }\n    }\n  }\n": types.StartPipelineDocument,
     "\n  mutation CancelPipeline($input: CancelPipelineInput!) {\n    cancelPipeline(input: $input) {\n      pipeline {\n      id\n      status\n      startedAt\n      stoppedAt\n      input\n      output\n      error\n      cause\n      }\n    }\n  }\n": types.CancelPipelineDocument,
-    "\n  query GetPipelineDataResourceProgress($id: ID!) {\n    pipeline(id: $id) {\n      id\n      dataResourceProgress {\n        dataResource {\n          id\n          name\n        }\n        state\n      }\n    }\n  }\n": types.GetPipelineDataResourceProgressDocument,
+    "\n  query GetPipelineProgress($id: ID!) {\n    pipeline(id: $id) {\n      id\n      progress {\n        total\n        completed\n        failed\n\n        stepProgress {\n          step\n          queued\n          running\n          completed\n          failed\n        }\n        \n        dataResourceProgress {\n          dataResource {\n            id\n            name\n          }\n          state\n          startedAt\n          stoppedAt\n        }\n      }\n    }\n  }\n": types.GetPipelineProgressDocument,
 };
 
 /**
@@ -81,11 +81,11 @@ export function gql(source: "\n  mutation DeleteIndex($input: DeleteIndexInput!)
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  query GetAllPipelines {\n    pipelines {\n      id\n      status\n      startedAt\n      stoppedAt\n    }\n  }\n"): (typeof documents)["\n  query GetAllPipelines {\n    pipelines {\n      id\n      status\n      startedAt\n      stoppedAt\n    }\n  }\n"];
+export function gql(source: "\n  query GetAllPipelines($status: PipelineStatus) {\n    pipelines(status: $status) {\n      id\n      status\n      startedAt\n      stoppedAt\n    }\n  }\n"): (typeof documents)["\n  query GetAllPipelines($status: PipelineStatus) {\n    pipelines(status: $status) {\n      id\n      status\n      startedAt\n      stoppedAt\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  query GetPipeline($id: ID!) {\n    pipeline(id: $id) {\n      id\n      status\n      startedAt\n      stoppedAt\n      input\n      output\n      error\n      cause\n    }\n  }\n"): (typeof documents)["\n  query GetPipeline($id: ID!) {\n    pipeline(id: $id) {\n      id\n      status\n      startedAt\n      stoppedAt\n      input\n      output\n      error\n      cause\n    }\n  }\n"];
+export function gql(source: "\n  query GetPipeline($id: ID!) {\n    pipeline(id: $id) {\n      id\n      status\n      startedAt\n      stoppedAt\n      input\n      output\n      error\n      cause\n\n      progress {\n        total\n        completed\n        failed\n\n        stepProgress {\n          step\n          queued\n          running\n          completed\n          failed\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetPipeline($id: ID!) {\n    pipeline(id: $id) {\n      id\n      status\n      startedAt\n      stoppedAt\n      input\n      output\n      error\n      cause\n\n      progress {\n        total\n        completed\n        failed\n\n        stepProgress {\n          step\n          queued\n          running\n          completed\n          failed\n        }\n      }\n    }\n  }\n"];
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -97,7 +97,7 @@ export function gql(source: "\n  mutation CancelPipeline($input: CancelPipelineI
 /**
  * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\n  query GetPipelineDataResourceProgress($id: ID!) {\n    pipeline(id: $id) {\n      id\n      dataResourceProgress {\n        dataResource {\n          id\n          name\n        }\n        state\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetPipelineDataResourceProgress($id: ID!) {\n    pipeline(id: $id) {\n      id\n      dataResourceProgress {\n        dataResource {\n          id\n          name\n        }\n        state\n      }\n    }\n  }\n"];
+export function gql(source: "\n  query GetPipelineProgress($id: ID!) {\n    pipeline(id: $id) {\n      id\n      progress {\n        total\n        completed\n        failed\n\n        stepProgress {\n          step\n          queued\n          running\n          completed\n          failed\n        }\n        \n        dataResourceProgress {\n          dataResource {\n            id\n            name\n          }\n          state\n          startedAt\n          stoppedAt\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetPipelineProgress($id: ID!) {\n    pipeline(id: $id) {\n      id\n      progress {\n        total\n        completed\n        failed\n\n        stepProgress {\n          step\n          queued\n          running\n          completed\n          failed\n        }\n        \n        dataResourceProgress {\n          dataResource {\n            id\n            name\n          }\n          state\n          startedAt\n          stoppedAt\n        }\n      }\n    }\n  }\n"];
 
 export function gql(source: string) {
   return (documents as any)[source] ?? {};

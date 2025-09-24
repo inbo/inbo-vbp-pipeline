@@ -3,7 +3,12 @@ import {
     DataResourceProgress,
     Pipeline,
     PipelineDetails,
+    PipelineProgress,
     PipelineService,
+    PipelineStatus,
+    PipelineStep,
+    PipelineSteps,
+    PipelineStepState,
 } from "../core/pipeline-service";
 
 import { SFN } from "@aws-sdk/client-sfn";
@@ -47,7 +52,7 @@ export class AwsPipelineServiceImpl implements PipelineService {
         return output.executionArn
             ? {
                 id: output.name!,
-                status: output.status!,
+                status: output.status! as PipelineStatus,
                 startedAt: output.startDate,
                 stoppedAt: output.stopDate,
                 input: output.input,
@@ -58,17 +63,18 @@ export class AwsPipelineServiceImpl implements PipelineService {
             : null;
     }
 
-    async getPipelines(): Promise<Pipeline[]> {
+    async getPipelines(status?: PipelineStatus): Promise<Pipeline[]> {
         console.debug("Getting all pipelines");
 
         const output = await this.sfn.listExecutions({
             stateMachineArn: this.awsStateMachineArn,
             maxResults: 10,
+            statusFilter: status,
         });
         return output.executions
             ?.map((execution) => ({
                 id: execution.name!,
-                status: execution.status!,
+                status: execution.status! as PipelineStatus,
                 startedAt: execution.startDate,
                 stoppedAt: execution.stopDate,
             })) || [];
@@ -95,7 +101,7 @@ export class AwsPipelineServiceImpl implements PipelineService {
                 `${this.awsStateExecutionArnPrefix}:`,
                 "",
             ),
-            status: "RUNNING",
+            status: PipelineStatus.Running,
             startedAt: output.startDate,
         };
     }
@@ -132,34 +138,87 @@ export class AwsPipelineServiceImpl implements PipelineService {
         })) || [];
     }
 
-    async getPipelineRunDataResourceProgress(
+    async getPipelineProgress(
         pipelineId: string,
-    ): Promise<DataResourceProgress[]> {
+    ): Promise<PipelineProgress> {
         console.debug(
             "Getting data resource progress for pipeline id:",
             pipelineId,
         );
 
-        const output = await this.dynamoDB.query({
+        const dataResourceProgressItems = await this.dynamoDB.query({
             TableName: this.awsDynamoDBTableName,
             KeyConditionExpression: "PK = :pk and begins_with(SK, :sk)",
             ExpressionAttributeValues: {
                 ":pk": { S: `RUN#${pipelineId}` },
-                ":sk": { S: "DATA_RESOURCE#STATE#" },
+                ":sk": { S: "DATA_RESOURCE#" },
             },
         });
 
-        return (
-            output.Items?.map((item) => ({
+        const result = {
+            total: 0,
+            completed: 0,
+            failed: 0,
+
+            stepProgress: {
+                DOWNLOAD: { queued: 0, running: 0, completed: 0, failed: 0 },
+                INDEX: { queued: 0, running: 0, completed: 0, failed: 0 },
+                SAMPLE: { queued: 0, running: 0, completed: 0, failed: 0 },
+                SOLR: { queued: 0, running: 0, completed: 0, failed: 0 },
+            },
+        };
+
+        const outputProgress = dataResourceProgressItems.Items?.map((item) => {
+            const state = item.State.S!.toUpperCase() as PipelineStepState;
+            const step = item.Step.S!.toUpperCase() as PipelineStep;
+
+            if (!(step in result.stepProgress)) {
+                throw new Error(`Unknown step: ${step}`);
+            }
+
+            result.total++;
+            // If we are currently at a certain step, all previous steps are also completed
+            PipelineSteps.slice(0, PipelineSteps.indexOf(step)).forEach(
+                (s) => result.stepProgress[s].completed++,
+            );
+
+            switch (state) {
+                case "QUEUED":
+                    result.stepProgress[step].queued++;
+                    break;
+                case "COMPLETED":
+                    result.stepProgress[step].running++;
+                    break;
+                case "SUCCEEDED":
+                    result.stepProgress[step].completed++;
+                    if (step === "SOLR") {
+                        result.completed++;
+                    }
+                    break;
+                case "FAILED":
+                    result.stepProgress[step].failed++;
+                    result.failed++;
+                    break;
+                default:
+                    throw new Error(`Unknown state: ${state}`);
+            }
+
+            return ({
                 dataResourceId: item.DataResourceId.S!,
-                state: item.State.S as DataResourceProgress["state"],
+                state: state,
+                step: step,
                 startedAt: item.startedAt?.S
                     ? new Date(item.startedAt.S)
                     : undefined,
                 stoppedAt: item.stoppedAt?.S
                     ? new Date(item.stoppedAt.S)
                     : undefined,
-            })) || []
-        );
+            });
+        }) || [];
+
+        return {
+            ...result,
+            dataResourceProgress: outputProgress,
+        };
     }
 }

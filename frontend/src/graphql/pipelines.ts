@@ -1,8 +1,8 @@
 import { gql } from "../__generated__/biocache-index-management";
 
 export const GET_ALL_PIPELINES = gql(`
-  query GetAllPipelines {
-    pipelines {
+  query GetAllPipelines($status: PipelineStatus) {
+    pipelines(status: $status) {
       id
       status
       startedAt
@@ -22,6 +22,20 @@ export const GET_PIPELINE = gql(`
       output
       error
       cause
+
+      progress {
+        total
+        completed
+        failed
+
+        stepProgress {
+          step
+          queued
+          running
+          completed
+          failed
+        }
+      }
     }
   }
 `);
@@ -60,16 +74,32 @@ export const CANCEL_PIPELINE = gql(`
   }
 `);
 
-export const GET_PIPELINE_DATA_RESOURCE_PROGRESS = gql(`
-  query GetPipelineDataResourceProgress($id: ID!) {
+export const GET_PIPELINE_PROGRESS = gql(`
+  query GetPipelineProgress($id: ID!) {
     pipeline(id: $id) {
       id
-      dataResourceProgress {
-        dataResource {
-          id
-          name
+      progress {
+        total
+        completed
+        failed
+
+        stepProgress {
+          step
+          queued
+          running
+          completed
+          failed
         }
-        state
+        
+        dataResourceProgress {
+          dataResource {
+            id
+            name
+          }
+          state
+          startedAt
+          stoppedAt
+        }
       }
     }
   }

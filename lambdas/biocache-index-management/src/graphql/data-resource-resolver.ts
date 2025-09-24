@@ -1,4 +1,8 @@
-import { QueryResolvers } from "../__generated__/types";
+import {
+    DataResourceProgressResolvers,
+    DataResourceProgressState,
+    QueryResolvers,
+} from "../__generated__/types";
 import { CollectoryClient } from "../ala/collectory";
 import config from "../config";
 
@@ -22,6 +26,13 @@ export const Query: QueryResolvers = {
     },
 };
 
+export const DataResourceProgress: DataResourceProgressResolvers = {
+    dataResource: async (parent) => {
+        return dataResourceService.getDataResource(parent!.dataResource!.id);
+    },
+};
+
 export default {
     Query: Query,
+    DataResourceProgress: DataResourceProgress,
 };

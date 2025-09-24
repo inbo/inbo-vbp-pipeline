@@ -1,4 +1,7 @@
 import "./styles/index.css";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.bundle.min";
+
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
@@ -16,7 +19,7 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import { User } from "oidc-client-ts";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorLink } from "@apollo/client/link/error";
-import Pipeline from "./Pipeline.tsx";
+import Pipeline from "./components/Pipeline.tsx";
 import DataResource from "./components/DataResourceList.tsx";
 import { StartPipeline } from "./StartPipeline.tsx";
 

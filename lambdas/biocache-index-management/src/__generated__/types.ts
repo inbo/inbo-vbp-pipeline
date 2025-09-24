@@ -74,17 +74,22 @@ export type DataResourceProgress = {
   dataResource?: Maybe<DataResource>;
   startedAt?: Maybe<Scalars['String']['output']>;
   state: DataResourceProgressState;
+  step: DataResourceProgressStep;
   stoppedAt?: Maybe<Scalars['String']['output']>;
 };
 
 export enum DataResourceProgressState {
   Completed = 'COMPLETED',
-  Downloading = 'DOWNLOADING',
   Failed = 'FAILED',
-  Indexing = 'INDEXING',
-  Sampling = 'SAMPLING',
-  Started = 'STARTED',
-  Uploading = 'UPLOADING'
+  Queued = 'QUEUED',
+  Running = 'RUNNING'
+}
+
+export enum DataResourceProgressStep {
+  Download = 'DOWNLOAD',
+  Index = 'INDEX',
+  Sample = 'SAMPLE',
+  Solr = 'SOLR'
 }
 
 export type DeleteIndexInput = {
@@ -161,14 +166,40 @@ export type MutationStartPipelineArgs = {
 export type Pipeline = {
   __typename?: 'Pipeline';
   cause?: Maybe<Scalars['String']['output']>;
-  dataResourceProgress?: Maybe<Array<DataResourceProgress>>;
   error?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   input?: Maybe<Scalars['String']['output']>;
   output?: Maybe<Scalars['String']['output']>;
+  progress?: Maybe<PipelineProgress>;
   startedAt?: Maybe<Scalars['Date']['output']>;
-  status: Scalars['String']['output'];
+  status: PipelineStatus;
   stoppedAt?: Maybe<Scalars['Date']['output']>;
+};
+
+export type PipelineProgress = {
+  __typename?: 'PipelineProgress';
+  completed: Scalars['Int']['output'];
+  dataResourceProgress: Array<DataResourceProgress>;
+  failed: Scalars['Int']['output'];
+  stepProgress: Array<PipelineStepProgress>;
+  total: Scalars['Int']['output'];
+};
+
+export enum PipelineStatus {
+  Aborted = 'ABORTED',
+  Failed = 'FAILED',
+  Running = 'RUNNING',
+  Succeeded = 'SUCCEEDED',
+  TimedOut = 'TIMED_OUT'
+}
+
+export type PipelineStepProgress = {
+  __typename?: 'PipelineStepProgress';
+  completed: Scalars['Int']['output'];
+  failed: Scalars['Int']['output'];
+  queued: Scalars['Int']['output'];
+  running: Scalars['Int']['output'];
+  step: DataResourceProgressStep;
 };
 
 export type Query = {
@@ -201,6 +232,11 @@ export type QueryIndexArgs = {
 
 export type QueryPipelineArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryPipelinesArgs = {
+  status?: InputMaybe<PipelineStatus>;
 };
 
 export type SetActiveIndexInput = {
@@ -305,6 +341,7 @@ export type ResolversTypes = {
   DataResourceHistoryOutput: ResolverTypeWrapper<DataResourceHistoryOutput>;
   DataResourceProgress: ResolverTypeWrapper<DataResourceProgress>;
   DataResourceProgressState: DataResourceProgressState;
+  DataResourceProgressStep: DataResourceProgressStep;
   Date: ResolverTypeWrapper<Scalars['Date']['output']>;
   DeleteIndexInput: DeleteIndexInput;
   DeleteIndexOutput: ResolverTypeWrapper<DeleteIndexOutput>;
@@ -316,6 +353,9 @@ export type ResolversTypes = {
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   Mutation: ResolverTypeWrapper<{}>;
   Pipeline: ResolverTypeWrapper<Pipeline>;
+  PipelineProgress: ResolverTypeWrapper<PipelineProgress>;
+  PipelineStatus: PipelineStatus;
+  PipelineStepProgress: ResolverTypeWrapper<PipelineStepProgress>;
   Query: ResolverTypeWrapper<{}>;
   SetActiveIndexInput: SetActiveIndexInput;
   SetActiveIndexOutput: ResolverTypeWrapper<SetActiveIndexOutput>;
@@ -348,6 +388,8 @@ export type ResolversParentTypes = {
   Int: Scalars['Int']['output'];
   Mutation: {};
   Pipeline: Pipeline;
+  PipelineProgress: PipelineProgress;
+  PipelineStepProgress: PipelineStepProgress;
   Query: {};
   SetActiveIndexInput: SetActiveIndexInput;
   SetActiveIndexOutput: SetActiveIndexOutput;
@@ -399,6 +441,7 @@ export type DataResourceProgressResolvers<ContextType = any, ParentType extends 
   dataResource?: Resolver<Maybe<ResolversTypes['DataResource']>, ParentType, ContextType>;
   startedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   state?: Resolver<ResolversTypes['DataResourceProgressState'], ParentType, ContextType>;
+  step?: Resolver<ResolversTypes['DataResourceProgressStep'], ParentType, ContextType>;
   stoppedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
@@ -441,14 +484,32 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 
 export type PipelineResolvers<ContextType = any, ParentType extends ResolversParentTypes['Pipeline'] = ResolversParentTypes['Pipeline']> = {
   cause?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  dataResourceProgress?: Resolver<Maybe<Array<ResolversTypes['DataResourceProgress']>>, ParentType, ContextType>;
   error?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   input?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   output?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  progress?: Resolver<Maybe<ResolversTypes['PipelineProgress']>, ParentType, ContextType>;
   startedAt?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
-  status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['PipelineStatus'], ParentType, ContextType>;
   stoppedAt?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PipelineProgressResolvers<ContextType = any, ParentType extends ResolversParentTypes['PipelineProgress'] = ResolversParentTypes['PipelineProgress']> = {
+  completed?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  dataResourceProgress?: Resolver<Array<ResolversTypes['DataResourceProgress']>, ParentType, ContextType>;
+  failed?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  stepProgress?: Resolver<Array<ResolversTypes['PipelineStepProgress']>, ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type PipelineStepProgressResolvers<ContextType = any, ParentType extends ResolversParentTypes['PipelineStepProgress'] = ResolversParentTypes['PipelineStepProgress']> = {
+  completed?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  failed?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  queued?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  running?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  step?: Resolver<ResolversTypes['DataResourceProgressStep'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -460,7 +521,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   index?: Resolver<Maybe<ResolversTypes['Index']>, ParentType, ContextType, RequireFields<QueryIndexArgs, 'id'>>;
   indices?: Resolver<Array<ResolversTypes['Index']>, ParentType, ContextType>;
   pipeline?: Resolver<Maybe<ResolversTypes['Pipeline']>, ParentType, ContextType, RequireFields<QueryPipelineArgs, 'id'>>;
-  pipelines?: Resolver<Array<ResolversTypes['Pipeline']>, ParentType, ContextType>;
+  pipelines?: Resolver<Array<ResolversTypes['Pipeline']>, ParentType, ContextType, Partial<QueryPipelinesArgs>>;
 };
 
 export type SetActiveIndexOutputResolvers<ContextType = any, ParentType extends ResolversParentTypes['SetActiveIndexOutput'] = ResolversParentTypes['SetActiveIndexOutput']> = {
@@ -488,6 +549,8 @@ export type Resolvers<ContextType = any> = {
   IndexCounts?: IndexCountsResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Pipeline?: PipelineResolvers<ContextType>;
+  PipelineProgress?: PipelineProgressResolvers<ContextType>;
+  PipelineStepProgress?: PipelineStepProgressResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   SetActiveIndexOutput?: SetActiveIndexOutputResolvers<ContextType>;
   StartPipelineOutput?: StartPipelineOutputResolvers<ContextType>;

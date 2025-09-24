@@ -2,13 +2,15 @@ import "./styles/App.css";
 import { withAuthenticationRequired } from "react-oidc-context";
 import { PipelineList } from "./components/PipelineList";
 import { IndexList } from "./components/IndexList";
+import { RunningPipelines } from "./components/RunningPipelines";
 
 function App() {
   return (
     <>
-      <h1>VBP Data Pipeline</h1>
+      <h1>VBP Data Pipelines</h1>
       <div id="main">
-        <a href="/start-pipeline">
+        <RunningPipelines />
+        <a className="btn btn-primary" href="/start-pipeline">
           Start New Pipeline
         </a>
         <div id="overview">

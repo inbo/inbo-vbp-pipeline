@@ -1,22 +1,30 @@
 import {
     DataResourceProgressResolvers,
     DataResourceProgressState,
+    DataResourceProgressStep,
     MutationResolvers,
+    Pipeline as GqlPipeline,
     PipelineResolvers,
+    PipelineStatus as GqlPipelineStatus,
     QueryResolvers,
 } from "../__generated__/types";
 import { AwsPipelineServiceImpl } from "../aws/aws-pipeline-service";
 import config from "../config";
+import { Pipeline, PipelineStatus } from "../core/pipeline-service";
 import { dataResourceService } from "./data-resource-resolver";
 
 const pipelineService = new AwsPipelineServiceImpl(config);
 
 export const Query: QueryResolvers = {
     pipeline: async (_, { id }) => {
-        return pipelineService.getPipeline(id);
+        const result = await pipelineService.getPipeline(id);
+        return result && maptoGraphql(result);
     },
-    pipelines: async () => {
-        return pipelineService.getPipelines();
+    pipelines: async (_, { status }) => {
+        return (await pipelineService.getPipelines(
+            status as PipelineStatus | undefined,
+        ))
+            .map(maptoGraphql);
     },
     dataResourceHistory: async (_, { input: { dataResourceId } }) => {
         const events = await pipelineService.getDataResourceHistory(
@@ -47,28 +55,47 @@ export const Mutation: MutationResolvers = {
             solrCollection ? solrCollection : undefined,
         );
         return {
-            pipeline,
+            pipeline: maptoGraphql(pipeline),
         };
     },
     cancelPipeline: async (_, { input: { id } }) => {
         await pipelineService.cancelPipeline(id);
         const pipeline = await pipelineService.getPipeline(id);
         return {
-            pipeline: pipeline!,
+            pipeline: maptoGraphql(pipeline!),
         };
     },
 };
 
 export const PipelineQuery: PipelineResolvers = {
-    dataResourceProgress: async (parent) => {
-        return (await pipelineService.getPipelineRunDataResourceProgress(
+    progress: async (parent) => {
+        const progress = await pipelineService.getPipelineProgress(
             parent.id,
-        )).map((progress) => ({
-            dataResource: { id: progress.dataResourceId },
-            state: progress.state as DataResourceProgressState,
-            startedAt: progress.startedAt?.toISOString(),
-            stoppedAt: progress.stoppedAt?.toISOString(),
-        }));
+        );
+        return {
+            total: progress.total,
+            completed: progress.completed,
+            failed: progress.failed,
+
+            stepProgress: Object.entries(progress.stepProgress).map((
+                [step, progress],
+            ) => ({
+                step: step as DataResourceProgressStep,
+                queued: progress.queued,
+                running: progress.running,
+                completed: progress.completed,
+                failed: progress.failed,
+            })),
+            dataResourceProgress: progress.dataResourceProgress.map(
+                (drp) => ({
+                    dataResource: { id: drp.dataResourceId },
+                    state: drp.state as DataResourceProgressState,
+                    step: drp.step as DataResourceProgressStep,
+                    startedAt: drp.startedAt?.toISOString(),
+                    stoppedAt: drp.stoppedAt?.toISOString(),
+                }),
+            ),
+        };
     },
 };
 
@@ -84,3 +111,12 @@ export default {
     Pipeline: PipelineQuery,
     DataResourceProgress: DataResourceProgressQuery,
 };
+
+function maptoGraphql(pipeline: Pipeline): GqlPipeline {
+    return {
+        id: pipeline.id,
+        status: pipeline.status as GqlPipelineStatus,
+        startedAt: pipeline.startedAt?.toISOString(),
+        stoppedAt: pipeline.stoppedAt?.toISOString(),
+    };
+}

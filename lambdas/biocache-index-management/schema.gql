@@ -13,7 +13,7 @@ type Query {
 
 	############## PIPELINE #############
 	pipeline(id: ID!): Pipeline
-	pipelines: [Pipeline!]!
+	pipelines(status: PipelineStatus): [Pipeline!]!
 	dataResourceHistory(input: DataResourceHistoryInput!): DataResourceHistoryOutput!
 
 	############ DATA RESOURCE ###########
@@ -88,7 +88,7 @@ type SetActiveIndexOutput {
 ############ PIPELINE ###########
 type Pipeline {
 	id: ID!
-	status: String!
+	status: PipelineStatus!
 	startedAt: Date
 	stoppedAt: Date
 	input: String
@@ -96,7 +96,15 @@ type Pipeline {
 	error: String
 	cause: String
 
-	dataResourceProgress: [DataResourceProgress!]
+	progress: PipelineProgress
+}
+
+enum PipelineStatus {
+	RUNNING
+	SUCCEEDED
+	FAILED
+	TIMED_OUT
+	ABORTED
 }
 
 input DataResourceHistoryInput {
@@ -113,18 +121,40 @@ type DataResourceEvent {
 }
 
 enum DataResourceProgressState {
-	STARTED
-	DOWNLOADING
-	INDEXING
-	SAMPLING
-	UPLOADING
+	QUEUED
+	RUNNING
 	COMPLETED
 	FAILED
+}
+
+enum DataResourceProgressStep {
+	DOWNLOAD
+	INDEX
+	SAMPLE
+	SOLR
+}
+
+type PipelineStepProgress {
+	step: DataResourceProgressStep!
+	queued: Int!
+	running: Int!
+	completed: Int!
+	failed: Int!
+}
+
+type PipelineProgress {
+	total: Int!
+	completed: Int!
+	failed: Int!
+
+	stepProgress: [PipelineStepProgress!]!
+	dataResourceProgress(step: DataResourceProgressStep, state: DataResourceProgressState): [DataResourceProgress!]!
 }
 
 type DataResourceProgress {
 	dataResource: DataResource
 	state: DataResourceProgressState!
+	step: DataResourceProgressStep!
 	startedAt: String
 	stoppedAt: String
 }
