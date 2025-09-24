@@ -1,5 +1,5 @@
 import { useQuery } from "@apollo/client/react";
-import { GET_PIPELINE } from "../graphql/pipelines";
+import { GET_PIPELINE, GET_PIPELINE_PROGRESS } from "../graphql/pipelines";
 import { useParams } from "react-router";
 import { useState } from "react";
 import { DataResourceProgress } from "./DataResourceProgress";
@@ -60,6 +60,11 @@ function ProgressStep(
                 }}
             >
                 <ProgressStepSection
+                    value={progress.skipped}
+                    total={stepTotal}
+                    color="darkgreen"
+                />
+                <ProgressStepSection
                     value={progress.completed}
                     total={stepTotal}
                     color="green"
@@ -86,10 +91,13 @@ function ProgressStep(
 
 export const Pipeline = ({ id }: { id: string }) => {
     const pipelineId = id ?? useParams().id;
-    const { data, loading, error, networkStatus } = useQuery(GET_PIPELINE, {
-        variables: { id: pipelineId! },
-        pollInterval: 10_000,
-    });
+    const { data, loading, error, networkStatus } = useQuery(
+        GET_PIPELINE_PROGRESS,
+        {
+            variables: { id: pipelineId! },
+            pollInterval: 10_000,
+        },
+    );
     const [showDataResourceProgress, setShowDataResourceProgress] = useState<
         boolean
     >(false);
@@ -116,7 +124,7 @@ export const Pipeline = ({ id }: { id: string }) => {
                 <div>
                     Pipeline Progress:{" "}
                     <div style={{ width: "100%" }}>
-                        {data.pipeline.progress?.stepProgress.map((step) => (
+                        {data.pipeline.progress?.steps.map((step) => (
                             <ProgressStep
                                 key={step.step}
                                 progress={step}

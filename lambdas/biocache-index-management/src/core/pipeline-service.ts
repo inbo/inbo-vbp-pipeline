@@ -38,12 +38,18 @@ export const PipelineSteps = [
     "SOLR",
 ] as const;
 export type PipelineStep = typeof PipelineSteps[number];
-export type PipelineStepState = "SUCCEEDED" | "FAILED" | "QUEUED" | "RUNNING";
+export type PipelineStepState =
+    | "SKIPPED"
+    | "SUCCEEDED"
+    | "FAILED"
+    | "QUEUED"
+    | "RUNNING";
 
 export type PipelineStepProgress = {
     queued: number;
     running: number;
     completed: number;
+    skipped: number;
     failed: number;
 };
 
@@ -51,8 +57,7 @@ export type PipelineProgress = {
     total: number;
     completed: number;
     failed: number;
-    dataResourceProgress: DataResourceProgress[];
-    stepProgress: { [step in PipelineStep]: PipelineStepProgress };
+    steps: { [step in PipelineStep]: PipelineStepProgress };
 };
 
 export type DataResourceProgress = {
@@ -109,4 +114,9 @@ export type PipelineService = {
     getDataResourceProcessingStates(
         dataResourceIds: string[],
     ): Promise<DataResourceProcessingState[] | null>;
+
+    getPipelineRunDataResourceProgress(
+        pipelineId: string,
+        pagination?: PaginationInput,
+    ): Promise<PaginationOutput<DataResourceProgress>>;
 };

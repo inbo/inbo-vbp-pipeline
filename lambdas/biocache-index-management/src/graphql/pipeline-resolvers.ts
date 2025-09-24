@@ -11,7 +11,12 @@ import {
 } from "../__generated__/types";
 import { AwsPipelineServiceImpl } from "../aws/aws-pipeline-service";
 import config from "../config";
-import { Pipeline, PipelineStatus } from "../core/pipeline-service";
+import {
+    Pipeline,
+    PipelineStatus,
+    PipelineStep,
+    PipelineStepState,
+} from "../core/pipeline-service";
 import { dataResourceService } from "./data-resource-resolver";
 
 const pipelineService = new AwsPipelineServiceImpl(config);
@@ -70,35 +75,30 @@ export const Mutation: MutationResolvers = {
 
 export const PipelineQuery: PipelineResolvers = {
     progress: async (parent) => {
-            const progress = await pipelineService.getPipelineProgress(
-                parent.id,
-            );
-            return {
-                total: progress.total,
-                completed: progress.completed,
-                failed: progress.failed,
+        const progress = await pipelineService.getPipelineProgress(
+            parent.id,
+        );
+        return {
+            total: progress.total,
+            completed: progress.completed,
+            failed: progress.failed,
 
-                stepProgress: Object.entries(progress.stepProgress).map((
-                    [step, progress],
-                ) => ({
-                    step: step as DataResourceProgressStep,
-                    queued: progress.queued,
-                    running: progress.running,
-                    completed: progress.completed,
-                    failed: progress.failed,
-                })),
-                dataResourceProgress: progress.dataResourceProgress.map(
-                    (drp) => ({
-                        dataResource: { id: drp.dataResourceId },
-                        state: drp.state as DataResourceProgressState,
-                        step: drp.step as DataResourceProgressStep,
-                        startedAt: drp.startedAt?.toISOString(),
-                        stoppedAt: drp.stoppedAt?.toISOString(),
-                    }),
-                ),
-            };
-        },
-    dataResourceProgress: async (parent, { first, after, last, before }) => {
+            steps: Object.entries(progress.steps).map((
+                [step, progress],
+            ) => ({
+                step: step as DataResourceProgressStep,
+                queued: progress.queued,
+                running: progress.running,
+                completed: progress.completed,
+                skipped: progress.skipped,
+                failed: progress.failed,
+            })),
+        };
+    },
+    dataResourceProgress: async (
+        parent,
+        { step, state, first, after, last, before },
+    ) => {
         const paginatedResult = await pipelineService
             .getPipelineRunDataResourceProgress(
                 parent.id,
@@ -114,16 +114,11 @@ export const PipelineQuery: PipelineResolvers = {
                 cursor: progress.cursor,
                 node: {
                     dataResource: { id: progress.node.dataResourceId },
+                    step: progress.node.step as DataResourceProgressStep,
                     state: progress.node.state as DataResourceProgressState,
                     startedAt: progress.node.startedAt?.toISOString(),
                     stoppedAt: progress.node.stoppedAt?.toISOString(),
                 },
-            })),
-            dataResourceProgress: paginatedResult.edges.map((progress) => ({
-                dataResource: { id: progress.node.dataResourceId },
-                state: progress.node.state as DataResourceProgressState,
-                startedAt: progress.node.startedAt?.toISOString(),
-                stoppedAt: progress.node.stoppedAt?.toISOString(),
             })),
             pageInfo: paginatedResult.pageInfo,
         };

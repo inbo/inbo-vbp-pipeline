@@ -97,6 +97,7 @@ type Pipeline {
 	cause: String
 
 	progress: PipelineProgress
+	dataResourceProgress(step: DataResourceProgressStep, state: DataResourceProgressState, first: Int, after: ID, last: Int, before: ID): DataResourceProgressConnection
 }
 
 enum PipelineStatus {
@@ -139,6 +140,7 @@ type PipelineStepProgress {
 	queued: Int!
 	running: Int!
 	completed: Int!
+	skipped: Int!
 	failed: Int!
 }
 
@@ -147,8 +149,7 @@ type PipelineProgress {
 	completed: Int!
 	failed: Int!
 
-	stepProgress: [PipelineStepProgress!]!
-    dataResourceProgress(step: DataResourceProgressStep, state: DataResourceProgressState, first: Int, after: ID, last: Int, before: ID): DataResourceProgressConnection
+	steps: [PipelineStepProgress!]!
 }
 
 type DataResourceProgress {
@@ -162,7 +163,6 @@ type DataResourceProgress {
 type DataResourceProgressConnection {
   totalCount: Int
   edges: [DataResourceProgressEdge]
-  dataResourceProgress: [DataResourceProgress]
   pageInfo: PageInfo!
 }
 

@@ -22,20 +22,6 @@ export const GET_PIPELINE = gql(`
       output
       error
       cause
-
-      progress {
-        total
-        completed
-        failed
-
-        stepProgress {
-          step
-          queued
-          running
-          completed
-          failed
-        }
-      }
     }
   }
 `);
@@ -78,27 +64,26 @@ export const GET_PIPELINE_PROGRESS = gql(`
   query GetPipelineProgress($id: ID!) {
     pipeline(id: $id) {
       id
+      status
+      startedAt
+      stoppedAt
+      input
+      output
+      error
+      cause
+
       progress {
         total
         completed
         failed
 
-        stepProgress {
+        steps {
           step
           queued
           running
           completed
+          skipped
           failed
-        }
-
-        dataResourceProgress {
-          dataResource {
-            id
-            name
-          }
-          state
-          startedAt
-          stoppedAt
         }
       }
     }
@@ -115,12 +100,15 @@ export const GET_PIPELINE_DATA_RESOURCE_PROGRESS = gql(`
           endCursor
           hasNextPage
         }
-        dataResourceProgress {
-          dataResource {
-            id
-            name
+        edges {
+          node {
+            dataResource {
+              id
+              name
+            }
+            step
+            state
           }
-          state
         }
       }
     }

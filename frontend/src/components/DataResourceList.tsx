@@ -35,7 +35,7 @@ function getSelectAllState(
     }
     if (noneSelected) {
         return SelectAllStates.indexOf("none");
-    } else if (allSelected) {
+        // } else if (allSelected) {
         //     return SelectAllStates.indexOf("all");
         // } else if (newSelected) {
         //     return SelectAllStates.indexOf("new");

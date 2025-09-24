@@ -8,6 +8,7 @@ import {
     PipelineService,
     PipelineStatus,
     PipelineStep,
+    PipelineStepProgress,
     PipelineSteps,
     PipelineStepState,
 } from "../core/pipeline-service";
@@ -155,25 +156,6 @@ export class AwsPipelineServiceImpl implements PipelineService {
                 ":pk": { S: `RUN#${pipelineId}` },
                 ":sk": { S: "DATA_RESOURCE#" },
             },
-            Limit: (!pagination.first && !pagination.last)
-                ? 10
-                : Math.min(pagination.first || 100, pagination.last || 100),
-            ExclusiveStartKey: pagination.after
-                ? {
-                    PK: { S: `RUN#${pipelineId}` },
-                    SK: { S: pagination.after },
-                }
-                : pagination.before
-                ? {
-                    PK: { S: `RUN#${pipelineId}` },
-                    SK: { S: pagination.before },
-                }
-                : undefined,
-            ScanIndexForward: pagination.after
-                ? true
-                : pagination.before
-                ? false
-                : true,
         });
 
         const result = {
@@ -181,43 +163,50 @@ export class AwsPipelineServiceImpl implements PipelineService {
             completed: 0,
             failed: 0,
 
-            stepProgress: {
-                DOWNLOAD: { queued: 0, running: 0, completed: 0, failed: 0 },
-                INDEX: { queued: 0, running: 0, completed: 0, failed: 0 },
-                SAMPLE: { queued: 0, running: 0, completed: 0, failed: 0 },
-                SOLR: { queued: 0, running: 0, completed: 0, failed: 0 },
-            },
+            steps: PipelineSteps.reduce((acc, step) => {
+                acc[step] = {
+                    queued: 0,
+                    running: 0,
+                    completed: 0,
+                    skipped: 0,
+                    failed: 0,
+                };
+                return acc;
+            }, {} as { [step in PipelineStep]: PipelineStepProgress }),
         };
 
         const outputProgress = dataResourceProgressItems.Items?.map((item) => {
             const state = item.State.S!.toUpperCase() as PipelineStepState;
             const step = item.Step.S!.toUpperCase() as PipelineStep;
 
-            if (!(step in result.stepProgress)) {
+            if (!(step in result.steps)) {
                 throw new Error(`Unknown step: ${step}`);
             }
 
             result.total++;
             // If we are currently at a certain step, all previous steps are also completed
             PipelineSteps.slice(0, PipelineSteps.indexOf(step)).forEach(
-                (s) => result.stepProgress[s].completed++,
+                (s) => result.steps[s].completed++,
             );
 
             switch (state) {
                 case "QUEUED":
-                    result.stepProgress[step].queued++;
+                    result.steps[step].queued++;
                     break;
-                case "COMPLETED":
-                    result.stepProgress[step].running++;
+                case "RUNNING":
+                    result.steps[step].running++;
                     break;
                 case "SUCCEEDED":
-                    result.stepProgress[step].completed++;
+                    result.steps[step].completed++;
                     if (step === "SOLR") {
                         result.completed++;
                     }
                     break;
+                case "SKIPPED":
+                    result.steps[step].skipped++;
+                    break;
                 case "FAILED":
-                    result.stepProgress[step].failed++;
+                    result.steps[step].failed++;
                     result.failed++;
                     break;
                 default:
@@ -237,17 +226,12 @@ export class AwsPipelineServiceImpl implements PipelineService {
             });
         }) || [];
 
-        return {
-            ...result,
-            dataResourceProgress: outputProgress,
-        };
+        return result;
     }
-}
-
 
     async getPipelineRunDataResourceProgress(
         pipelineId: string,
-        pagination: PaginationInput = {},
+        pagination?: PaginationInput,
     ): Promise<PaginationOutput<DataResourceProgress>> {
         console.debug(
             "Getting data resource progress for pipeline id:",
@@ -259,7 +243,7 @@ export class AwsPipelineServiceImpl implements PipelineService {
             KeyConditionExpression: "PK = :pk and begins_with(SK, :sk)",
             ExpressionAttributeValues: {
                 ":pk": { S: `RUN#${pipelineId}` },
-                ":sk": { S: "DATA_RESOURCE#STATE#" },
+                ":sk": { S: "DATA_RESOURCE#" },
             },
             Select: "COUNT",
         });
@@ -269,25 +253,25 @@ export class AwsPipelineServiceImpl implements PipelineService {
             KeyConditionExpression: "PK = :pk and begins_with(SK, :sk)",
             ExpressionAttributeValues: {
                 ":pk": { S: `RUN#${pipelineId}` },
-                ":sk": { S: "DATA_RESOURCE#STATE#" },
+                ":sk": { S: "DATA_RESOURCE#" },
             },
-            Limit: (!pagination.first && !pagination.last)
+            Limit: (!pagination?.first && !pagination?.last)
                 ? 10
-                : Math.min(pagination.first || 100, pagination.last || 100),
-            ExclusiveStartKey: pagination.after
+                : Math.min(pagination?.first || 100, pagination?.last || 100),
+            ExclusiveStartKey: pagination?.after
                 ? {
                     PK: { S: `RUN#${pipelineId}` },
                     SK: { S: pagination.after },
                 }
-                : pagination.before
+                : pagination?.before
                 ? {
                     PK: { S: `RUN#${pipelineId}` },
                     SK: { S: pagination.before },
                 }
                 : undefined,
-            ScanIndexForward: pagination.after
+            ScanIndexForward: pagination?.after
                 ? true
-                : pagination.before
+                : pagination?.before
                 ? false
                 : true,
         });
@@ -297,7 +281,8 @@ export class AwsPipelineServiceImpl implements PipelineService {
                 cursor: item.SK.S!,
                 node: {
                     dataResourceId: item.DataResourceId.S!,
-                    state: item.State.S as DataResourceProgress["state"],
+                    step: item.Step.S! as PipelineStep,
+                    state: item.State.S! as PipelineStepState,
                     startedAt: item.startedAt?.S
                         ? new Date(item.startedAt.S)
                         : undefined,
@@ -332,7 +317,7 @@ export class AwsPipelineServiceImpl implements PipelineService {
             KeyConditionExpression: "PK = :pk and begins_with(SK, :sk)",
             ExpressionAttributeValues: {
                 ":pk": { S: `RUN#${pipelineId}` },
-                ":sk": { S: "DATA_RESOURCE#STATE#" },
+                ":sk": { S: "DATA_RESOURCE#" },
             },
             Select: "COUNT",
         });

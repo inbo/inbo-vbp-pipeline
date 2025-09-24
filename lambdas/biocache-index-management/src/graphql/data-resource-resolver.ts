@@ -39,20 +39,9 @@ export const DataResourceProgress: DataResourceProgressResolvers = {
 
 export const DataResourceProgressQuery: DataResourceProgressResolvers = {
     dataResource: async (parent, _args, _context, info) => {
-        if (
-            info.fieldNodes.find((field) =>
-                field.name.value !== "id" && field.name.value !== "name"
-            ) !== null
-        ) {
-            return await dataResourceService.getDataResource(
-                parent.dataResource!.id,
-            );
-        } else {
-            return await Query.dataResources!({}, {}, _context, info)
-                .find(
-                    (dr) => dr.id === parent.dataResource!.id,
-                ) || null;
-        }
+        return await dataResourceService.getDataResource(
+            parent.dataResource!.id,
+        );
     },
 };
 
