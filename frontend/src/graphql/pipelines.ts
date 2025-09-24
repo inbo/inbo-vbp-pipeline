@@ -90,7 +90,7 @@ export const GET_PIPELINE_PROGRESS = gql(`
           completed
           failed
         }
-        
+
         dataResourceProgress {
           dataResource {
             id
@@ -99,6 +99,28 @@ export const GET_PIPELINE_PROGRESS = gql(`
           state
           startedAt
           stoppedAt
+        }
+      }
+    }
+  }
+`);
+
+export const GET_PIPELINE_DATA_RESOURCE_PROGRESS = gql(`
+  query GetPipelineDataResourceProgress($id: ID!, $first: Int, $after: ID) {
+    pipeline(id: $id) {
+      id
+      dataResourceProgress(first: $first, after: $after) {
+        totalCount
+        pageInfo {
+          endCursor
+          hasNextPage
+        }
+        dataResourceProgress {
+          dataResource {
+            id
+            name
+          }
+          state
         }
       }
     }

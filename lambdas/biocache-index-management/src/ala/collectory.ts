@@ -12,6 +12,8 @@ export class CollectoryClient implements DataResourceRepository {
     }
 
     async getDataResources(): Promise<DataResource[]> {
+        console.debug("Getting data resources from Collectory");
+
         const response = await fetch(
             `${this.collectoryBaseUrl}/ws/dataResource`,
         );
@@ -30,6 +32,11 @@ export class CollectoryClient implements DataResourceRepository {
     async getDataResource(
         dataResourceId: string,
     ): Promise<DataResourceDetails> {
+        console.debug(
+            "Getting data resource from Collectory with id:",
+            dataResourceId,
+        );
+
         const response = await fetch(
             `${this.collectoryBaseUrl}/ws/dataResource/${dataResourceId}`,
         );

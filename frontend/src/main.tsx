@@ -3,6 +3,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min";
 
 import { StrictMode } from "react";
+import { type Ref, StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { ApolloProvider } from "@apollo/client/react";
@@ -22,6 +23,10 @@ import { ErrorLink } from "@apollo/client/link/error";
 import Pipeline from "./components/Pipeline.tsx";
 import DataResource from "./components/DataResourceList.tsx";
 import { StartPipeline } from "./StartPipeline.tsx";
+import type {
+  DataResourceProgress,
+} from "./__generated__/biocache-index-management/graphql.ts";
+import type { Reference } from "@apollo/client";
 
 const oidcConfig = {
   authority: "https://auth-dev.inbo.be/realms/vbp",
@@ -43,7 +48,7 @@ const httpLink = new HttpLink({
 
 // Log any GraphQL errors, protocol errors, or network error that occurred
 
-const errorLink = new ErrorLink(({ error, operation }) => {
+const errorLink = new ErrorLink(({ error }) => {
   if (CombinedGraphQLErrors.is(error)) {
     error.errors.forEach(({ message, locations, path }) =>
       console.log(
@@ -87,7 +92,32 @@ const authLink = new SetContextLink(({ headers }) => {
 
 const client = new ApolloClient({
   link: errorLink.concat(authLink.concat(httpLink)),
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    typePolicies: {
+      Pipeline: {
+        fields: {
+          dataResourceProgress: {
+            keyArgs: ["id"],
+            merge(existing = {}, incoming, { args }) {
+              if (!args?.after) {
+                // First page or refetch - replace existing data
+                return incoming;
+              }
+
+              // Subsequent pages - merge the dataResourceProgress arrays
+              return {
+                ...incoming,
+                dataResourceProgress: [
+                  ...(existing.dataResourceProgress || []),
+                  ...(incoming.dataResourceProgress || []),
+                ],
+              };
+            },
+          },
+        },
+      },
+    },
+  }),
 });
 
 createRoot(document.getElementById("root")!).render(

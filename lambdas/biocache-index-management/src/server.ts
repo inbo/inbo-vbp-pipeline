@@ -45,6 +45,9 @@ const resolvers: Resolvers = {
     DataResourceProgress: {
         ...DataResourceResolvers.DataResourceProgress,
     },
+    DataResourceProgressConnection: {
+        ...PipelineResolvers.DataResourceProgressConnection,
+    },
 };
 
 const server = new ApolloServer<UserContext>({

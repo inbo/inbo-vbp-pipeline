@@ -1,5 +1,6 @@
 import {
     DataResourceHistory,
+    DataResourceProcessingState,
     DataResourceProgress,
     Pipeline,
     PipelineDetails,
@@ -13,6 +14,7 @@ import {
 
 import { SFN } from "@aws-sdk/client-sfn";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { PaginationInput, PaginationOutput } from "../core/common";
 
 export class AwsPipelineServiceImpl implements PipelineService {
     private readonly awsStateMachineArn: string;
@@ -153,6 +155,25 @@ export class AwsPipelineServiceImpl implements PipelineService {
                 ":pk": { S: `RUN#${pipelineId}` },
                 ":sk": { S: "DATA_RESOURCE#" },
             },
+            Limit: (!pagination.first && !pagination.last)
+                ? 10
+                : Math.min(pagination.first || 100, pagination.last || 100),
+            ExclusiveStartKey: pagination.after
+                ? {
+                    PK: { S: `RUN#${pipelineId}` },
+                    SK: { S: pagination.after },
+                }
+                : pagination.before
+                ? {
+                    PK: { S: `RUN#${pipelineId}` },
+                    SK: { S: pagination.before },
+                }
+                : undefined,
+            ScanIndexForward: pagination.after
+                ? true
+                : pagination.before
+                ? false
+                : true,
         });
 
         const result = {
@@ -220,5 +241,133 @@ export class AwsPipelineServiceImpl implements PipelineService {
             ...result,
             dataResourceProgress: outputProgress,
         };
+    }
+}
+
+
+    async getPipelineRunDataResourceProgress(
+        pipelineId: string,
+        pagination: PaginationInput = {},
+    ): Promise<PaginationOutput<DataResourceProgress>> {
+        console.debug(
+            "Getting data resource progress for pipeline id:",
+            pipelineId,
+        );
+
+        const counts = await this.dynamoDB.query({
+            TableName: this.awsDynamoDBTableName,
+            KeyConditionExpression: "PK = :pk and begins_with(SK, :sk)",
+            ExpressionAttributeValues: {
+                ":pk": { S: `RUN#${pipelineId}` },
+                ":sk": { S: "DATA_RESOURCE#STATE#" },
+            },
+            Select: "COUNT",
+        });
+
+        const output = await this.dynamoDB.query({
+            TableName: this.awsDynamoDBTableName,
+            KeyConditionExpression: "PK = :pk and begins_with(SK, :sk)",
+            ExpressionAttributeValues: {
+                ":pk": { S: `RUN#${pipelineId}` },
+                ":sk": { S: "DATA_RESOURCE#STATE#" },
+            },
+            Limit: (!pagination.first && !pagination.last)
+                ? 10
+                : Math.min(pagination.first || 100, pagination.last || 100),
+            ExclusiveStartKey: pagination.after
+                ? {
+                    PK: { S: `RUN#${pipelineId}` },
+                    SK: { S: pagination.after },
+                }
+                : pagination.before
+                ? {
+                    PK: { S: `RUN#${pipelineId}` },
+                    SK: { S: pagination.before },
+                }
+                : undefined,
+            ScanIndexForward: pagination.after
+                ? true
+                : pagination.before
+                ? false
+                : true,
+        });
+
+        return {
+            edges: output.Items?.map((item) => ({
+                cursor: item.SK.S!,
+                node: {
+                    dataResourceId: item.DataResourceId.S!,
+                    state: item.State.S as DataResourceProgress["state"],
+                    startedAt: item.startedAt?.S
+                        ? new Date(item.startedAt.S)
+                        : undefined,
+                    stoppedAt: item.stoppedAt?.S
+                        ? new Date(item.stoppedAt.S)
+                        : undefined,
+                },
+            })) || [],
+            pageInfo: {
+                hasNextPage: !!output.LastEvaluatedKey,
+                hasPreviousPage: false, // DynamoDB does not support backwards pagination
+                startCursor: output.Items && output.Items.length > 0
+                    ? output.Items[0].SK.S!
+                    : undefined,
+                endCursor: output.Items && output.Items.length > 0
+                    ? output.Items[output.Items.length - 1].SK.S!
+                    : undefined,
+            },
+        };
+    }
+
+    async getPipelineRunDataResourceProgressCount(
+        pipelineId: string,
+    ): Promise<number> {
+        console.debug(
+            "Getting data resource progress counts for pipeline id:",
+            pipelineId,
+        );
+
+        const counts = await this.dynamoDB.query({
+            TableName: this.awsDynamoDBTableName,
+            KeyConditionExpression: "PK = :pk and begins_with(SK, :sk)",
+            ExpressionAttributeValues: {
+                ":pk": { S: `RUN#${pipelineId}` },
+                ":sk": { S: "DATA_RESOURCE#STATE#" },
+            },
+            Select: "COUNT",
+        });
+
+        return counts.Count || 0;
+    }
+
+    async getDataResourceProcessingStates(
+        dataResourceIds: string[],
+    ): Promise<DataResourceProcessingState[] | null> {
+        console.debug(
+            "Getting data resource processing state for data resource ids:",
+            dataResourceIds,
+        );
+
+        const response = await this.dynamoDB.batchGetItem({
+            RequestItems: {
+                [this.awsDynamoDBTableName]: {
+                    Keys: dataResourceIds.map((id) => ({
+                        PK: { S: `DATA_RESOURCE#${id}` },
+                        SK: { S: "STATE#" },
+                    })),
+                },
+            },
+        });
+
+        return response.Responses?.[this.awsDynamoDBTableName].map((
+            item,
+        ) => ({
+            dataResourceId: item.DataResourceId.S,
+            downloadedAt: item.DownloadedAt?.S,
+            indexedAt: item.IndexedAt?.S,
+            sampledAt: item.SampledAt?.S,
+            uploadedAt: item.UploadedAt?.S,
+            uploadedTo: item.UploadedTo?.SS,
+        })) || null;
     }
 }

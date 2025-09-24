@@ -148,7 +148,7 @@ type PipelineProgress {
 	failed: Int!
 
 	stepProgress: [PipelineStepProgress!]!
-	dataResourceProgress(step: DataResourceProgressStep, state: DataResourceProgressState): [DataResourceProgress!]!
+    dataResourceProgress(step: DataResourceProgressStep, state: DataResourceProgressState, first: Int, after: ID, last: Int, before: ID): DataResourceProgressConnection
 }
 
 type DataResourceProgress {
@@ -158,6 +158,19 @@ type DataResourceProgress {
 	startedAt: String
 	stoppedAt: String
 }
+
+type DataResourceProgressConnection {
+  totalCount: Int
+  edges: [DataResourceProgressEdge]
+  dataResourceProgress: [DataResourceProgress]
+  pageInfo: PageInfo!
+}
+
+type DataResourceProgressEdge {
+  cursor: ID!
+  node: DataResourceProgress!
+}
+
 
 type DataResourceHistoryOutput {
 	events: [DataResourceEvent!]!
@@ -186,4 +199,21 @@ type DataResource {
 	id: ID!
 	name: String
 	description: String
+
+	processingState: DataResourceProcessingState
+}
+
+type DataResourceProcessingState {
+	downloadedAt: Date
+	indexedAt: Date
+	sampledAt: Date
+	uploadedAt: Date
+	uploadedTo: [Index]
+}
+
+############ COMMON ##################
+type PageInfo {
+  startCursor: ID
+  endCursor: ID
+  hasNextPage: Boolean!
 }

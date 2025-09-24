@@ -1,3 +1,5 @@
+import { PaginationInput, PaginationOutput } from "./common";
+
 export type Pipeline = {
     id: string;
     status: PipelineStatus;
@@ -61,6 +63,22 @@ export type DataResourceProgress = {
     stoppedAt?: Date;
 };
 
+export type DataResourceProcessingState = {
+    downloadedAt?: string;
+    downloadedBy?: string;
+    downloadUrl?: string;
+    downloadFileSize?: number;
+    downloadFileHash?: string;
+    indexedAt?: string;
+    indexedBy?: string;
+    sampledAt?: string;
+    sampledBy?: string;
+    sampledLayerIds?: string[];
+    uploadedAt?: string;
+    uploadedBy?: string;
+    uploadedTo?: string[];
+};
+
 export type PipelineService = {
     getPipeline(id: string): Promise<PipelineDetails | null>;
     getPipelines(): Promise<Pipeline[]>;
@@ -78,4 +96,17 @@ export type PipelineService = {
     getPipelineProgress(
         pipelineId: string,
     ): Promise<PipelineProgress>;
+
+    getPipelineRunDataResourceProgress(
+        pipelineId: string,
+        pagination: PaginationInput,
+    ): Promise<PaginationOutput<DataResourceProgress>>;
+
+    getPipelineRunDataResourceProgressCount(
+        pipelineId: string,
+    ): Promise<number>;
+
+    getDataResourceProcessingStates(
+        dataResourceIds: string[],
+    ): Promise<DataResourceProcessingState[] | null>;
 };
