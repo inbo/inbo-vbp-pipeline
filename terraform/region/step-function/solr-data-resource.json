@@ -31,7 +31,10 @@
     },
     "Do Nothing": {
       "Type": "Pass",
-      "End": true
+      "End": true,
+      "Output": {
+        "result": "SKIPPED"
+      }
     },
     "Get or create EMR Cluster": {
       "Type": "Task",
@@ -165,7 +168,10 @@
           }
         }
       },
-      "End": true
+      "End": true,
+      "Output": {
+        "result": "SUCCEEDED"
+      }
     }
   },
   "QueryLanguage": "JSONata"

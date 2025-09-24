@@ -212,7 +212,8 @@
                         "solrCollection": "{% $solrCollection %}"
                       }
                     },
-                    "End": true
+
+                   "End": true
                   }
                 }
               }

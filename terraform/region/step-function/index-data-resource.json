@@ -30,7 +30,10 @@
     },
     "Do Nothing": {
       "Type": "Pass",
-      "End": true
+      "End": true,
+      "Output": {
+        "result": "SKIPPED"
+      }
     },
     "Big or Small?": {
       "Type": "Choice",
@@ -344,7 +347,10 @@
           }
         }
       },
-      "End": true
+      "End": true,
+      "Output": {
+        "result": "SUCCEEDED"
+      }
     }
   },
   "QueryLanguage": "JSONata"

@@ -27,7 +27,7 @@
               "Type": "Choice",
               "Choices": [
                 {
-                  "Next": "Set State to Waiting for Concurrency Lock",
+                  "Next": "Set State to Queued",
                   "Condition": "{% $exists($states.context.Execution.Input.concurrencyLimit) %}"
                 }
               ],
@@ -49,7 +49,7 @@
               },
               "Next": "Set State to Running"
             },
-            "Set State to Waiting for Concurrency Lock": {
+            "Set State to Queued": {
               "Type": "Task",
               "Resource": "arn:aws:states:::dynamodb:updateItem",
               "Arguments": {
@@ -62,13 +62,25 @@
                     "S": "{% 'DATA_RESOURCE#' & $states.context.Execution.Input.dataResourceId %}"
                   }
                 },
-                "UpdateExpression": "SET #state = :state",
+                "UpdateExpression": "SET #dataResourceId = :dataResourceId, #step = :stepName, #state = :state, #lastUpdated = :now",
                 "ExpressionAttributeNames": {
-                  "#state": "State"
+                  "#dataResourceId": "DataResourceId",
+                  "#state": "State",
+                  "#step": "Step",
+                  "#lastUpdated": "LastUpdated"
                 },
                 "ExpressionAttributeValues": {
+                  ":dataResourceId": {
+                    "S": "{%  $states.context.Execution.Input.dataResourceId %}"
+                  },
+                  ":stepName": {
+                    "S": "{% $states.context.Execution.Input.stepName %}"
+                  },
                   ":state": {
-                    "S": "WAITING_FOR_LOCK"
+                    "S": "QUEUED"
+                  },
+                  ":now": {
+                    "S": "{% $now() %}"
                   }
                 }
               },
@@ -103,13 +115,25 @@
                     "S": "{% 'DATA_RESOURCE#' & $states.context.Execution.Input.dataResourceId %}"
                   }
                 },
-                "UpdateExpression": "SET #state = :state",
+                "UpdateExpression": "SET #dataResourceId = :dataResourceId, #step = :stepName, #state = :state, #lastUpdated = :now",
                 "ExpressionAttributeNames": {
-                  "#state": "State"
+                  "#dataResourceId": "DataResourceId",
+                  "#state": "State",
+                  "#step": "Step",
+                  "#lastUpdated": "LastUpdated"
                 },
                 "ExpressionAttributeValues": {
+                  ":dataResourceId": {
+                    "S": "{%  $states.context.Execution.Input.dataResourceId %}"
+                  },
+                  ":stepName": {
+                    "S": "{% $states.context.Execution.Input.stepName %}"
+                  },
                   ":state": {
                     "S": "RUNNING"
+                  },
+                  ":now": {
+                    "S": "{% $now() %}"
                   }
                 }
               },
@@ -235,7 +259,7 @@
         ]
       },
       "Resource": "arn:aws:states:::aws-sdk:dynamodb:transactWriteItems",
-      "Next": "Choice",
+      "Next": "Step Result?",
       "Output": "{% $states.input %}",
       "Retry": [
         {
@@ -249,12 +273,16 @@
         }
       ]
     },
-    "Choice": {
+    "Step Result?": {
       "Type": "Choice",
       "Choices": [
         {
           "Next": "Set State to Failed",
           "Condition": "{% $exists($states.input.Error) %}"
+        },
+        {
+          "Next": "Set State to Skipped",
+          "Condition": "{% $states.input.result = \"SKIPPED\" %}"
         }
       ],
       "Default": "Set State to Succeeded"
@@ -272,13 +300,33 @@
             "S": "{% 'DATA_RESOURCE#' & $states.context.Execution.Input.dataResourceId %}"
           }
         },
-        "UpdateExpression": "SET #state = :state",
+        "UpdateExpression": "SET #dataResourceId = :dataResourceId, #step = :stepName, #state = :state, #lastUpdated = :now, #error = :error, #cause = :cause",
         "ExpressionAttributeNames": {
-          "#state": "State"
+          "#dataResourceId": "DataResourceId",
+          "#state": "State",
+          "#step": "Step",
+          "#lastUpdated": "LastUpdated",
+          "#error": "Error",
+          "#cause": "Cause"
         },
         "ExpressionAttributeValues": {
+          ":dataResourceId": {
+            "S": "{%  $states.context.Execution.Input.dataResourceId %}"
+          },
+          ":stepName": {
+            "S": "{% $states.context.Execution.Input.stepName %}"
+          },
           ":state": {
             "S": "FAILED"
+          },
+          ":now": {
+            "S": "{% $now() %}"
+          },
+          ":error": {
+            "S": "{% $states.input.Error %}"
+          },
+          ":cause": {
+            "S": "{% $states.input.Cause %}"
           }
         }
       },
@@ -303,13 +351,65 @@
             "S": "{% 'DATA_RESOURCE#' & $states.context.Execution.Input.dataResourceId %}"
           }
         },
-        "UpdateExpression": "SET #state = :state",
+        "UpdateExpression": "SET #dataResourceId = :dataResourceId, #step = :stepName, #state = :state, #lastUpdated = :now",
         "ExpressionAttributeNames": {
-          "#state": "State"
+          "#dataResourceId": "DataResourceId",
+          "#state": "State",
+          "#step": "Step",
+          "#lastUpdated": "LastUpdated"
         },
         "ExpressionAttributeValues": {
+          ":dataResourceId": {
+            "S": "{%  $states.context.Execution.Input.dataResourceId %}"
+          },
+          ":stepName": {
+            "S": "{% $states.context.Execution.Input.stepName %}"
+          },
           ":state": {
-            "S": "RUNNING"
+            "S": "SUCCEEDED"
+          },
+          ":now": {
+            "S": "{% $now() %}"
+          }
+        }
+      },
+      "Output": {
+        "state": "SUCCEEDED"
+      },
+      "End": true
+    },
+    "Set State to Skipped": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:updateItem",
+      "Arguments": {
+        "TableName": "{% $config.dynamodb_table_name %}",
+        "Key": {
+          "PK": {
+            "S": "{% 'RUN#' & $states.context.Execution.Input.rootPipelineName %}"
+          },
+          "SK": {
+            "S": "{% 'DATA_RESOURCE#' & $states.context.Execution.Input.dataResourceId %}"
+          }
+        },
+        "UpdateExpression": "SET #dataResourceId = :dataResourceId, #step = :stepName, #state = :state, #lastUpdated = :now",
+        "ExpressionAttributeNames": {
+          "#dataResourceId": "DataResourceId",
+          "#state": "State",
+          "#step": "Step",
+          "#lastUpdated": "LastUpdated"
+        },
+        "ExpressionAttributeValues": {
+          ":dataResourceId": {
+            "S": "{%  $states.context.Execution.Input.dataResourceId %}"
+          },
+          ":stepName": {
+            "S": "{% $states.context.Execution.Input.stepName %}"
+          },
+          ":state": {
+            "S": "SKIPPED"
+          },
+          ":now": {
+            "S": "{% $now() %}"
           }
         }
       },
