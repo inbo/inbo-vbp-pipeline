@@ -37,9 +37,7 @@ const oidcConfig = {
   },
 };
 const httpLink = new HttpLink({
-  uri:
-    "https://natuurdata.dev.inbo.be/api/v1/biocache-index-management/graphql",
-  // fetchOptions: { mode: "no-cors", credentials: "include" },
+  uri: "/api/v1/biocache-index-management/graphql",
 });
 
 // Log any GraphQL errors, protocol errors, or network error that occurred
