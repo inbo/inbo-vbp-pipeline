@@ -74,7 +74,7 @@
                     "S": "{%  $states.context.Execution.Input.dataResourceId %}"
                   },
                   ":stepName": {
-                    "S": "{% $states.context.Execution.Input.stepName %}"
+                    "S": "{% $uppercase($states.context.Execution.Input.stepName) %}"
                   },
                   ":state": {
                     "S": "QUEUED"
@@ -127,7 +127,7 @@
                     "S": "{%  $states.context.Execution.Input.dataResourceId %}"
                   },
                   ":stepName": {
-                    "S": "{% $states.context.Execution.Input.stepName %}"
+                    "S": "{% $uppercase($states.context.Execution.Input.stepName) %}"
                   },
                   ":state": {
                     "S": "RUNNING"
@@ -314,7 +314,7 @@
             "S": "{%  $states.context.Execution.Input.dataResourceId %}"
           },
           ":stepName": {
-            "S": "{% $states.context.Execution.Input.stepName %}"
+            "S": "{% $uppercase($states.context.Execution.Input.stepName) %}"
           },
           ":state": {
             "S": "FAILED"
@@ -363,7 +363,7 @@
             "S": "{%  $states.context.Execution.Input.dataResourceId %}"
           },
           ":stepName": {
-            "S": "{% $states.context.Execution.Input.stepName %}"
+            "S": "{% $uppercase($states.context.Execution.Input.stepName) %}"
           },
           ":state": {
             "S": "SUCCEEDED"
@@ -403,7 +403,7 @@
             "S": "{%  $states.context.Execution.Input.dataResourceId %}"
           },
           ":stepName": {
-            "S": "{% $states.context.Execution.Input.stepName %}"
+            "S": "{% $uppercase($states.context.Execution.Input.stepName) %}"
           },
           ":state": {
             "S": "SKIPPED"

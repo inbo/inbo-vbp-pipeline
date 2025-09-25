@@ -212,8 +212,7 @@
                         "solrCollection": "{% $solrCollection %}"
                       }
                     },
-
-                   "End": true
+                    "End": true
                   }
                 }
               }
@@ -225,7 +224,9 @@
                 ],
                 "Next": "Ignore Error",
                 "Output": {
-                  "Error": "{% $states.errorOutput.Error %}"
+                  "dataResourceId": "{% $exists($dataResourceId) ? $dataResourceId : $states.input %}",
+                  "Error": "{% $states.errorOutput.Error %}",
+                  "Cause": "{% $states.errorOutput.Cause %}"
                 }
               }
             ],
@@ -275,7 +276,9 @@
       "Default": "Switch Active Index"
     },
     "Fail": {
-      "Type": "Fail"
+      "Type": "Fail",
+      "Cause": "{% $string($states.input) %}",
+      "Error": "SomeDataResourceProcessingFailed"
     },
     "Switch Active Index": {
       "Type": "Task",
