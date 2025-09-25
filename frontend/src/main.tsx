@@ -90,7 +90,7 @@ const client = new ApolloClient({
     typePolicies: {
       Pipeline: {
         fields: {
-          edges: relayStylePagination(),
+          edges: relayStylePagination(["id", "step", "state"]),
         },
       },
     },

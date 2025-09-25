@@ -1,7 +1,6 @@
 import { AuthError, AuthService } from "../src/auth";
 
 import { createJWKSMock } from "mock-jwks";
-
 const jwksMock = createJWKSMock("http://localhost:9999");
 
 describe("AuthService", () => {

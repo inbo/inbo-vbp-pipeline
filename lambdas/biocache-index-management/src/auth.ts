@@ -21,7 +21,7 @@ export class AuthService {
 
     constructor({ jwksUri }: { jwksUri: string }) {
         this.jwksClient = new JwksClient({ jwksUri });
-        this.jwksClient.getKeys();
+        // this.jwksClient.getKeys();
     }
 
     async authenticate(
