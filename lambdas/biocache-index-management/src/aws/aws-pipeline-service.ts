@@ -4,13 +4,13 @@ import {
     DataResourceProgress,
     Pipeline,
     PipelineDetails,
-    PipelineProgress,
     PipelineService,
+    PipelineStats,
     PipelineStatus,
     PipelineStep,
-    PipelineStepProgress,
     PipelineSteps,
     PipelineStepState,
+    PipelineStepStats,
 } from "../core/pipeline-service";
 
 import { SFN } from "@aws-sdk/client-sfn";
@@ -50,6 +50,7 @@ export class AwsPipelineServiceImpl implements PipelineService {
 
         const output = await this.sfn.describeExecution({
             executionArn: `${this.awsStateExecutionArnPrefix}:${id}`,
+            includedData: "ALL_DATA",
         });
 
         return output.executionArn
@@ -141,96 +142,83 @@ export class AwsPipelineServiceImpl implements PipelineService {
         })) || [];
     }
 
-    async getPipelineProgress(
+    async getPipelineStats(
         pipelineId: string,
-    ): Promise<PipelineProgress> {
+    ): Promise<PipelineStats> {
         console.debug(
             "Getting data resource progress for pipeline id:",
             pipelineId,
         );
 
-        const dataResourceProgressItems = await this.dynamoDB.query({
-            TableName: this.awsDynamoDBTableName,
-            KeyConditionExpression: "PK = :pk and begins_with(SK, :sk)",
-            ExpressionAttributeValues: {
-                ":pk": { S: `RUN#${pipelineId}` },
-                ":sk": { S: "DATA_RESOURCE#" },
+        const statsItems = await this.dynamoDB.batchGetItem({
+            RequestItems: {
+                [this.awsDynamoDBTableName]: {
+                    Keys: [
+                        ...PipelineSteps.map((step) => ({
+                            PK: { S: `RUN#${pipelineId}` },
+                            SK: { S: `STATS#${step}` },
+                        })),
+                    ],
+                },
             },
         });
 
         const result = {
-            total: 0,
-            completed: 0,
-            failed: 0,
-
+            total: {
+                total: 0,
+                queued: 0,
+                running: 0,
+                succeeded: 0,
+                failed: 0,
+                skipped: 0,
+            },
             steps: PipelineSteps.reduce((acc, step) => {
                 acc[step] = {
+                    total: 0,
                     queued: 0,
                     running: 0,
-                    completed: 0,
-                    skipped: 0,
+                    succeeded: 0,
                     failed: 0,
+                    skipped: 0,
                 };
                 return acc;
-            }, {} as { [step in PipelineStep]: PipelineStepProgress }),
+            }, {} as { [step in PipelineStep]: PipelineStepStats }),
         };
 
-        const outputProgress = dataResourceProgressItems.Items?.map((item) => {
-            const state = item.State.S!.toUpperCase() as PipelineStepState;
-            const step = item.Step.S!.toUpperCase() as PipelineStep;
+        statsItems.Responses?.[this.awsDynamoDBTableName].forEach((item) => {
+            const step = item.SK.S!.replace("STATS#", "") as PipelineStep;
+            result.steps[step] = {
+                queued: item.Queued?.N ? parseInt(item.Queued.N) : 0,
+                running: item.Running?.N ? parseInt(item.Running.N) : 0,
+                succeeded: item.Succeeded?.N ? parseInt(item.Succeeded.N) : 0,
+                skipped: item.Skipped?.N ? parseInt(item.Skipped.N) : 0,
+                failed: item.Failed?.N ? parseInt(item.Failed.N) : 0,
+            } as PipelineStepStats;
 
-            if (!(step in result.steps)) {
-                throw new Error(`Unknown step: ${step}`);
-            }
+            result.steps[step].total = result.steps[step].succeeded +
+                result.steps[step].skipped +
+                result.steps[step].failed +
+                result.steps[step].running +
+                result.steps[step].queued;
+            result.total.running = (result.total.running || 0) +
+                result.steps[step].running;
+            result.total.queued = (result.total.queued || 0) +
+                result.steps[step].queued;
+            result.total.failed = (result.total.failed || 0) +
+                result.steps[step].failed;
+        });
 
-            result.total++;
-            // If we are currently at a certain step, all previous steps are also completed
-            PipelineSteps.slice(0, PipelineSteps.indexOf(step)).forEach(
-                (s) => result.steps[s].completed++,
-            );
-
-            switch (state) {
-                case "QUEUED":
-                    result.steps[step].queued++;
-                    break;
-                case "RUNNING":
-                    result.steps[step].running++;
-                    break;
-                case "SUCCEEDED":
-                    result.steps[step].completed++;
-                    if (step === "SOLR") {
-                        result.completed++;
-                    }
-                    break;
-                case "SKIPPED":
-                    result.steps[step].skipped++;
-                    break;
-                case "FAILED":
-                    result.steps[step].failed++;
-                    result.failed++;
-                    break;
-                default:
-                    throw new Error(`Unknown state: ${state}`);
-            }
-
-            return ({
-                dataResourceId: item.DataResourceId.S!,
-                state: state,
-                step: step,
-                startedAt: item.startedAt?.S
-                    ? new Date(item.startedAt.S)
-                    : undefined,
-                stoppedAt: item.stoppedAt?.S
-                    ? new Date(item.stoppedAt.S)
-                    : undefined,
-            });
-        }) || [];
+        result.total.total = result.steps.DOWNLOAD.total;
+        result.total.succeeded = result.steps.SOLR?.succeeded;
+        result.total.skipped = result.steps.SOLR?.skipped;
 
         return result;
     }
 
-    async getPipelineRunDataResourceProgress(
+    async getPipelineStepAndStateDataResources(
         pipelineId: string,
+        step: PipelineStep,
+        state?: PipelineStepState,
         pagination?: PaginationInput,
     ): Promise<PaginationOutput<DataResourceProgress>> {
         console.debug(
@@ -238,23 +226,21 @@ export class AwsPipelineServiceImpl implements PipelineService {
             pipelineId,
         );
 
-        const counts = await this.dynamoDB.query({
+        const baseQuery = {
             TableName: this.awsDynamoDBTableName,
-            KeyConditionExpression: "PK = :pk and begins_with(SK, :sk)",
+            KeyConditionExpression: "#pk = :pk and begins_with(#sk, :sk)",
+            ExpressionAttributeNames: {
+                "#pk": "PK",
+                "#sk": "SK",
+            },
             ExpressionAttributeValues: {
                 ":pk": { S: `RUN#${pipelineId}` },
-                ":sk": { S: "DATA_RESOURCE#" },
+                ":sk": { S: `DATA_RESOURCE#${step}#${state ? state : ""}` },
             },
-            Select: "COUNT",
-        });
+        };
 
         const output = await this.dynamoDB.query({
-            TableName: this.awsDynamoDBTableName,
-            KeyConditionExpression: "PK = :pk and begins_with(SK, :sk)",
-            ExpressionAttributeValues: {
-                ":pk": { S: `RUN#${pipelineId}` },
-                ":sk": { S: "DATA_RESOURCE#" },
-            },
+            ...baseQuery,
             Limit: (!pagination?.first && !pagination?.last)
                 ? 10
                 : Math.min(pagination?.first || 100, pagination?.last || 100),
@@ -283,12 +269,6 @@ export class AwsPipelineServiceImpl implements PipelineService {
                     dataResourceId: item.DataResourceId.S!,
                     step: item.Step.S! as PipelineStep,
                     state: item.State.S! as PipelineStepState,
-                    startedAt: item.startedAt?.S
-                        ? new Date(item.startedAt.S)
-                        : undefined,
-                    stoppedAt: item.stoppedAt?.S
-                        ? new Date(item.stoppedAt.S)
-                        : undefined,
                 },
             })) || [],
             pageInfo: {

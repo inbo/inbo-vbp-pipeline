@@ -46,7 +46,9 @@ const errorLink = new ErrorLink(({ error }) => {
   if (CombinedGraphQLErrors.is(error)) {
     error.errors.forEach(({ message, locations, path }) =>
       console.log(
-        `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
+        `[GraphQL error]: Message: ${message}, Location: ${
+          JSON.stringify(locations, null, 2)
+        }, Path: ${path}`,
       )
     );
   } else if (CombinedProtocolErrors.is(error)) {
@@ -90,7 +92,7 @@ const client = new ApolloClient({
     typePolicies: {
       Pipeline: {
         fields: {
-          edges: relayStylePagination(["id", "step", "state"]),
+          dataResourceProgress: relayStylePagination(["id", "step", "state"]),
         },
       },
     },

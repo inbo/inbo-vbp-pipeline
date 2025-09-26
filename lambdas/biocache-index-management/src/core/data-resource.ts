@@ -6,6 +6,12 @@ export type DataResource = {
 export type DataResourceDetails = {
     id: string;
     name: string;
+    url: string;
+
+    createdAt: Date;
+    checkedAt: Date;
+    updatedAt: Date;
+    processedAt?: Date;
 };
 
 export type DataResourceProcessingState = {

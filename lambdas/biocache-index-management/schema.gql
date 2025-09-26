@@ -96,8 +96,8 @@ type Pipeline {
 	error: String
 	cause: String
 
-	progress: PipelineProgress
-	dataResourceProgress(step: DataResourceProgressStep, state: DataResourceProgressState, first: Int, after: ID, last: Int, before: ID): DataResourceProgressConnection
+	stats: PipelineStats
+	dataResourceProgress(step: PipelineStep!, state: PipelineStepState, first: Int, after: ID, last: Int, before: ID): DataResourceProgressConnection
 }
 
 enum PipelineStatus {
@@ -121,43 +121,49 @@ type DataResourceEvent {
 	lastUpdated: String!
 }
 
-enum DataResourceProgressState {
+enum PipelineStepState {
 	QUEUED
 	RUNNING
-	COMPLETED
+	SUCCEEDED
+	SKIPPED
 	FAILED
 }
 
-enum DataResourceProgressStep {
+enum PipelineStep {
 	DOWNLOAD
 	INDEX
 	SAMPLE
 	SOLR
 }
 
-type PipelineStepProgress {
-	step: DataResourceProgressStep!
+type PipelineTotalStats {
+	total: Int!
 	queued: Int!
 	running: Int!
-	completed: Int!
+	succeeded: Int!
 	skipped: Int!
 	failed: Int!
 }
 
-type PipelineProgress {
+type PipelineStepStats {
+	step: PipelineStep!
 	total: Int!
-	completed: Int!
+	queued: Int!
+	running: Int!
+	succeeded: Int!
+	skipped: Int!
 	failed: Int!
+}
 
-	steps: [PipelineStepProgress!]!
+type PipelineStats {
+	total: PipelineTotalStats!
+	steps: [PipelineStepStats!]!
 }
 
 type DataResourceProgress {
 	dataResource: DataResource
-	state: DataResourceProgressState!
-	step: DataResourceProgressStep!
-	startedAt: String
-	stoppedAt: String
+	state: PipelineStepState!
+	step: PipelineStep!
 }
 
 type DataResourceProgressConnection {
@@ -199,6 +205,12 @@ type DataResource {
 	id: ID!
 	name: String
 	description: String
+	url: String
+
+	createdAt: Date
+	checkedAt: Date
+	updatedAt: Date
+	processedAt: Date
 
 	processingState: DataResourceProcessingState
 }

@@ -5,6 +5,10 @@ export type Pipeline = {
     status: PipelineStatus;
     startedAt?: Date;
     stoppedAt?: Date;
+    input?: string;
+    output?: string;
+    error?: string;
+    cause?: string;
 };
 
 export enum PipelineStatus {
@@ -45,27 +49,24 @@ export type PipelineStepState =
     | "QUEUED"
     | "RUNNING";
 
-export type PipelineStepProgress = {
+export type PipelineStepStats = {
+    total: number;
     queued: number;
     running: number;
-    completed: number;
+    succeeded: number;
     skipped: number;
     failed: number;
 };
 
-export type PipelineProgress = {
-    total: number;
-    completed: number;
-    failed: number;
-    steps: { [step in PipelineStep]: PipelineStepProgress };
+export type PipelineStats = {
+    total: PipelineStepStats;
+    steps: { [step in PipelineStep]: PipelineStepStats };
 };
 
 export type DataResourceProgress = {
     dataResourceId: string;
     state: PipelineStepState;
     step: PipelineStep;
-    startedAt?: Date;
-    stoppedAt?: Date;
 };
 
 export type DataResourceProcessingState = {
@@ -98,14 +99,9 @@ export type PipelineService = {
         dataResourceId: string,
     ): Promise<DataResourceHistory[]>;
 
-    getPipelineProgress(
+    getPipelineStats(
         pipelineId: string,
-    ): Promise<PipelineProgress>;
-
-    getPipelineRunDataResourceProgress(
-        pipelineId: string,
-        pagination: PaginationInput,
-    ): Promise<PaginationOutput<DataResourceProgress>>;
+    ): Promise<PipelineStats>;
 
     getPipelineRunDataResourceProgressCount(
         pipelineId: string,
@@ -115,8 +111,10 @@ export type PipelineService = {
         dataResourceIds: string[],
     ): Promise<DataResourceProcessingState[] | null>;
 
-    getPipelineRunDataResourceProgress(
+    getPipelineStepAndStateDataResources(
         pipelineId: string,
+        step: PipelineStep,
+        state?: PipelineStepState,
         pagination?: PaginationInput,
     ): Promise<PaginationOutput<DataResourceProgress>>;
 };

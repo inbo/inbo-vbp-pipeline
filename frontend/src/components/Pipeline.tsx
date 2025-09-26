@@ -1,18 +1,31 @@
 import { useQuery } from "@apollo/client/react";
-import { GET_PIPELINE, GET_PIPELINE_PROGRESS } from "../graphql/pipelines";
+import { GET_PIPELINE_PROGRESS } from "../graphql/pipelines";
 import { useParams } from "react-router";
-import { useState } from "react";
-import { DataResourceProgress } from "./DataResourceProgress";
+import { type Dispatch, type SetStateAction, useMemo, useState } from "react";
 import {
     PipelineStatus,
-    type PipelineStepProgress,
+    PipelineStep,
+    PipelineStepState,
+    type PipelineStepStats,
 } from "../__generated__/biocache-index-management/graphql";
 
 import "../styles/PipelineProgress.css";
 import { NetworkStatus } from "@apollo/client";
+import {
+    type DataResourceFilter,
+    DataResourceProgress,
+} from "./DataResourceProgress";
 
 function ProgressStepSection(
-    { value, total, color }: { value: number; total: number; color: string },
+    { step, state, value, total, color, setDataResourceFilter }: {
+        pipelineId: string;
+        step?: PipelineStep;
+        state?: PipelineStepState;
+        value: number;
+        total: number;
+        color: string;
+        setDataResourceFilter: Dispatch<SetStateAction<DataResourceFilter>>;
+    },
 ) {
     if (value <= 0) {
         return null;
@@ -29,6 +42,7 @@ function ProgressStepSection(
                 width: `${(value / total) * 100}%`,
                 backgroundColor: color,
             }}
+            onMouseDown={() => setDataResourceFilter({ step, state })}
         >
             {value}
         </div>
@@ -36,53 +50,73 @@ function ProgressStepSection(
 }
 
 function ProgressStep(
-    { progress, pipelineTotal }: {
-        progress: PipelineStepProgress;
+    { pipelineId, stats, pipelineTotal, setDataResourceFilter }: {
+        pipelineId: string;
+        stats: PipelineStepStats;
         pipelineTotal: number;
+        setDataResourceFilter: Dispatch<SetStateAction<DataResourceFilter>>;
     },
 ) {
-    const stepTotal = progress.completed + progress.failed + progress.running +
-        progress.queued;
     return (
         <div
-            id={"progress-step-" + progress.step}
+            id={"progress-step-" + stats.step}
             className="progress-step"
             style={{
                 flex: 1,
                 maxWidth: "25%",
             }}
         >
-            <div>{progress.step}</div>
+            <div>{stats.step}: {stats.total}</div>
             <div
                 className="progress"
                 style={{
-                    width: `${(stepTotal / pipelineTotal) * 100}%`,
+                    width: `${(stats.total / pipelineTotal) * 100}%`,
                 }}
             >
                 <ProgressStepSection
-                    value={progress.skipped}
-                    total={stepTotal}
+                    pipelineId={pipelineId}
+                    step={stats.step}
+                    state={PipelineStepState.Skipped}
+                    value={stats.skipped}
+                    total={stats.total}
                     color="darkgreen"
+                    setDataResourceFilter={setDataResourceFilter}
                 />
                 <ProgressStepSection
-                    value={progress.completed}
-                    total={stepTotal}
+                    pipelineId={pipelineId}
+                    step={stats.step}
+                    state={PipelineStepState.Succeeded}
+                    value={stats.succeeded}
+                    total={stats.total}
                     color="green"
+                    setDataResourceFilter={setDataResourceFilter}
                 />
                 <ProgressStepSection
-                    value={progress.failed}
-                    total={stepTotal}
+                    pipelineId={pipelineId}
+                    step={stats.step}
+                    state={PipelineStepState.Failed}
+                    value={stats.failed}
+                    total={stats.total}
                     color="red"
+                    setDataResourceFilter={setDataResourceFilter}
                 />
                 <ProgressStepSection
-                    value={progress.running}
-                    total={stepTotal}
+                    pipelineId={pipelineId}
+                    step={stats.step}
+                    state={PipelineStepState.Running}
+                    value={stats.running}
+                    total={stats.total}
                     color="blue"
+                    setDataResourceFilter={setDataResourceFilter}
                 />
                 <ProgressStepSection
-                    value={progress.queued}
-                    total={stepTotal}
+                    pipelineId={pipelineId}
+                    step={stats.step}
+                    state={PipelineStepState.Queued}
+                    value={stats.queued}
+                    total={stats.total}
                     color="grey"
+                    setDataResourceFilter={setDataResourceFilter}
                 />
             </div>
         </div>
@@ -98,9 +132,54 @@ export const Pipeline = ({ id }: { id: string }) => {
             pollInterval: 10_000,
         },
     );
-    const [showDataResourceProgress, setShowDataResourceProgress] = useState<
-        boolean
-    >(false);
+    const [dataResourceFilter, setDataResourceFilter] = useState<
+        DataResourceFilter
+    >({});
+
+    const stats = data?.pipeline?.stats;
+
+    const progress = useMemo(() => {
+        return (
+            stats && (
+                <div>
+                    Pipeline Progress:{" "}
+                    <div style={{ width: "100%" }}>
+                        {stats?.steps.map((step) => (
+                            <ProgressStep
+                                pipelineId={pipelineId}
+                                key={step.step}
+                                stats={step}
+                                pipelineTotal={stats.total.total}
+                                setDataResourceFilter={setDataResourceFilter}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )
+        );
+    }, [
+        pipelineId,
+        data,
+        setDataResourceFilter,
+    ]);
+
+    const dataResources = useMemo(() => (
+        dataResourceFilter.step
+            ? (
+                <DataResourceProgress
+                    pipelineId={pipelineId}
+                    step={dataResourceFilter.step}
+                    state={dataResourceFilter.state}
+                    setDataResourceFilter={setDataResourceFilter}
+                />
+            )
+            : null
+    ), [
+        pipelineId,
+        dataResourceFilter,
+        stats?.steps[dataResourceFilter.step],
+        setDataResourceFilter,
+    ]);
 
     if (error) {
         return <p>Error: {error.message}</p>;
@@ -114,54 +193,33 @@ export const Pipeline = ({ id }: { id: string }) => {
         return <p>Not found</p>;
     }
 
-    const progress = data?.pipeline?.progress;
-
     return (
         <div>
             <p>ID: {data?.pipeline?.id}</p>
             <p>Status: {data?.pipeline?.status}</p>
-            {progress && (
-                <div>
-                    Pipeline Progress:{" "}
-                    <div style={{ width: "100%" }}>
-                        {data.pipeline.progress?.steps.map((step) => (
-                            <ProgressStep
-                                key={step.step}
-                                progress={step}
-                                pipelineTotal={progress.total}
-                            />
-                        ))}
-                    </div>
-                </div>
-            )}
+            {progress}
             <p>Started At: {data?.pipeline?.startedAt}</p>
             <p>Stopped At: {data?.pipeline?.stoppedAt}</p>
-            <p>Input: {data?.pipeline?.input}</p>
+            <div>
+                Input: <pre>{data?.pipeline?.input}</pre>
+            </div>
             {data?.pipeline?.status == PipelineStatus.Succeeded && (
-                <p>Output: {data?.pipeline?.output}</p>
+                <div>
+                    Output: <pre>{data?.pipeline?.output}</pre>
+                </div>
             )}
             {data?.pipeline?.status == PipelineStatus.Failed && (
                 <div>
-                    <p>Error: {data?.pipeline?.error}</p>{" "}
-                    <p>Cause: {data?.pipeline?.cause}</p>
+                    <div>
+                        Error: <pre>{data?.pipeline?.error}</pre>
+                    </div>
+                    <div>
+                        Cause: <pre>{data?.pipeline?.cause}</pre>
+                    </div>
                 </div>
             )}
 
-            <button
-                className="btn btn-secondary"
-                onClick={() =>
-                    setShowDataResourceProgress(
-                        (prev) => !prev,
-                    )}
-            >
-                Show Data Resource Progress
-            </button>
-            {showDataResourceProgress && (
-                <div>
-                    <h3>Data Resource Progress</h3>
-                    <DataResourceProgress pipelineId={pipelineId} />
-                </div>
-            )}
+            {dataResources}
         </div>
     );
 };

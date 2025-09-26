@@ -1,12 +1,11 @@
 import {
     DataResourceProgressConnectionResolvers,
-    DataResourceProgressResolvers,
-    DataResourceProgressState,
-    DataResourceProgressStep,
     MutationResolvers,
     Pipeline as GqlPipeline,
     PipelineResolvers,
     PipelineStatus as GqlPipelineStatus,
+    PipelineStep as GqlPipelineStep,
+    PipelineStepState as GqlPipelineStepState,
     QueryResolvers,
 } from "../__generated__/types";
 import { AwsPipelineServiceImpl } from "../aws/aws-pipeline-service";
@@ -15,9 +14,9 @@ import {
     Pipeline,
     PipelineStatus,
     PipelineStep,
+    PipelineSteps,
     PipelineStepState,
 } from "../core/pipeline-service";
-import { dataResourceService } from "./data-resource-resolver";
 
 const pipelineService = new AwsPipelineServiceImpl(config);
 
@@ -74,24 +73,15 @@ export const Mutation: MutationResolvers = {
 };
 
 export const PipelineQuery: PipelineResolvers = {
-    progress: async (parent) => {
-        const progress = await pipelineService.getPipelineProgress(
+    stats: async (parent) => {
+        const stats = await pipelineService.getPipelineStats(
             parent.id,
         );
         return {
-            total: progress.total,
-            completed: progress.completed,
-            failed: progress.failed,
-
-            steps: Object.entries(progress.steps).map((
-                [step, progress],
-            ) => ({
-                step: step as DataResourceProgressStep,
-                queued: progress.queued,
-                running: progress.running,
-                completed: progress.completed,
-                skipped: progress.skipped,
-                failed: progress.failed,
+            total: stats.total,
+            steps: PipelineSteps.map((step) => ({
+                step: step as GqlPipelineStep,
+                ...stats.steps[step],
             })),
         };
     },
@@ -99,28 +89,29 @@ export const PipelineQuery: PipelineResolvers = {
         parent,
         { step, state, first, after, last, before },
     ) => {
-        const paginatedResult = await pipelineService
-            .getPipelineRunDataResourceProgress(
+        const dataResourceProgress = await pipelineService
+            .getPipelineStepAndStateDataResources(
                 parent.id,
+                step as PipelineStep,
+                state as PipelineStepState,
                 {
-                    first: first || undefined,
-                    after: after || undefined,
-                    last: last || undefined,
-                    before: before || undefined,
+                    first: first ?? undefined,
+                    after: after ?? undefined,
+                    last: last ?? undefined,
+                    before: before ?? undefined,
                 },
             );
+
         return {
-            edges: paginatedResult.edges.map((progress) => ({
+            edges: dataResourceProgress.edges.map((progress) => ({
                 cursor: progress.cursor,
                 node: {
                     dataResource: { id: progress.node.dataResourceId },
-                    step: progress.node.step as DataResourceProgressStep,
-                    state: progress.node.state as DataResourceProgressState,
-                    startedAt: progress.node.startedAt?.toISOString(),
-                    stoppedAt: progress.node.stoppedAt?.toISOString(),
+                    step: step as GqlPipelineStep,
+                    state: progress.node.state as GqlPipelineStepState,
                 },
             })),
-            pageInfo: paginatedResult.pageInfo,
+            pageInfo: dataResourceProgress.pageInfo,
         };
     },
 };
@@ -147,5 +138,9 @@ function maptoGraphql(pipeline: Pipeline): GqlPipeline {
         status: pipeline.status as GqlPipelineStatus,
         startedAt: pipeline.startedAt?.toISOString(),
         stoppedAt: pipeline.stoppedAt?.toISOString(),
+        input: pipeline.input,
+        output: pipeline.output,
+        error: pipeline.error,
+        cause: pipeline.cause,
     };
 }

@@ -1,6 +1,5 @@
 import {
     DataResourceProgressResolvers,
-    DataResourceProgressState,
     QueryResolvers,
 } from "../__generated__/types";
 import { CollectoryClient } from "../ala/collectory";
