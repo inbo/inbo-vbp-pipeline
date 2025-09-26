@@ -107,7 +107,7 @@ createRoot(document.getElementById("root")!).render(
     >
       <AuthProvider {...oidcConfig}>
         <ApolloProvider client={client}>
-          <BrowserRouter>
+          <BrowserRouter basename="/pipeline">
             <Routes>
               <Route element={<App />} path="/" />
               <Route element={<StartPipeline />} path="/start-pipeline" />
