@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:prod": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "generate": "graphql-codegen -v -o",
-    "test": "jest"
+    "test": "jest",
+    "test:ci": "echo \"No tests yet\""
   },
   "dependencies": {
     "@apollo/client": "^4.0.5",
