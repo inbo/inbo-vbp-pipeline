@@ -50,9 +50,9 @@ jobs:
           if [ "${number_of_changes_since_last_tag}" != "0" ]; then
             echo "Setting new version for frontend ${component} to ${new_version} with ${number_of_changes_since_last_tag} changes"
             echo "frontend_version=${new_version}" >> "$GITHUB_OUTPUT"
-            ALL_VERSIONS=$(jq -c "frontend = \"${new_version}\"" <<< ${ALL_VERSIONS})
+            ALL_VERSIONS=$(jq -c ".frontend = \"${new_version}\"" <<< ${ALL_VERSIONS})
           else
-            ALL_VERSIONS=$(jq -c "frontend = \"${previous_version}\"" <<< ${ALL_VERSIONS})
+            ALL_VERSIONS=$(jq -c ".frontend = \"${previous_version}\"" <<< ${ALL_VERSIONS})
           fi
           
           # Lambdas
