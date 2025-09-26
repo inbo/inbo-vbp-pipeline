@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "build:prod": "npm run generate && vite build",
+    "build:prod": "npm run generate && vite build --base=/pipeline",
     "lint": "eslint .",
     "preview": "vite preview",
     "generate": "graphql-codegen -v -o",
