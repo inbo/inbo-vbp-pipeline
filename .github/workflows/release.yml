@@ -28,8 +28,8 @@ jobs:
           LAMBDA_COMPONENTS: "biocache-index-management"
           DOCKER_COMPONENTS: "pipeline-batch-runner"
         run: |
-          # Terraform
           ALL_VERSIONS='{}'
+          # Terraform
           export COMPONENT=terraform
           export PATHS="./terraform/**"    
           export $(bash <(curl -fsS "https://raw.githubusercontent.com/StefanVanDyck/git-semantic-version/refs/heads/main/version.sh") | xargs)
@@ -43,7 +43,6 @@ jobs:
           fi
           
           # Front-end
-          ALL_VERSIONS='{}'
           export COMPONENT=frontend
           export PATHS="./frontend/**"    
           export $(bash <(curl -fsS "https://raw.githubusercontent.com/StefanVanDyck/git-semantic-version/refs/heads/main/version.sh") | xargs)
