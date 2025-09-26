@@ -1,0 +1,7 @@
+.progress-node {
+    display: inline-block;
+    border-radius: 50%;
+    width: 2em;
+    height: 2em;
+    background-color: #007bff;
+}

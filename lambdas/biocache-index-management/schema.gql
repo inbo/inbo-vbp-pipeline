@@ -13,7 +13,7 @@ type Query {
 
 	############## PIPELINE #############
 	pipeline(id: ID!): Pipeline
-	pipelines: [Pipeline!]!
+	pipelines(status: PipelineStatus): [Pipeline!]!
 	dataResourceHistory(input: DataResourceHistoryInput!): DataResourceHistoryOutput!
 
 	############ DATA RESOURCE ###########
@@ -88,7 +88,7 @@ type SetActiveIndexOutput {
 ############ PIPELINE ###########
 type Pipeline {
 	id: ID!
-	status: String!
+	status: PipelineStatus!
 	startedAt: Date
 	stoppedAt: Date
 	input: String
@@ -96,7 +96,16 @@ type Pipeline {
 	error: String
 	cause: String
 
-	dataResourceProgress: [DataResourceProgress!]
+	stats: PipelineStats
+	dataResourceProgress(step: PipelineStep!, state: PipelineStepState, first: Int, after: ID, last: Int, before: ID): DataResourceProgressConnection
+}
+
+enum PipelineStatus {
+	RUNNING
+	SUCCEEDED
+	FAILED
+	TIMED_OUT
+	ABORTED
 }
 
 input DataResourceHistoryInput {
@@ -112,22 +121,62 @@ type DataResourceEvent {
 	lastUpdated: String!
 }
 
-enum DataResourceProgressState {
-	STARTED
-	DOWNLOADING
-	INDEXING
-	SAMPLING
-	UPLOADING
-	COMPLETED
+enum PipelineStepState {
+	QUEUED
+	RUNNING
+	SUCCEEDED
+	SKIPPED
 	FAILED
+}
+
+enum PipelineStep {
+	DOWNLOAD
+	INDEX
+	SAMPLE
+	SOLR
+}
+
+type PipelineTotalStats {
+	total: Int!
+	queued: Int!
+	running: Int!
+	succeeded: Int!
+	skipped: Int!
+	failed: Int!
+}
+
+type PipelineStepStats {
+	step: PipelineStep!
+	total: Int!
+	queued: Int!
+	running: Int!
+	succeeded: Int!
+	skipped: Int!
+	failed: Int!
+}
+
+type PipelineStats {
+	total: PipelineTotalStats!
+	steps: [PipelineStepStats!]!
 }
 
 type DataResourceProgress {
 	dataResource: DataResource
-	state: DataResourceProgressState!
-	startedAt: String
-	stoppedAt: String
+	state: PipelineStepState!
+	step: PipelineStep!
 }
+
+type DataResourceProgressConnection {
+  totalCount: Int
+  edges: [DataResourceProgressEdge]
+  pageInfo: PageInfo!
+}
+
+type DataResourceProgressEdge {
+  cursor: ID!
+  node: DataResourceProgress!
+}
+
 
 type DataResourceHistoryOutput {
 	events: [DataResourceEvent!]!
@@ -156,4 +205,27 @@ type DataResource {
 	id: ID!
 	name: String
 	description: String
+	url: String
+
+	createdAt: Date
+	checkedAt: Date
+	updatedAt: Date
+	processedAt: Date
+
+	processingState: DataResourceProcessingState
+}
+
+type DataResourceProcessingState {
+	downloadedAt: Date
+	indexedAt: Date
+	sampledAt: Date
+	uploadedAt: Date
+	uploadedTo: [Index]
+}
+
+############ COMMON ##################
+type PageInfo {
+  startCursor: ID
+  endCursor: ID
+  hasNextPage: Boolean!
 }

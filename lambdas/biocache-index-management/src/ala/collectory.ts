@@ -7,11 +7,16 @@ import {
 export class CollectoryClient implements DataResourceRepository {
     private collectoryBaseUrl: string;
 
+    // Simple in-memory cache to avoid repeated fetches for the same data resource, should be fine for short-lived Lambda invocations
+    private cache: Map<string, DataResourceDetails> = new Map();
+
     constructor({ collectoryBaseUrl }: { collectoryBaseUrl: string }) {
         this.collectoryBaseUrl = collectoryBaseUrl;
     }
 
     async getDataResources(): Promise<DataResource[]> {
+        console.debug("Getting data resources from Collectory");
+
         const response = await fetch(
             `${this.collectoryBaseUrl}/ws/dataResource`,
         );
@@ -30,6 +35,15 @@ export class CollectoryClient implements DataResourceRepository {
     async getDataResource(
         dataResourceId: string,
     ): Promise<DataResourceDetails> {
+        if (this.cache.has(dataResourceId)) {
+            return this.cache.get(dataResourceId)!;
+        }
+
+        console.debug(
+            "Getting data resource from Collectory with id:",
+            dataResourceId,
+        );
+
         const response = await fetch(
             `${this.collectoryBaseUrl}/ws/dataResource/${dataResourceId}`,
         );
@@ -39,9 +53,16 @@ export class CollectoryClient implements DataResourceRepository {
             );
         }
         const output = await response.json();
-        return {
+        const result: DataResourceDetails = {
             id: output.uid,
             name: output.name,
+            url: output.url,
+            createdAt: new Date(output.dateCreated),
+            checkedAt: new Date(output.lastChecked),
+            updatedAt: new Date(output.lastUpdated),
+            processedAt: output.dataCurrency ?? new Date(output.dataCurrency),
         };
+        this.cache.set(dataResourceId, result);
+        return result;
     }
 }

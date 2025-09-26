@@ -1,13 +1,21 @@
-import { QueryResolvers } from "../__generated__/types";
+import {
+    DataResourceProgressResolvers,
+    QueryResolvers,
+} from "../__generated__/types";
 import { CollectoryClient } from "../ala/collectory";
 import config from "../config";
+import { DataResource } from "../core/data-resource";
 
 export const dataResourceService = new CollectoryClient(config);
 
 export const Query: QueryResolvers = {
-    dataResources: async () => {
-        const dataResources = await dataResourceService.getDataResources();
-        return dataResources.map((dr) => ({
+    dataResources: async (_parent, _args, context, _info) => {
+        if (!context.dataResources) {
+            const dataResources = await dataResourceService.getDataResources();
+            context.dataResources = dataResources;
+        }
+
+        return (context.dataResources as DataResource[]).map((dr) => ({
             id: dr.id,
             name: dr.name,
         }));
@@ -22,6 +30,21 @@ export const Query: QueryResolvers = {
     },
 };
 
+export const DataResourceProgress: DataResourceProgressResolvers = {
+    dataResource: async (parent) => {
+        return dataResourceService.getDataResource(parent!.dataResource!.id);
+    },
+};
+
+export const DataResourceProgressQuery: DataResourceProgressResolvers = {
+    dataResource: async (parent, _args, _context, info) => {
+        return await dataResourceService.getDataResource(
+            parent.dataResource!.id,
+        );
+    },
+};
+
 export default {
     Query: Query,
+    DataResourceProgress: DataResourceProgress,
 };

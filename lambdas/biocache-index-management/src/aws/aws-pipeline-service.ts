@@ -1,13 +1,21 @@
 import {
     DataResourceHistory,
+    DataResourceProcessingState,
     DataResourceProgress,
     Pipeline,
     PipelineDetails,
     PipelineService,
+    PipelineStats,
+    PipelineStatus,
+    PipelineStep,
+    PipelineSteps,
+    PipelineStepState,
+    PipelineStepStats,
 } from "../core/pipeline-service";
 
 import { SFN } from "@aws-sdk/client-sfn";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { PaginationInput, PaginationOutput } from "../core/common";
 
 export class AwsPipelineServiceImpl implements PipelineService {
     private readonly awsStateMachineArn: string;
@@ -42,12 +50,13 @@ export class AwsPipelineServiceImpl implements PipelineService {
 
         const output = await this.sfn.describeExecution({
             executionArn: `${this.awsStateExecutionArnPrefix}:${id}`,
+            includedData: "ALL_DATA",
         });
 
         return output.executionArn
             ? {
                 id: output.name!,
-                status: output.status!,
+                status: output.status! as PipelineStatus,
                 startedAt: output.startDate,
                 stoppedAt: output.stopDate,
                 input: output.input,
@@ -58,17 +67,18 @@ export class AwsPipelineServiceImpl implements PipelineService {
             : null;
     }
 
-    async getPipelines(): Promise<Pipeline[]> {
+    async getPipelines(status?: PipelineStatus): Promise<Pipeline[]> {
         console.debug("Getting all pipelines");
 
         const output = await this.sfn.listExecutions({
             stateMachineArn: this.awsStateMachineArn,
             maxResults: 10,
+            statusFilter: status,
         });
         return output.executions
             ?.map((execution) => ({
                 id: execution.name!,
-                status: execution.status!,
+                status: execution.status! as PipelineStatus,
                 startedAt: execution.startDate,
                 stoppedAt: execution.stopDate,
             })) || [];
@@ -95,7 +105,7 @@ export class AwsPipelineServiceImpl implements PipelineService {
                 `${this.awsStateExecutionArnPrefix}:`,
                 "",
             ),
-            status: "RUNNING",
+            status: PipelineStatus.Running,
             startedAt: output.startDate,
         };
     }
@@ -132,34 +142,197 @@ export class AwsPipelineServiceImpl implements PipelineService {
         })) || [];
     }
 
-    async getPipelineRunDataResourceProgress(
+    async getPipelineStats(
         pipelineId: string,
-    ): Promise<DataResourceProgress[]> {
+    ): Promise<PipelineStats> {
         console.debug(
             "Getting data resource progress for pipeline id:",
             pipelineId,
         );
 
+        const statsItems = await this.dynamoDB.batchGetItem({
+            RequestItems: {
+                [this.awsDynamoDBTableName]: {
+                    Keys: [
+                        ...PipelineSteps.map((step) => ({
+                            PK: { S: `RUN#${pipelineId}` },
+                            SK: { S: `STATS#${step}` },
+                        })),
+                    ],
+                },
+            },
+        });
+
+        const result = {
+            total: {
+                total: 0,
+                queued: 0,
+                running: 0,
+                succeeded: 0,
+                failed: 0,
+                skipped: 0,
+            },
+            steps: PipelineSteps.reduce((acc, step) => {
+                acc[step] = {
+                    total: 0,
+                    queued: 0,
+                    running: 0,
+                    succeeded: 0,
+                    failed: 0,
+                    skipped: 0,
+                };
+                return acc;
+            }, {} as { [step in PipelineStep]: PipelineStepStats }),
+        };
+
+        statsItems.Responses?.[this.awsDynamoDBTableName].forEach((item) => {
+            const step = item.SK.S!.replace("STATS#", "") as PipelineStep;
+            result.steps[step] = {
+                queued: item.Queued?.N ? parseInt(item.Queued.N) : 0,
+                running: item.Running?.N ? parseInt(item.Running.N) : 0,
+                succeeded: item.Succeeded?.N ? parseInt(item.Succeeded.N) : 0,
+                skipped: item.Skipped?.N ? parseInt(item.Skipped.N) : 0,
+                failed: item.Failed?.N ? parseInt(item.Failed.N) : 0,
+            } as PipelineStepStats;
+
+            result.steps[step].total = result.steps[step].succeeded +
+                result.steps[step].skipped +
+                result.steps[step].failed +
+                result.steps[step].running +
+                result.steps[step].queued;
+            result.total.running = (result.total.running || 0) +
+                result.steps[step].running;
+            result.total.queued = (result.total.queued || 0) +
+                result.steps[step].queued;
+            result.total.failed = (result.total.failed || 0) +
+                result.steps[step].failed;
+        });
+
+        result.total.total = result.steps.DOWNLOAD.total;
+        result.total.succeeded = result.steps.SOLR?.succeeded;
+        result.total.skipped = result.steps.SOLR?.skipped;
+
+        return result;
+    }
+
+    async getPipelineStepAndStateDataResources(
+        pipelineId: string,
+        step: PipelineStep,
+        state?: PipelineStepState,
+        pagination?: PaginationInput,
+    ): Promise<PaginationOutput<DataResourceProgress>> {
+        console.debug(
+            "Getting data resource progress for pipeline id:",
+            pipelineId,
+        );
+
+        const baseQuery = {
+            TableName: this.awsDynamoDBTableName,
+            KeyConditionExpression: "#pk = :pk and begins_with(#sk, :sk)",
+            ExpressionAttributeNames: {
+                "#pk": "PK",
+                "#sk": "SK",
+            },
+            ExpressionAttributeValues: {
+                ":pk": { S: `RUN#${pipelineId}` },
+                ":sk": { S: `DATA_RESOURCE#${step}#${state ? state : ""}` },
+            },
+        };
+
         const output = await this.dynamoDB.query({
+            ...baseQuery,
+            Limit: (!pagination?.first && !pagination?.last)
+                ? 10
+                : Math.min(pagination?.first || 100, pagination?.last || 100),
+            ExclusiveStartKey: pagination?.after
+                ? {
+                    PK: { S: `RUN#${pipelineId}` },
+                    SK: { S: pagination.after },
+                }
+                : pagination?.before
+                ? {
+                    PK: { S: `RUN#${pipelineId}` },
+                    SK: { S: pagination.before },
+                }
+                : undefined,
+            ScanIndexForward: pagination?.after
+                ? true
+                : pagination?.before
+                ? false
+                : true,
+        });
+
+        return {
+            edges: output.Items?.map((item) => ({
+                cursor: item.SK.S!,
+                node: {
+                    dataResourceId: item.DataResourceId.S!,
+                    step: item.Step.S! as PipelineStep,
+                    state: item.State.S! as PipelineStepState,
+                },
+            })) || [],
+            pageInfo: {
+                hasNextPage: !!output.LastEvaluatedKey,
+                hasPreviousPage: false, // DynamoDB does not support backwards pagination
+                startCursor: output.Items && output.Items.length > 0
+                    ? output.Items[0].SK.S!
+                    : undefined,
+                endCursor: output.Items && output.Items.length > 0
+                    ? output.Items[output.Items.length - 1].SK.S!
+                    : undefined,
+            },
+        };
+    }
+
+    async getPipelineRunDataResourceProgressCount(
+        pipelineId: string,
+    ): Promise<number> {
+        console.debug(
+            "Getting data resource progress counts for pipeline id:",
+            pipelineId,
+        );
+
+        const counts = await this.dynamoDB.query({
             TableName: this.awsDynamoDBTableName,
             KeyConditionExpression: "PK = :pk and begins_with(SK, :sk)",
             ExpressionAttributeValues: {
                 ":pk": { S: `RUN#${pipelineId}` },
-                ":sk": { S: "DATA_RESOURCE#STATE#" },
+                ":sk": { S: "DATA_RESOURCE#" },
+            },
+            Select: "COUNT",
+        });
+
+        return counts.Count || 0;
+    }
+
+    async getDataResourceProcessingStates(
+        dataResourceIds: string[],
+    ): Promise<DataResourceProcessingState[] | null> {
+        console.debug(
+            "Getting data resource processing state for data resource ids:",
+            dataResourceIds,
+        );
+
+        const response = await this.dynamoDB.batchGetItem({
+            RequestItems: {
+                [this.awsDynamoDBTableName]: {
+                    Keys: dataResourceIds.map((id) => ({
+                        PK: { S: `DATA_RESOURCE#${id}` },
+                        SK: { S: "STATE#" },
+                    })),
+                },
             },
         });
 
-        return (
-            output.Items?.map((item) => ({
-                dataResourceId: item.DataResourceId.S!,
-                state: item.State.S as DataResourceProgress["state"],
-                startedAt: item.startedAt?.S
-                    ? new Date(item.startedAt.S)
-                    : undefined,
-                stoppedAt: item.stoppedAt?.S
-                    ? new Date(item.stoppedAt.S)
-                    : undefined,
-            })) || []
-        );
+        return response.Responses?.[this.awsDynamoDBTableName].map((
+            item,
+        ) => ({
+            dataResourceId: item.DataResourceId.S,
+            downloadedAt: item.DownloadedAt?.S,
+            indexedAt: item.IndexedAt?.S,
+            sampledAt: item.SampledAt?.S,
+            uploadedAt: item.UploadedAt?.S,
+            uploadedTo: item.UploadedTo?.SS,
+        })) || null;
     }
 }

@@ -5,7 +5,11 @@ import { useCallback, useMemo, useState } from "react";
 import type { DataResource } from "../__generated__/biocache-index-management/graphql";
 import React from "react";
 
-const SelectAllStates = ["all", "none", "updated", "new", "some"] as const;
+const SelectAllStates = [
+    "all",
+    "none",
+    /* "updated", "new", */ "some",
+] as const;
 
 function getSelectAllState(
     selectedResources: boolean[],
@@ -21,22 +25,22 @@ function getSelectAllState(
         } else {
             allSelected = false;
         }
-        const dataResource = dataResources[i];
-        if (selectedResources[i] && !dataResource?.updated) {
-            updatedSelected = false;
-        }
-        if (selectedResources[i] && !dataResource?.new) {
-            newSelected = false;
-        }
+        // const dataResource = dataResources[i];
+        // if (selectedResources[i] && !dataResource?.updated) {
+        //     updatedSelected = false;
+        // }
+        // if (selectedResources[i] && !dataResource?.new) {
+        //     newSelected = false;
+        // }
     }
     if (noneSelected) {
         return SelectAllStates.indexOf("none");
-    } else if (allSelected) {
-        return SelectAllStates.indexOf("all");
-    } else if (newSelected) {
-        return SelectAllStates.indexOf("new");
-    } else if (updatedSelected) {
-        return SelectAllStates.indexOf("updated");
+        // } else if (allSelected) {
+        //     return SelectAllStates.indexOf("all");
+        // } else if (newSelected) {
+        //     return SelectAllStates.indexOf("new");
+        // } else if (updatedSelected) {
+        //     return SelectAllStates.indexOf("updated");
     } else {
         return SelectAllStates.indexOf("some");
     }
@@ -63,9 +67,9 @@ export const DataResourceList = () => {
             // Neeed to set indeterminate state manually, not supported through JSX
             if (selectAllRef.current) {
                 selectAllRef.current.indeterminate =
-                    SelectAllStates[newState] === "some" ||
-                    SelectAllStates[newState] === "updated" ||
-                    SelectAllStates[newState] === "new";
+                    SelectAllStates[newState] === "some"; // ||
+                // SelectAllStates[newState] === "updated" ||
+                // SelectAllStates[newState] === "new";
             }
 
             return newState;
@@ -91,16 +95,16 @@ export const DataResourceList = () => {
                         new Array(data?.dataResources.length).fill(false),
                     );
                     break;
-                case "updated":
-                    // setSelectedResources((prev) =>
-                    //     prev.map((_, i) => data?.dataResources[i].updated)
-                    // );
-                    break;
-                case "new":
-                    // setSelectedResources((prev) =>
-                    //     prev.map((_, i) => data?.dataResources[i].isNew)
-                    // );
-                    break;
+                // case "updated":
+                //     setSelectedResources((prev) =>
+                //         prev.map((_, i) => data?.dataResources[i].updated)
+                //     );
+                //     break;
+                // case "new":
+                //     setSelectedResources((prev) =>
+                //         prev.map((_, i) => data?.dataResources[i].isNew)
+                //     );
+                //     break;
                 default:
                     throw new Error(
                         "Invalid select all state triggered through toggling",
@@ -136,7 +140,9 @@ export const DataResourceList = () => {
                                     id="select-all"
                                     name="dataResource"
                                     onChange={changeSelectAll}
-                                    checked={SelectAllStates[selectAllState] ===
+                                    defaultChecked={SelectAllStates[
+                                        selectAllState
+                                    ] ===
                                         "all"}
                                 />
                                 <label htmlFor="select-all">

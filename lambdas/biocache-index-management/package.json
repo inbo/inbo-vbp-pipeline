@@ -28,6 +28,7 @@
     "node-fetch": "^2.7.0",
     "testcontainers": "^11.5.1",
     "ts-jest": "^29.4.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   }
 }

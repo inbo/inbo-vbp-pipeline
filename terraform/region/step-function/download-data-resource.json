@@ -46,7 +46,10 @@
     },
     "Do Nothing": {
       "Type": "Pass",
-      "End": true
+      "End": true,
+      "Output": {
+        "result": "SKIPPED"
+      }
     },
     "Download Data Resource": {
       "Type": "Task",
@@ -146,7 +149,10 @@
           }
         }
       },
-      "End": true
+      "End": true,
+      "Output": {
+        "result": "SUCCEEDED"
+      }
     },
     "Fail": {
       "Type": "Fail",

@@ -26,7 +26,7 @@ interface UserContext {
     user: User | null;
 }
 
-const resolvers: Resolvers = {
+export const resolvers: Resolvers = {
     Query: {
         ...IndexResolvers.Query,
         ...DataResourceResolvers.Query,
@@ -41,6 +41,12 @@ const resolvers: Resolvers = {
     },
     Pipeline: {
         ...PipelineResolvers.Pipeline,
+    },
+    DataResourceProgress: {
+        ...DataResourceResolvers.DataResourceProgress,
+    },
+    DataResourceProgressConnection: {
+        ...PipelineResolvers.DataResourceProgressConnection,
     },
 };
 

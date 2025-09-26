@@ -42,6 +42,20 @@ jobs:
             ALL_VERSIONS="{\"terraform\": \"${previous_version}\"}"
           fi
           
+          # Front-end
+          ALL_VERSIONS='{}'
+          export COMPONENT=frontend
+          export PATHS="./frontend/**"    
+          export $(bash <(curl -fsS "https://raw.githubusercontent.com/StefanVanDyck/git-semantic-version/refs/heads/main/version.sh") | xargs)
+
+          if [ "${number_of_changes_since_last_tag}" != "0" ]; then
+            echo "Setting new version for frontend ${component} to ${new_version} with ${number_of_changes_since_last_tag} changes"
+            echo "frontend_version=${new_version}" >> "$GITHUB_OUTPUT"
+            ALL_VERSIONS="{\"frontend\": \"${new_version}\"}"
+          else
+            ALL_VERSIONS="{\"frontend\": \"${previous_version}\"}"
+          fi
+          
           # Lambdas
           LAMBDA_VERSIONS="{}"
           LAMBDA_BUILD_MATRIX="[]"
@@ -86,6 +100,7 @@ jobs:
 
     outputs:
       terraform_version: ${{ steps.versions.outputs.terraform_version }}
+      frontend_version: ${{ steps.versions.outputs.frontend_version }}
       lambda_versions: ${{ toJSON(steps.versions.outputs.lambda_versions) }}
       lambda_build_matrix: ${{ steps.versions.outputs.lambda_build_matrix }}
       docker_versions: ${{ toJSON(steps.versions.outputs.docker_versions) }}
@@ -261,6 +276,44 @@ jobs:
 #              sha: context.sha
 #            })
 
+  build-and-release-frontend:
+    runs-on: [ self-hosted ]
+    needs: get-versions
+    if: needs.get-versions.outputs.frontend_version != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 23
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build frontend website S3
+        working-directory: ./frontend
+        run: |
+          set -e -x -o pipefail
+
+          npm ci
+          npm run test:ci
+          npm run build:prod
+
+          tar -cvzf frontend-${{ needs.get-versions.outputs.frontend_version }}.tar.gz -C "$(pwd)/dist" ./
+
+      - name: Archive failed test report
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: frontend-tests
+          path: ./test-output.json
+
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          commit: ${{ github.sha }}
+          tag: frontend-v${{ needs.get-versions.outputs.frontend_version }}
+          artifacts: "frontend/frontend-${{ needs.get-versions.outputs.frontend_version }}.tar.gz"
+
   build-and-release-lambdas:
     runs-on: [ self-hosted ]
     needs: get-versions
@@ -304,6 +357,7 @@ jobs:
     needs:
       - get-versions
       - build-and-release-terraform
+      - build-and-release-frontend
       - build-and-release-lambdas
 #      - build-and-push-docker-images
     # Only run if no failures or cancellations and at least one was not skipped

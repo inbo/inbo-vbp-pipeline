@@ -1,9 +1,23 @@
+import { PaginationInput, PaginationOutput } from "./common";
+
 export type Pipeline = {
     id: string;
-    status: string;
+    status: PipelineStatus;
     startedAt?: Date;
     stoppedAt?: Date;
+    input?: string;
+    output?: string;
+    error?: string;
+    cause?: string;
 };
+
+export enum PipelineStatus {
+    Aborted = "ABORTED",
+    Failed = "FAILED",
+    Running = "RUNNING",
+    Succeeded = "SUCCEEDED",
+    TimedOut = "TIMED_OUT",
+}
 
 export type PipelineDetails = Pipeline & {
     input?: string;
@@ -21,18 +35,54 @@ export type DataResourceHistory = {
     lastUpdated: Date;
 };
 
+export const PipelineSteps = [
+    "DOWNLOAD",
+    "INDEX",
+    "SAMPLE",
+    "SOLR",
+] as const;
+export type PipelineStep = typeof PipelineSteps[number];
+export type PipelineStepState =
+    | "SKIPPED"
+    | "SUCCEEDED"
+    | "FAILED"
+    | "QUEUED"
+    | "RUNNING";
+
+export type PipelineStepStats = {
+    total: number;
+    queued: number;
+    running: number;
+    succeeded: number;
+    skipped: number;
+    failed: number;
+};
+
+export type PipelineStats = {
+    total: PipelineStepStats;
+    steps: { [step in PipelineStep]: PipelineStepStats };
+};
+
 export type DataResourceProgress = {
     dataResourceId: string;
-    state:
-        | "STARTED"
-        | "DOWNLOADING"
-        | "INDEXING"
-        | "SAMPLING"
-        | "UPLOADING"
-        | "COMPLETED"
-        | "FAILED";
-    startedAt?: Date;
-    stoppedAt?: Date;
+    state: PipelineStepState;
+    step: PipelineStep;
+};
+
+export type DataResourceProcessingState = {
+    downloadedAt?: string;
+    downloadedBy?: string;
+    downloadUrl?: string;
+    downloadFileSize?: number;
+    downloadFileHash?: string;
+    indexedAt?: string;
+    indexedBy?: string;
+    sampledAt?: string;
+    sampledBy?: string;
+    sampledLayerIds?: string[];
+    uploadedAt?: string;
+    uploadedBy?: string;
+    uploadedTo?: string[];
 };
 
 export type PipelineService = {
@@ -49,7 +99,22 @@ export type PipelineService = {
         dataResourceId: string,
     ): Promise<DataResourceHistory[]>;
 
-    getPipelineRunDataResourceProgress(
+    getPipelineStats(
         pipelineId: string,
-    ): Promise<DataResourceProgress[]>;
+    ): Promise<PipelineStats>;
+
+    getPipelineRunDataResourceProgressCount(
+        pipelineId: string,
+    ): Promise<number>;
+
+    getDataResourceProcessingStates(
+        dataResourceIds: string[],
+    ): Promise<DataResourceProcessingState[] | null>;
+
+    getPipelineStepAndStateDataResources(
+        pipelineId: string,
+        step: PipelineStep,
+        state?: PipelineStepState,
+        pagination?: PaginationInput,
+    ): Promise<PaginationOutput<DataResourceProgress>>;
 };

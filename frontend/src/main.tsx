@@ -1,4 +1,7 @@
 import "./styles/index.css";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap/dist/js/bootstrap.bundle.min";
+
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
@@ -16,9 +19,10 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import { User } from "oidc-client-ts";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorLink } from "@apollo/client/link/error";
-import Pipeline from "./Pipeline.tsx";
+import Pipeline from "./components/Pipeline.tsx";
 import DataResource from "./components/DataResourceList.tsx";
 import { StartPipeline } from "./StartPipeline.tsx";
+import { relayStylePagination } from "@apollo/client/utilities";
 
 const oidcConfig = {
   authority: "https://auth-dev.inbo.be/realms/vbp",
@@ -33,18 +37,18 @@ const oidcConfig = {
   },
 };
 const httpLink = new HttpLink({
-  uri:
-    "https://natuurdata.dev.inbo.be/api/v1/biocache-index-management/graphql",
-  // fetchOptions: { mode: "no-cors", credentials: "include" },
+  uri: "/api/v1/biocache-index-management/graphql",
 });
 
 // Log any GraphQL errors, protocol errors, or network error that occurred
 
-const errorLink = new ErrorLink(({ error, operation }) => {
+const errorLink = new ErrorLink(({ error }) => {
   if (CombinedGraphQLErrors.is(error)) {
     error.errors.forEach(({ message, locations, path }) =>
       console.log(
-        `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
+        `[GraphQL error]: Message: ${message}, Location: ${
+          JSON.stringify(locations, null, 2)
+        }, Path: ${path}`,
       )
     );
   } else if (CombinedProtocolErrors.is(error)) {
@@ -84,7 +88,15 @@ const authLink = new SetContextLink(({ headers }) => {
 
 const client = new ApolloClient({
   link: errorLink.concat(authLink.concat(httpLink)),
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    typePolicies: {
+      Pipeline: {
+        fields: {
+          dataResourceProgress: relayStylePagination(["id", "step", "state"]),
+        },
+      },
+    },
+  }),
 });
 
 createRoot(document.getElementById("root")!).render(

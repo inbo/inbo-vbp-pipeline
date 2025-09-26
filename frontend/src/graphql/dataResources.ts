@@ -14,6 +14,11 @@ export const GET_DATA_RESOURCE = gql(`
     dataResource(id: $id) {
       id
       name
+	    url
+	    createdAt
+	    checkedAt
+	    updatedAt
+	    processedAt
     }
   }
 `);
