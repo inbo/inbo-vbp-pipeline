@@ -27,7 +27,7 @@ import { relayStylePagination } from "@apollo/client/utilities";
 const oidcConfig = {
   authority: "https://auth-dev.inbo.be/realms/vbp",
   client_id: "vbp-pipeline-admin-ui",
-  redirect_uri: window.location.origin,
+  redirect_uri: window.location.origin + "/pipeline",
   onSigninCallback: (): void => {
     window.history.replaceState(
       {},
