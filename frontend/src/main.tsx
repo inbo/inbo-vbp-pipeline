@@ -23,6 +23,7 @@ import Pipeline from "./components/Pipeline.tsx";
 import DataResource from "./components/DataResourceList.tsx";
 import { StartPipeline } from "./StartPipeline.tsx";
 import { relayStylePagination } from "@apollo/client/utilities";
+import { PipelineDataResourceDetails } from "./components/PipelineDataResourceDetails.tsx";
 
 const oidcConfig = {
   authority: "https://auth-dev.inbo.be/realms/vbp",
@@ -111,7 +112,11 @@ createRoot(document.getElementById("root")!).render(
             <Routes>
               <Route element={<App />} path="/" />
               <Route element={<StartPipeline />} path="/start" />
-              <Route element={<DataResource />} path="/data_resource/:id" />
+              <Route element={<DataResource />} path="/data-resource/:id" />
+              <Route
+                element={<PipelineDataResourceDetails />}
+                path="/:pipelineId/:dataResourceId"
+              />
               <Route element={<Pipeline />} path="/:id" />
             </Routes>
           </HashRouter>

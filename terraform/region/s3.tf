@@ -87,38 +87,26 @@ resource "aws_ssm_parameter" "emr_cloudwatch_agent_config" {
                   "timezone":"UTC"
                },
                {
-                  "file_path":"/var/log/hadoop/steps/*/stdout",
+                  "file_path":"/mnt/var/log/hadoop/steps/*/stdout",
                   "log_group_name":"${var.log_group_name}",
                   "log_stream_name": "emr/steps/stdout/{instance_id}",
                   "multi_line_start_pattern":"^\\d{2}/\\d{2}/\\d{2}",
                   "timezone":"UTC"
                },
                {
-                  "file_path":"/var/log/hadoop/steps/*/stderr",
+                  "file_path":"/mnt/var/log/hadoop/steps/*/stderr",
                   "log_group_name":"${var.log_group_name}",
                   "log_stream_name": "emr/steps/stderr/{instance_id}",
                   "multi_line_start_pattern":"^\\d{2}/\\d{2}/\\d{2}",
                   "timezone":"UTC"
                },
                {
-                  "file_path":"/var/log/hadoop/steps/*/controller",
+                  "file_path":"/mnt/var/log/hadoop/steps/*/controller",
                   "log_group_name":"${var.log_group_name}",
                   "log_stream_name": "emr/steps/controller/{instance_id}",
                   "multi_line_start_pattern":"^\\d{4}-\\d{2}-\\d{2}",
                   "timezone":"UTC"
-               },
-               {
-                "file_path": "/var/log/hadoop-yarn/containers/application_*/container*/stderr",
-                 "log_group_name": "${var.log_group_name}",
-                 "log_stream_name": "emr/spark/stderr/{instance_id}",
-                 "publish_multi_logs" : true
-                },
-               {
-                "file_path": "/var/log/hadoop-yarn/containers/application_*/container*/stderr",
-                 "log_group_name": "${var.log_group_name}",
-                 "log_stream_name": "emr/spark/stdout/{instance_id}",
-                 "publish_multi_logs" : true
-                }
+               }
             ]
          }
       }

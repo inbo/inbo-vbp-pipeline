@@ -1,21 +1,24 @@
 import { useQuery } from "@apollo/client/react";
 import { GET_PIPELINE_DATA_RESOURCE_PROGRESS } from "../graphql/pipelines";
 import type {
-    DataResourceProgressState,
-    DataResourceProgressStep,
+    PipelineStep,
+    PipelineStepState,
 } from "../__generated__/biocache-index-management/graphql";
 import { type Dispatch, type SetStateAction, useEffect } from "react";
+import { Spinner } from "./Spinner";
+import { Link } from "react-router";
+import { ErrorDetails } from "./PipelineDataResourceDetails";
 
 export type DataResourceFilter = {
-    step?: DataResourceProgressStep;
-    state?: DataResourceProgressState;
+    step?: PipelineStep;
+    state?: PipelineStepState;
 };
 
 export function DataResourceProgress(
     { pipelineId, step, state, setDataResourceFilter }: {
         pipelineId: string;
-        step?: DataResourceProgressStep;
-        state?: DataResourceProgressState;
+        step: PipelineStep;
+        state?: PipelineStepState;
         setDataResourceFilter: Dispatch<SetStateAction<DataResourceFilter>>;
     },
 ) {
@@ -41,18 +44,17 @@ export function DataResourceProgress(
                     progress: any,
                 ) => (
                     <li key={progress.dataResource.id}>
-                        {progress.dataResource.name}: {progress.state}
+                        <Link
+                            to={`/${pipelineId}/${progress.dataResource.id}`}
+                        >
+                            {progress.dataResource.name}: {progress.state}
+                        </Link>
+                        {progress.error && ErrorDetails(progress.cause)}
                     </li>
                 ))}
 
                 {loading
-                    ? (
-                        <div
-                            className="spinner-border text-primary"
-                            role="status"
-                        >
-                        </div>
-                    )
+                    ? <Spinner />
                     : data?.pipeline?.dataResourceProgress?.pageInfo
                         ?.hasNextPage &&
                         (

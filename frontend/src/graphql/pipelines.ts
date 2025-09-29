@@ -112,7 +112,30 @@ export const GET_PIPELINE_DATA_RESOURCE_PROGRESS = gql(`
             }
             step
             state
+            timestamp
+            error
+            cause
           }
+        }
+      }
+    }
+  }
+`);
+
+export const GET_PIPELINE_DATA_RESOURCE_DETAILS = gql(`
+  query GetPipelineDataResourceDetails($pipelineId: ID!, $dataResourceId: ID!) {
+    pipeline(id: $pipelineId) {
+      dataResource(id: $dataResourceId) {
+        dataResource {
+          id
+          name
+        }
+        steps {
+          step
+          state
+          timestamp
+          error
+          cause
         }
       }
     }

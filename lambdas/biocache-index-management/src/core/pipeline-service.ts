@@ -67,6 +67,9 @@ export type DataResourceProgress = {
     dataResourceId: string;
     state: PipelineStepState;
     step: PipelineStep;
+    timestamp: Date;
+    error?: string;
+    cause?: string;
 };
 
 export type DataResourceProcessingState = {

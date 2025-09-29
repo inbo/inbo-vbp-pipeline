@@ -15,6 +15,7 @@ import {
     type DataResourceFilter,
     DataResourceProgress,
 } from "./DataResourceProgress";
+import { Spinner } from "./Spinner";
 
 function ProgressStepSection(
     { step, state, value, total, color, setDataResourceFilter }: {
@@ -123,8 +124,8 @@ function ProgressStep(
     );
 }
 
-export const Pipeline = ({ id }: { id: string }) => {
-    const pipelineId = id ?? useParams().id;
+export const Pipeline = ({ id }: { id?: string }) => {
+    const pipelineId = id ?? useParams().id!;
     const { data, loading, error, networkStatus } = useQuery(
         GET_PIPELINE_PROGRESS,
         {
@@ -177,7 +178,9 @@ export const Pipeline = ({ id }: { id: string }) => {
     ), [
         pipelineId,
         dataResourceFilter,
-        stats?.steps[dataResourceFilter.step],
+        dataResourceFilter.step
+            ? stats?.steps[dataResourceFilter.step as any]
+            : null,
         setDataResourceFilter,
     ]);
 
@@ -186,7 +189,7 @@ export const Pipeline = ({ id }: { id: string }) => {
     }
 
     if (loading && networkStatus !== NetworkStatus.poll) {
-        return <p>Loading...</p>;
+        return <Spinner />;
     }
 
     if (!data?.pipeline) {

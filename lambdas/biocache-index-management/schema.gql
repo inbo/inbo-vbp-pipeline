@@ -1,169 +1,188 @@
 scalar Date
 
 schema {
-	query: Query
-	mutation: Mutation
+  query: Query
+  mutation: Mutation
 }
 
 type Query {
-	################ INDEX ##############
-	index(id: ID!): Index
-	indices: [Index!]!
-	activeIndex: Index
+  ################ INDEX ##############
+  index(id: ID!): Index
+  indices: [Index!]!
+  activeIndex: Index
 
-	############## PIPELINE #############
-	pipeline(id: ID!): Pipeline
-	pipelines(status: PipelineStatus): [Pipeline!]!
-	dataResourceHistory(input: DataResourceHistoryInput!): DataResourceHistoryOutput!
+  ############## PIPELINE #############
+  pipeline(id: ID!): Pipeline
+  pipelines(status: PipelineStatus): [Pipeline!]!
+  dataResourceHistory(
+    input: DataResourceHistoryInput!
+  ): DataResourceHistoryOutput!
 
-	############ DATA RESOURCE ###########
-	dataResource(id: ID!): DataResource
-	dataResources: [DataResource!]!
+  ############ DATA RESOURCE ###########
+  dataResource(id: ID!): DataResource
+  dataResources: [DataResource!]!
 }
 
 type Mutation {
-	################ INDEX ##############
-	getOrCreateIndex(input: GetOrCreateIndexInput!): GetOrCreateIndexOutput!
-	deleteIndex(input: DeleteIndexInput!): DeleteIndexOutput!
-	clearDataResourceFromIndex(input: ClearDataResourceFromIndexInput!): ClearDataResourceFromIndexOutput!
-	setActiveIndex(input: SetActiveIndexInput!): SetActiveIndexOutput!
+  ################ INDEX ##############
+  getOrCreateIndex(input: GetOrCreateIndexInput!): GetOrCreateIndexOutput!
+  deleteIndex(input: DeleteIndexInput!): DeleteIndexOutput!
+  clearDataResourceFromIndex(
+    input: ClearDataResourceFromIndexInput!
+  ): ClearDataResourceFromIndexOutput!
+  setActiveIndex(input: SetActiveIndexInput!): SetActiveIndexOutput!
 
-	############## PIPELINE #############
-	startPipeline(input: StartPipelineInput!): StartPipelineOutput!
-	cancelPipeline(input: CancelPipelineInput!): CancelPipelineOutput!
+  ############## PIPELINE #############
+  startPipeline(input: StartPipelineInput!): StartPipelineOutput!
+  cancelPipeline(input: CancelPipelineInput!): CancelPipelineOutput!
 }
 
 ############## INDEX #############
-type Index  {
-	id: ID!
-	active: Boolean
-	counts: IndexCounts
+type Index {
+  id: ID!
+  active: Boolean
+  counts: IndexCounts
 }
 
 type IndexCounts {
-	total: Int!
-	dataResourceCounts: [DataResourceCount!]!
+  total: Int!
+  dataResourceCounts: [DataResourceCount!]!
 }
 
 type DataResourceCount {
-	dataResourceId: ID!
-	count: Int!
+  dataResourceId: ID!
+  count: Int!
 }
 
 input GetOrCreateIndexInput {
-	indexId: ID!
+  indexId: ID!
 }
 
 type GetOrCreateIndexOutput {
-	indexId: ID!
-
+  indexId: ID!
 }
 
 input DeleteIndexInput {
-	indexId: ID!
+  indexId: ID!
 }
 
 type DeleteIndexOutput {
-	indexId: ID!
+  indexId: ID!
 }
 
 input ClearDataResourceFromIndexInput {
-	indexId: ID!
-	dataResourceId: ID!
+  indexId: ID!
+  dataResourceId: ID!
 }
 
 type ClearDataResourceFromIndexOutput {
-	indexId: ID!
-	dataResourceId: ID!
+  indexId: ID!
+  dataResourceId: ID!
 }
 
 input SetActiveIndexInput {
-	indexId: ID!
+  indexId: ID!
 }
 
 type SetActiveIndexOutput {
-	index: Index!
+  index: Index!
 }
 
 ############ PIPELINE ###########
 type Pipeline {
-	id: ID!
-	status: PipelineStatus!
-	startedAt: Date
-	stoppedAt: Date
-	input: String
-	output: String
-	error: String
-	cause: String
+  id: ID!
+  status: PipelineStatus!
+  startedAt: Date
+  stoppedAt: Date
+  input: String
+  output: String
+  error: String
+  cause: String
 
-	stats: PipelineStats
-	dataResourceProgress(step: PipelineStep!, state: PipelineStepState, first: Int, after: ID, last: Int, before: ID): DataResourceProgressConnection
+  stats: PipelineStats
+  dataResourceProgress(
+    step: PipelineStep!
+    state: PipelineStepState
+    first: Int
+    after: ID
+    last: Int
+    before: ID
+  ): DataResourceProgressConnection
+  dataResource(id: ID!): PipelineDataResourceDetails
 }
 
 enum PipelineStatus {
-	RUNNING
-	SUCCEEDED
-	FAILED
-	TIMED_OUT
-	ABORTED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  TIMED_OUT
+  ABORTED
 }
 
 input DataResourceHistoryInput {
-	dataResourceId: ID!
+  dataResourceId: ID!
 }
 
 type DataResourceEvent {
-	dataResourceId: ID!
-	rootPipelineId: ID!
-	executionId: ID!
-	event: String!
-	timestamp: String!
-	lastUpdated: String!
+  dataResourceId: ID!
+  rootPipelineId: ID!
+  executionId: ID!
+  event: String!
+  timestamp: String!
+  lastUpdated: String!
 }
 
 enum PipelineStepState {
-	QUEUED
-	RUNNING
-	SUCCEEDED
-	SKIPPED
-	FAILED
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  SKIPPED
+  FAILED
 }
 
 enum PipelineStep {
-	DOWNLOAD
-	INDEX
-	SAMPLE
-	SOLR
+  DOWNLOAD
+  INDEX
+  SAMPLE
+  SOLR
 }
 
 type PipelineTotalStats {
-	total: Int!
-	queued: Int!
-	running: Int!
-	succeeded: Int!
-	skipped: Int!
-	failed: Int!
+  total: Int!
+  queued: Int!
+  running: Int!
+  succeeded: Int!
+  skipped: Int!
+  failed: Int!
 }
 
 type PipelineStepStats {
-	step: PipelineStep!
-	total: Int!
-	queued: Int!
-	running: Int!
-	succeeded: Int!
-	skipped: Int!
-	failed: Int!
+  step: PipelineStep!
+  total: Int!
+  queued: Int!
+  running: Int!
+  succeeded: Int!
+  skipped: Int!
+  failed: Int!
 }
 
 type PipelineStats {
-	total: PipelineTotalStats!
-	steps: [PipelineStepStats!]!
+  total: PipelineTotalStats!
+  steps: [PipelineStepStats!]!
 }
 
 type DataResourceProgress {
-	dataResource: DataResource
-	state: PipelineStepState!
-	step: PipelineStep!
+  dataResource: DataResource
+  state: PipelineStepState!
+  step: PipelineStep!
+  error: String
+  cause: String
+  timestamp: Date
+}
+
+type PipelineDataResourceDetails {
+  dataResource: DataResource!
+  steps: [DataResourceProgress!]!
 }
 
 type DataResourceProgressConnection {
@@ -177,50 +196,48 @@ type DataResourceProgressEdge {
   node: DataResourceProgress!
 }
 
-
 type DataResourceHistoryOutput {
-	events: [DataResourceEvent!]!
+  events: [DataResourceEvent!]!
 }
 
 input StartPipelineInput {
-	dataResourceIds: [ID!]!
-	solrCollection: String
+  dataResourceIds: [ID!]!
+  solrCollection: String
 }
 
 type StartPipelineOutput {
-	pipeline: Pipeline!
-
+  pipeline: Pipeline!
 }
 
 input CancelPipelineInput {
-	id: ID!
+  id: ID!
 }
 
 type CancelPipelineOutput {
-	pipeline: Pipeline!
+  pipeline: Pipeline!
 }
 
 ############ DATA RESOURCE ###########
 type DataResource {
-	id: ID!
-	name: String
-	description: String
-	url: String
+  id: ID!
+  name: String
+  description: String
+  url: String
 
-	createdAt: Date
-	checkedAt: Date
-	updatedAt: Date
-	processedAt: Date
+  createdAt: Date
+  checkedAt: Date
+  updatedAt: Date
+  processedAt: Date
 
-	processingState: DataResourceProcessingState
+  processingState: DataResourceProcessingState
 }
 
 type DataResourceProcessingState {
-	downloadedAt: Date
-	indexedAt: Date
-	sampledAt: Date
-	uploadedAt: Date
-	uploadedTo: [Index]
+  downloadedAt: Date
+  indexedAt: Date
+  sampledAt: Date
+  uploadedAt: Date
+  uploadedTo: [Index]
 }
 
 ############ COMMON ##################
