@@ -10,7 +10,7 @@ const defaultSettings = {
     domain: "localhost:5173",
     auth: {
         authority: "https://auth-dev.inbo.be/realms/vbp",
-        client_id: "vbp-pipeline-admin-ui",
+        client_id: "vbp-branding",
     },
     graphql: {
         uri: "/api/v1/biocache-index-management/graphql",
