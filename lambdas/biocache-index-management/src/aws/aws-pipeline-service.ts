@@ -56,6 +56,7 @@ export class AwsPipelineServiceImpl implements PipelineService {
         return output.executionArn
             ? {
                 id: output.name!,
+                executionArn: output.executionArn!,
                 status: output.status! as PipelineStatus,
                 startedAt: output.startDate,
                 stoppedAt: output.stopDate,
@@ -78,6 +79,7 @@ export class AwsPipelineServiceImpl implements PipelineService {
         return output.executions
             ?.map((execution) => ({
                 id: execution.name!,
+                executionArn: execution.executionArn!,
                 status: execution.status! as PipelineStatus,
                 startedAt: execution.startDate,
                 stoppedAt: execution.stopDate,
@@ -105,6 +107,7 @@ export class AwsPipelineServiceImpl implements PipelineService {
                 `${this.awsStateExecutionArnPrefix}:`,
                 "",
             ),
+            executionArn: output.executionArn!,
             status: PipelineStatus.Running,
             startedAt: output.startDate,
         };

@@ -58,7 +58,8 @@ data "aws_iam_policy_document" "biocache_index_management_permission" {
       "states:Create*",
       "states:Update*",
       "states:List*",
-      "states:Start*"
+      "states:Start*",
+      "states:Stop*"
     ]
     #tfsec:ignore:aws-iam-no-policy-wildcards
     resources = [

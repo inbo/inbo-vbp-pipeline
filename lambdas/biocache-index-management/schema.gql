@@ -91,6 +91,7 @@ type SetActiveIndexOutput {
 ############ PIPELINE ###########
 type Pipeline {
   id: ID!
+  executionArn: String!
   status: PipelineStatus!
   startedAt: Date
   stoppedAt: Date
@@ -228,6 +229,9 @@ type DataResource {
   checkedAt: Date
   updatedAt: Date
   processedAt: Date
+
+  new: Boolean
+  updated: Boolean
 
   processingState: DataResourceProcessingState
 }

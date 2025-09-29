@@ -138,6 +138,7 @@ export default {
 function maptoGraphql(pipeline: Pipeline): GqlPipeline {
     return {
         id: pipeline.id,
+        executionArn: pipeline.executionArn,
         status: pipeline.status as GqlPipelineStatus,
         startedAt: pipeline.startedAt?.toISOString(),
         stoppedAt: pipeline.stoppedAt?.toISOString(),

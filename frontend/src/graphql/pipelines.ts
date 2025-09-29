@@ -4,6 +4,7 @@ export const GET_ALL_PIPELINES = gql(`
   query GetAllPipelines($status: PipelineStatus) {
     pipelines(status: $status) {
       id
+      executionArn
       status
       startedAt
       stoppedAt
@@ -15,6 +16,7 @@ export const GET_PIPELINE = gql(`
   query GetPipeline($id: ID!) {
     pipeline(id: $id) {
       id
+      executionArn
       status
       startedAt
       stoppedAt
@@ -64,6 +66,7 @@ export const GET_PIPELINE_PROGRESS = gql(`
   query GetPipelineProgress($id: ID!) {
     pipeline(id: $id) {
       id
+      executionArn
       status
       startedAt
       stoppedAt

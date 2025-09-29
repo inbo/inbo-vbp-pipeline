@@ -1,12 +1,11 @@
-import { useQuery } from "@apollo/client/react";
-import { GET_PIPELINE_PROGRESS } from "../graphql/pipelines";
+import "../styles/Pipeline.css";
+
+import { useMutation, useQuery } from "@apollo/client/react";
+import { CANCEL_PIPELINE, GET_PIPELINE_PROGRESS } from "../graphql/pipelines";
 import { useParams } from "react-router";
-import { type Dispatch, type SetStateAction, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
     PipelineStatus,
-    PipelineStep,
-    PipelineStepState,
-    type PipelineStepStats,
 } from "../__generated__/biocache-index-management/graphql";
 
 import "../styles/PipelineProgress.css";
@@ -16,116 +15,27 @@ import {
     DataResourceProgress,
 } from "./DataResourceProgress";
 import { Spinner } from "./Spinner";
-
-function ProgressStepSection(
-    { step, state, value, total, color, setDataResourceFilter }: {
-        pipelineId: string;
-        step?: PipelineStep;
-        state?: PipelineStepState;
-        value: number;
-        total: number;
-        color: string;
-        setDataResourceFilter: Dispatch<SetStateAction<DataResourceFilter>>;
-    },
-) {
-    if (value <= 0) {
-        return null;
-    }
-    return (
-        <div
-            className="progress-bar"
-            role="progressbar"
-            aria-valuenow={value}
-            aria-valuemin={0}
-            aria-valuemax={total}
-            style={{
-                display: "flex",
-                width: `${(value / total) * 100}%`,
-                backgroundColor: color,
-            }}
-            onMouseDown={() => setDataResourceFilter({ step, state })}
-        >
-            {value}
-        </div>
-    );
-}
-
-function ProgressStep(
-    { pipelineId, stats, pipelineTotal, setDataResourceFilter }: {
-        pipelineId: string;
-        stats: PipelineStepStats;
-        pipelineTotal: number;
-        setDataResourceFilter: Dispatch<SetStateAction<DataResourceFilter>>;
-    },
-) {
-    return (
-        <div
-            id={"progress-step-" + stats.step}
-            className="progress-step"
-            style={{
-                flex: 1,
-                maxWidth: "25%",
-            }}
-        >
-            <div>{stats.step}: {stats.total}</div>
-            <div
-                className="progress"
-                style={{
-                    width: `${(stats.total / pipelineTotal) * 100}%`,
-                }}
-            >
-                <ProgressStepSection
-                    pipelineId={pipelineId}
-                    step={stats.step}
-                    state={PipelineStepState.Skipped}
-                    value={stats.skipped}
-                    total={stats.total}
-                    color="darkgreen"
-                    setDataResourceFilter={setDataResourceFilter}
-                />
-                <ProgressStepSection
-                    pipelineId={pipelineId}
-                    step={stats.step}
-                    state={PipelineStepState.Succeeded}
-                    value={stats.succeeded}
-                    total={stats.total}
-                    color="green"
-                    setDataResourceFilter={setDataResourceFilter}
-                />
-                <ProgressStepSection
-                    pipelineId={pipelineId}
-                    step={stats.step}
-                    state={PipelineStepState.Failed}
-                    value={stats.failed}
-                    total={stats.total}
-                    color="red"
-                    setDataResourceFilter={setDataResourceFilter}
-                />
-                <ProgressStepSection
-                    pipelineId={pipelineId}
-                    step={stats.step}
-                    state={PipelineStepState.Running}
-                    value={stats.running}
-                    total={stats.total}
-                    color="blue"
-                    setDataResourceFilter={setDataResourceFilter}
-                />
-                <ProgressStepSection
-                    pipelineId={pipelineId}
-                    step={stats.step}
-                    state={PipelineStepState.Queued}
-                    value={stats.queued}
-                    total={stats.total}
-                    color="grey"
-                    setDataResourceFilter={setDataResourceFilter}
-                />
-            </div>
-        </div>
-    );
-}
+import { ActionConfirmationModal } from "./ActionConfirmationModal";
+import { Button } from "@mui/material";
+import { PipelineProgress } from "./PipelineProgress";
 
 export const Pipeline = ({ id }: { id?: string }) => {
     const pipelineId = id ?? useParams().id!;
+
+    const [
+        cancelPipeline,
+        {
+            data: cancelPipelineData,
+            loading: cancelPipelineLoading,
+            error: cancelPipelineError,
+        },
+    ] = useMutation(
+        CANCEL_PIPELINE,
+    );
+
+    const [showDetails, setShowDetails] = useState(false);
+    const [showConfirmCancel, setShowConfirmCancel] = useState(false);
+
     const { data, loading, error, networkStatus } = useQuery(
         GET_PIPELINE_PROGRESS,
         {
@@ -140,23 +50,12 @@ export const Pipeline = ({ id }: { id?: string }) => {
     const stats = data?.pipeline?.stats;
 
     const progress = useMemo(() => {
-        return (
-            stats && (
-                <div>
-                    Pipeline Progress:{" "}
-                    <div style={{ width: "100%" }}>
-                        {stats?.steps.map((step) => (
-                            <ProgressStep
-                                pipelineId={pipelineId}
-                                key={step.step}
-                                stats={step}
-                                pipelineTotal={stats.total.total}
-                                setDataResourceFilter={setDataResourceFilter}
-                            />
-                        ))}
-                    </div>
-                </div>
-            )
+        return stats && (
+            <PipelineProgress
+                pipelineId={pipelineId}
+                stats={stats}
+                setDataResourceFilter={setDataResourceFilter}
+            />
         );
     }, [
         pipelineId,
@@ -197,32 +96,99 @@ export const Pipeline = ({ id }: { id?: string }) => {
     }
 
     return (
-        <div>
-            <p>ID: {data?.pipeline?.id}</p>
-            <p>Status: {data?.pipeline?.status}</p>
-            {progress}
-            <p>Started At: {data?.pipeline?.startedAt}</p>
-            <p>Stopped At: {data?.pipeline?.stoppedAt}</p>
-            <div>
-                Input: <pre>{data?.pipeline?.input}</pre>
-            </div>
-            {data?.pipeline?.status == PipelineStatus.Succeeded && (
-                <div>
-                    Output: <pre>{data?.pipeline?.output}</pre>
+        <div className="pipeline">
+            <div className="pipeline-details">
+                <div className="pipeline-header">
+                    ID:
+                    <a
+                        href={`https://eu-west-1.console.aws.amazon.com/states/home?region=eu-west-1#/v2/executions/details/${data.pipeline.executionArn}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        {data?.pipeline?.id}
+                    </a>
                 </div>
-            )}
-            {data?.pipeline?.status == PipelineStatus.Failed && (
-                <div>
-                    <div>
-                        Error: <pre>{data?.pipeline?.error}</pre>
-                    </div>
-                    <div>
-                        Cause: <pre>{data?.pipeline?.cause}</pre>
-                    </div>
+                <div className="pipeline-status">
+                    Status:{" "}
+                    <span
+                        className={`pipeline-status-value pipeline-status-value-${data?.pipeline?.status.toLowerCase()}`}
+                    >
+                        {data?.pipeline?.status}
+                    </span>
                 </div>
-            )}
+                <div className="pipeline-progress">
+                    {progress}
+                </div>
+                {data?.pipeline?.status == PipelineStatus.Failed && (
+                    <div>
+                        <div>
+                            Error: <pre>{data?.pipeline?.error}</pre>
+                        </div>
+                        <div>
+                            Cause: <pre>{data?.pipeline?.cause}</pre>
+                        </div>
+                    </div>
+                )}
+                {data?.pipeline?.status == PipelineStatus.Running && (
+                    <Button
+                        variant="outlined"
+                        color="error"
+                        onClick={() => setShowConfirmCancel(true)}
+                    >
+                        Cancel Pipeline
+                    </Button>
+                )}
+                {showDetails
+                    ? (
+                        <div>
+                            <div>
+                                <Button
+                                    onClick={() => setShowDetails(false)}
+                                >
+                                    Hide Details
+                                </Button>
+                            </div>
+                            Input: <pre>{data?.pipeline?.input}</pre>
+                            {data?.pipeline?.status ==
+                                    PipelineStatus.Succeeded && (
+                                <div>
+                                    Output: <pre>{data?.pipeline?.output}</pre>
+                                </div>
+                            )}
 
-            {dataResources}
+                            <div>Started At: {data?.pipeline?.startedAt}</div>
+                            {data.pipeline?.stoppedAt && (
+                                <div>
+                                    Stopped At: {data?.pipeline?.stoppedAt}
+                                </div>
+                            )}
+                        </div>
+                    )
+                    : (
+                        <Button
+                            onClick={() => setShowDetails(true)}
+                        >
+                            Show Details
+                        </Button>
+                    )}
+                {showConfirmCancel && (
+                    <ActionConfirmationModal
+                        title="Confirm Cancel Pipeline"
+                        message="Are you sure you want to cancel this pipeline?"
+                        actionLabel={cancelPipelineLoading
+                            ? "Cancelling..."
+                            : "Confirm"}
+                        onConfirm={() =>
+                            cancelPipeline({
+                                variables: { input: { id: pipelineId } },
+                            })}
+                        onCancel={() => setShowConfirmCancel(false)}
+                    />
+                )}
+            </div>
+            <div className="pipeline-step-data-resources">
+                {dataResources}
+            </div>
         </div>
     );
 };

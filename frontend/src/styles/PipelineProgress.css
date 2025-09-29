@@ -1,7 +1,72 @@
-.progress-node {
+.pipeline-progress {
+    margin-top: 1em;
+    margin-bottom: 1em;
+    width: 100%;
+    max-width: 600px;
+}
+
+.pipeline-step-progress {
+    display: flex;
+    gap: 1em;
+    margin-bottom: 0.5em;
+}
+
+.pipeline-step-progress-label {
+    flex: 1;
+    text-align: right;
+    min-width: 6em;
+}
+
+.pipeline-step-progress-container {
+    flex: 10;
+    width: 100%;
+    border-radius: 5px;
+
+    height: 1.5em;
+    line-height: 1.5em;
+
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.pipeline-step-progress-container-section {
     display: inline-block;
-    border-radius: 50%;
-    width: 2em;
-    height: 2em;
-    background-color: #007bff;
+    height: 100%;
+
+    text-indent: 100%;
+    white-space: nowrap;
+
+    color: white;
+
+    &:hover {
+        cursor: pointer;
+        filter: brightness(1.2);
+        text-indent: 0%;
+        text-align: center;
+    }
+
+    transition: brightness 0.2s, width 1s;
+}
+
+.pipeline-step-progress-container-section-queued {
+    background-color: gray;
+}
+
+.pipeline-step-progress-container-section-skipped {
+    background-color: #0f6e0f;
+}
+.pipeline-step-progress-container-section-running {
+    background-color: #268bff;
+}
+
+.pipeline-step-progress-container-section-succeeded {
+    background-color: #5cb85c;
+}
+
+.pipeline-step-progress-container-section-failed {
+    background-color: #ce150e;
+}
+
+.pipeline-progress-data-resources {
+    margin-top: 1em;
 }

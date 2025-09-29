@@ -1,9 +1,11 @@
 import { useMutation, useQuery } from "@apollo/client/react";
 import { CANCEL_PIPELINE, GET_ALL_PIPELINES } from "../graphql/pipelines";
 import { Link } from "react-router";
+import { Spinner } from "./Spinner";
+import { Button } from "@mui/material";
 
 export function PipelineList() {
-    const { data: pipelinesData } = useQuery(GET_ALL_PIPELINES);
+    const { data: pipelinesData, loading, error } = useQuery(GET_ALL_PIPELINES);
     const [
         cancelPipeline,
         {
@@ -14,6 +16,10 @@ export function PipelineList() {
     ] = useMutation(
         CANCEL_PIPELINE,
     );
+
+    if (loading) return <Spinner />;
+    if (error) return <p>Error loading pipelines: {error.message}</p>;
+
     return (
         <ul>
             {pipelinesData?.pipelines.map((pipeline) => (
@@ -26,8 +32,9 @@ export function PipelineList() {
                         <Link to={`/${pipeline.id}`}>Details</Link>
                     </div>
                     {pipeline.status === "RUNNING" && (
-                        <button
-                            className="btn btn-danger"
+                        <Button
+                            variant="outlined"
+                            color="error"
                             onClick={() => {
                                 cancelPipeline({
                                     variables: { input: { id: pipeline.id } },
@@ -36,7 +43,7 @@ export function PipelineList() {
                             disabled={cancelPipelineLoading}
                         >
                             {cancelPipelineLoading ? "Cancelling..." : "Cancel"}
-                        </button>
+                        </Button>
                     )}
                 </li>
             ))}

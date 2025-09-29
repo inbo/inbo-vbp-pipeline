@@ -15,9 +15,11 @@ import type {
     SetActiveIndexInput,
     SetActiveIndexMutation,
 } from "../__generated__/biocache-index-management/graphql";
+import { Spinner } from "./Spinner";
+import { Button } from "@mui/material";
 
 export function IndexList() {
-    const { data: IndexListData } = useQuery(GET_INDICES);
+    const { data: IndexListData, loading, error } = useQuery(GET_INDICES);
     const [operatedOnIndex, setOperatedOnIndex] = useState<
         string | undefined
     >();
@@ -45,6 +47,9 @@ export function IndexList() {
         },
     );
 
+    if (loading) return <Spinner />;
+    if (error) return <p>Error loading indices: {error.message}</p>;
+
     return (
         <ul>
             {IndexListData?.indices.map((index) => (
@@ -53,8 +58,8 @@ export function IndexList() {
                     {index.active ? " (active)" : " (inactive)"}
                     {!index.active && (
                         <>
-                            <button
-                                className="btn btn-secondary"
+                            <Button
+                                variant="outlined"
                                 onClick={() => {
                                     setOperatedOnIndex(index.id);
                                     setActiveIndex({
@@ -71,9 +76,10 @@ export function IndexList() {
                                         operatedOnIndex === index.id
                                     ? "Activating..."
                                     : "Activate"}
-                            </button>
-                            <button
-                                className="btn btn-danger"
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                color="error"
                                 onClick={() => {
                                     setOperatedOnIndex(index.id);
                                     deleteIndex({
@@ -90,7 +96,7 @@ export function IndexList() {
                                         operatedOnIndex === index.id
                                     ? "Deleting..."
                                     : "Delete"}
-                            </button>
+                            </Button>
                         </>
                     )}
                 </li>

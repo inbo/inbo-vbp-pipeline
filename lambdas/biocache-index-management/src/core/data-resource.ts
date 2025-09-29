@@ -12,6 +12,9 @@ export type DataResourceDetails = {
     checkedAt: Date;
     updatedAt: Date;
     processedAt?: Date;
+
+    new: boolean;
+    updated: boolean;
 };
 
 export type DataResourceProcessingState = {

@@ -5,6 +5,9 @@ export const GET_ALL_DATA_RESOURCES = gql(`
     dataResources {
       id
       name
+
+      new
+      updated
     }
   }
 `);
@@ -19,6 +22,9 @@ export const GET_DATA_RESOURCE = gql(`
 	    checkedAt
 	    updatedAt
 	    processedAt
+
+      new
+      updated
     }
   }
 `);

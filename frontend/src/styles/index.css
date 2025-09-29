@@ -1,1 +1,27 @@
+body {
+    font-family: "Roboto", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+}
+#main {
+    width: 100vw;
+}
+#overview {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(300px, 1fr));
+}
+#indexes, #pipelines {
+    min-width: 450px;
+}
 
+@media (max-width: 900px) {
+    #overview {
+        display: block;
+    }
+    #indexes, #pipelines {}
+}
+
+button {
+    margin: 1em;
+}

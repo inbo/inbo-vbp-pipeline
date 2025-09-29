@@ -2,6 +2,7 @@ import { PaginationInput, PaginationOutput } from "./common";
 
 export type Pipeline = {
     id: string;
+    executionArn: string;
     status: PipelineStatus;
     startedAt?: Date;
     stoppedAt?: Date;

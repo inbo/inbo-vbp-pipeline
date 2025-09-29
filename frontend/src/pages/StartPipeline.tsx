@@ -1,31 +1,38 @@
 import { useMutation, useQuery } from "@apollo/client/react";
-import { GET_INDICES } from "./graphql/indices";
-import DataResourceList from "./components/DataResourceList";
-import { START_PIPELINE } from "./graphql/pipelines";
+import { GET_INDICES } from "../graphql/indices";
+import DataResourceList from "../components/DataResourceList";
+import { START_PIPELINE } from "../graphql/pipelines";
 import { useCallback } from "react";
+import { useNavigate } from "react-router";
+import { Button } from "@mui/material";
 
 export function StartPipeline() {
     const { data: indicesData } = useQuery(GET_INDICES);
     const [startPipeline, { data, loading, error }] = useMutation(
         START_PIPELINE,
     );
+    const navigate = useNavigate();
 
-    const submitForm = useCallback((e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        const solrCollection = formData.get("index") as string;
-        const dataResourceIds = formData.getAll(
-            "dataResource",
-        ) as string[];
-        startPipeline({
-            variables: {
-                input: {
-                    solrCollection,
-                    dataResourceIds,
+    const submitForm = useCallback(
+        async (e: React.FormEvent<HTMLFormElement>) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            const solrCollection = formData.get("index") as string;
+            const dataResourceIds = formData.getAll(
+                "data-resource",
+            ) as string[];
+            await startPipeline({
+                variables: {
+                    input: {
+                        solrCollection,
+                        dataResourceIds,
+                    },
                 },
-            },
-        });
-    }, [startPipeline]);
+            });
+            navigate("/");
+        },
+        [startPipeline],
+    );
 
     if (loading) return <p>Starting pipeline...</p>;
 
@@ -33,16 +40,20 @@ export function StartPipeline() {
         <div id="start-pipeline">
             <h2>Start a new Pipeline:</h2>
             <form onSubmit={submitForm}>
-                <button type="submit">Start Pipeline</button>
+                <Button variant="contained" type="submit">
+                    Start Pipeline
+                </Button>
 
                 <div>
                     <label htmlFor="index">Select Index:</label>
-                    <select name="index">
+                    <select
+                        name="index"
+                        value={indicesData?.indices.find((i) => i.active)?.id}
+                    >
                         {indicesData?.indices.map((index) => (
                             <option
                                 key={index.id}
                                 value={index.id}
-                                selected={index.active === true}
                             >
                                 {index.id} {index.active ? " (active)" : ""}
                             </option>

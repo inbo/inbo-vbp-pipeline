@@ -61,6 +61,9 @@ export class CollectoryClient implements DataResourceRepository {
             checkedAt: new Date(output.lastChecked),
             updatedAt: new Date(output.lastUpdated),
             processedAt: output.dataCurrency ?? new Date(output.dataCurrency),
+            new: output.dataCurrency == false,
+            updated: output.dataCurrency == true &&
+                output.updated > output.processedAt,
         };
         this.cache.set(dataResourceId, result);
         return result;

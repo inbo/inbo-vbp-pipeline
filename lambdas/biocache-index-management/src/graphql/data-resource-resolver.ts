@@ -26,6 +26,13 @@ export const Query: QueryResolvers = {
         return {
             id: dataResource.id,
             name: dataResource.name,
+            url: dataResource.url,
+            createdAt: dataResource.createdAt,
+            checkedAt: dataResource.checkedAt,
+            updatedAt: dataResource.updatedAt,
+            processedAt: dataResource.processedAt,
+            new: dataResource.new,
+            updated: dataResource.updated,
         };
     },
 };

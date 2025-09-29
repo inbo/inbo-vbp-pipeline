@@ -34,7 +34,8 @@
             },
             "Use Provided List of Data Resources": {
               "Type": "Pass",
-              "End": true
+              "End": true,
+              "Output": "{% $states.context.Execution.Input.dataResources  %}"
             },
             "Get list of all dataresources": {
               "Type": "Task",
@@ -57,7 +58,8 @@
                   "JitterStrategy": "FULL"
                 }
               ],
-              "End": true
+              "End": true,
+              "Output": "{% $states.result.ResponseBody.uid %}"
             }
           }
         },
@@ -123,7 +125,7 @@
         }
       ],
       "Assign": {
-        "dataResources": "{% $sort($states.result[0].ResponseBody.uid) %}",
+        "dataResources": "{% $sort($states.result[0]) %}",
         "speciesLists": "{% $states.result[1].ResponseBody.lists{`dataResourceUid`: lastUpdated} %}",
         "spatialFields": "{% $states.result[2].ResponseBody.id%}"
       }

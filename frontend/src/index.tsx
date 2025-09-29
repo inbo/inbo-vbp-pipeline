@@ -1,10 +1,11 @@
 import "./styles/index.css";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap/dist/js/bootstrap.bundle.min";
+import "@fontsource/roboto/300.css";
+import "@fontsource/roboto/400.css";
+import "@fontsource/roboto/500.css";
+import "@fontsource/roboto/700.css";
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import App from "./App.tsx";
 import { ApolloProvider } from "@apollo/client/react";
 import {
   ApolloClient,
@@ -15,15 +16,16 @@ import {
 } from "@apollo/client";
 import { AuthProvider } from "react-oidc-context";
 import { SetContextLink } from "@apollo/client/link/context";
-import { BrowserRouter, HashRouter, Route, Routes } from "react-router";
+import { HashRouter, Route, Routes } from "react-router";
 import { User } from "oidc-client-ts";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorLink } from "@apollo/client/link/error";
 import Pipeline from "./components/Pipeline.tsx";
 import DataResource from "./components/DataResourceList.tsx";
-import { StartPipeline } from "./StartPipeline.tsx";
+import { StartPipeline } from "./pages/StartPipeline.tsx";
 import { relayStylePagination } from "@apollo/client/utilities";
-import { PipelineDataResourceDetails } from "./components/PipelineDataResourceDetails.tsx";
+import { LayoutWithAuth } from "./Layout.tsx";
+import { Home } from "./pages/Home.tsx";
 
 const oidcConfig = {
   authority: "https://auth-dev.inbo.be/realms/vbp",
@@ -108,18 +110,16 @@ createRoot(document.getElementById("root")!).render(
     >
       <AuthProvider {...oidcConfig}>
         <ApolloProvider client={client}>
-          <HashRouter>
-            <Routes>
-              <Route element={<App />} path="/" />
-              <Route element={<StartPipeline />} path="/start" />
-              <Route element={<DataResource />} path="/data-resource/:id" />
-              <Route
-                element={<PipelineDataResourceDetails />}
-                path="/:pipelineId/:dataResourceId"
-              />
-              <Route element={<Pipeline />} path="/:id" />
-            </Routes>
-          </HashRouter>
+          <LayoutWithAuth>
+            <HashRouter>
+              <Routes>
+                <Route element={<Home />} path="/" />
+                <Route element={<StartPipeline />} path="/start" />
+                <Route element={<DataResource />} path="/data-resource/:id" />
+                <Route element={<Pipeline />} path="/:id" />
+              </Routes>
+            </HashRouter>
+          </LayoutWithAuth>
         </ApolloProvider>
       </AuthProvider>
     </ErrorBoundary>

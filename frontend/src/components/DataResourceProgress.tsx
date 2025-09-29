@@ -1,3 +1,5 @@
+import "../styles/DataResourceProgress.css";
+
 import { useQuery } from "@apollo/client/react";
 import { GET_PIPELINE_DATA_RESOURCE_PROGRESS } from "../graphql/pipelines";
 import type {
@@ -6,7 +8,14 @@ import type {
 } from "../__generated__/biocache-index-management/graphql";
 import { type Dispatch, type SetStateAction, useEffect } from "react";
 import { Spinner } from "./Spinner";
-import { Link } from "react-router";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import {
+    Accordion,
+    AccordionDetails,
+    AccordionSummary,
+    Chip,
+    Typography,
+} from "@mui/material";
 import { ErrorDetails } from "./PipelineDataResourceDetails";
 
 export type DataResourceFilter = {
@@ -37,43 +46,55 @@ export function DataResourceProgress(
 
     return (
         <div>
-            <p>{pipelineId}{step} {state}</p>
             {error && <li>Error: {error.message}</li>}
-            <ul>
-                {dataResources.map((
-                    progress: any,
-                ) => (
-                    <li key={progress.dataResource.id}>
-                        <Link
-                            to={`/${pipelineId}/${progress.dataResource.id}`}
+            {dataResources.map((
+                progress: any,
+            ) => (
+                <Accordion
+                    key={progress.dataResource.id}
+                    className={`pipeline-step-data-resource-details pipeline-step-data-resource-details-${state?.toLowerCase()}`}
+                >
+                    <AccordionSummary
+                        expandIcon={<ExpandMoreIcon />}
+                    >
+                        <Typography>
+                            {progress.dataResource.name}
+                        </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <a
+                            target="_blank"
+                            href={`https://natuurdata.dev.inbo.be/collectory/dataResource/show/${progress.dataResource.id}`}
                         >
-                            {progress.dataResource.name}: {progress.state}
-                        </Link>
-                        {progress.error && ErrorDetails(progress.cause)}
-                    </li>
-                ))}
-
-                {loading
-                    ? <Spinner />
-                    : data?.pipeline?.dataResourceProgress?.pageInfo
-                        ?.hasNextPage &&
-                        (
-                            <button
-                                onClick={() => {
-                                    fetchMore({
-                                        variables: {
-                                            after: data.pipeline
-                                                ?.dataResourceProgress
-                                                ?.pageInfo
-                                                .endCursor,
-                                        },
-                                    });
-                                }}
-                            >
-                                Load More
-                            </button>
+                            View in Collectory
+                        </a>
+                        {state === "FAILED" && (
+                            <ErrorDetails cause={progress.cause} />
                         )}
-            </ul>
+                    </AccordionDetails>
+                </Accordion>
+            ))}
+
+            {loading
+                ? <Spinner />
+                : data?.pipeline?.dataResourceProgress?.pageInfo
+                    ?.hasNextPage &&
+                    (
+                        <button
+                            onClick={() => {
+                                fetchMore({
+                                    variables: {
+                                        after: data.pipeline
+                                            ?.dataResourceProgress
+                                            ?.pageInfo
+                                            .endCursor,
+                                    },
+                                });
+                            }}
+                        >
+                            Load More
+                        </button>
+                    )}
         </div>
     );
 }
