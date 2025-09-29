@@ -26,11 +26,11 @@ import { StartPipeline } from "./pages/StartPipeline.tsx";
 import { relayStylePagination } from "@apollo/client/utilities";
 import { LayoutWithAuth } from "./Layout.tsx";
 import { Home } from "./pages/Home.tsx";
+import { settings } from "./settings.ts";
 
 const oidcConfig = {
-  authority: "https://auth-dev.inbo.be/realms/vbp",
-  client_id: "vbp-pipeline-admin-ui",
-  redirect_uri: window.location.origin + "/pipeline",
+  authority: settings.auth.authority,
+  client_id: settings.auth.client_id,
   onSigninCallback: (): void => {
     window.history.replaceState(
       {},
@@ -40,7 +40,7 @@ const oidcConfig = {
   },
 };
 const httpLink = new HttpLink({
-  uri: "/api/v1/biocache-index-management/graphql",
+  uri: settings.graphql.uri,
 });
 
 // Log any GraphQL errors, protocol errors, or network error that occurred

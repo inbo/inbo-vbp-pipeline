@@ -1,11 +1,3 @@
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import {
-    Accordion,
-    AccordionDetails,
-    AccordionSummary,
-    Typography,
-} from "@mui/material";
-
 type EmrErrorCause = {
     Step: {
         Id: string;
@@ -32,6 +24,9 @@ export function ErrorDetails({ cause }: { cause: string }) {
     return (
         <div>
             {isEmrErrorCause(parsedCause) ? "EMR Step Failed" : parsed.Error}
+            {isEmrErrorCause(parsedCause) && (
+                <EmrErrorDetails cause={parsedCause} />
+            )}
             {hasJson
                 ? <pre>{JSON.stringify(parsedCause, null, 2)}</pre>
                 : <p>{parsed.Cause}</p>}
@@ -44,11 +39,5 @@ function EmrErrorDetails(
 ) {
     const logUrl =
         `https://monitoring.natuurdata.dev.inbo.be/d/pipelines-logs-dev/pipelines-logs?orgId=1&refresh=1m&var-log_stream=${cause.Step.Id}&from=${cause.Step.Status.Timeline.StartDateTime}&to=${cause.Step.Status.Timeline.EndDateTime}`;
-    return (
-        <div>
-            <h5>{cause?.Step?.Status?.FailureDetails?.Reason}</h5>
-            <a href={logUrl} target="_blank" rel="noreferrer">Logs</a>
-            <pre>{JSON.stringify(cause, null, 2)}</pre>
-        </div>
-    );
+    return <a href={logUrl} target="_blank" rel="noreferrer">Logs</a>;
 }

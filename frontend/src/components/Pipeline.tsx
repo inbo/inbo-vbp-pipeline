@@ -25,7 +25,6 @@ export const Pipeline = ({ id }: { id?: string }) => {
     const [
         cancelPipeline,
         {
-            data: cancelPipelineData,
             loading: cancelPipelineLoading,
             error: cancelPipelineError,
         },
@@ -93,6 +92,10 @@ export const Pipeline = ({ id }: { id?: string }) => {
 
     if (!data?.pipeline) {
         return <p>Not found</p>;
+    }
+
+    if (cancelPipelineError) {
+        return <p>Error cancelling pipeline: {cancelPipelineError.message}</p>;
     }
 
     return (

@@ -10,7 +10,6 @@ import {
 export function ActionConfirmationModal({
     title,
     message,
-    actionLabel,
     onConfirm,
     onCancel,
 }: {

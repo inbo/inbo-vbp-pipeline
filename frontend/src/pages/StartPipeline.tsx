@@ -5,10 +5,11 @@ import { START_PIPELINE } from "../graphql/pipelines";
 import { useCallback } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "@mui/material";
+import { Spinner } from "../components/Spinner";
 
 export function StartPipeline() {
     const { data: indicesData } = useQuery(GET_INDICES);
-    const [startPipeline, { data, loading, error }] = useMutation(
+    const [startPipeline, { loading, error }] = useMutation(
         START_PIPELINE,
     );
     const navigate = useNavigate();
@@ -34,7 +35,8 @@ export function StartPipeline() {
         [startPipeline],
     );
 
-    if (loading) return <p>Starting pipeline...</p>;
+    if (loading) return <Spinner />;
+    if (error) return <p>Error starting pipeline: {error.message}</p>;
 
     return (
         <div id="start-pipeline">

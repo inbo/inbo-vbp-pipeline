@@ -9,7 +9,6 @@ export function PipelineList() {
     const [
         cancelPipeline,
         {
-            data: cancelPipelineData,
             loading: cancelPipelineLoading,
             error: cancelPipelineError,
         },
@@ -19,6 +18,9 @@ export function PipelineList() {
 
     if (loading) return <Spinner />;
     if (error) return <p>Error loading pipelines: {error.message}</p>;
+    if (cancelPipelineError) {
+        return <p>Error cancelling pipeline: {cancelPipelineError.message}</p>;
+    }
 
     return (
         <ul>

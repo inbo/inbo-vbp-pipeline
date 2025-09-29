@@ -6,14 +6,13 @@ import type {
     PipelineStep,
     PipelineStepState,
 } from "../__generated__/biocache-index-management/graphql";
-import { type Dispatch, type SetStateAction, useEffect } from "react";
+import { type Dispatch, type SetStateAction } from "react";
 import { Spinner } from "./Spinner";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
     Accordion,
     AccordionDetails,
     AccordionSummary,
-    Chip,
     Typography,
 } from "@mui/material";
 import { ErrorDetails } from "./PipelineDataResourceDetails";
@@ -24,7 +23,7 @@ export type DataResourceFilter = {
 };
 
 export function DataResourceProgress(
-    { pipelineId, step, state, setDataResourceFilter }: {
+    { pipelineId, step, state }: {
         pipelineId: string;
         step: PipelineStep;
         state?: PipelineStepState;

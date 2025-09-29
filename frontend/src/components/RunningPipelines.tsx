@@ -4,8 +4,6 @@ import { GET_ALL_PIPELINES } from "../graphql/pipelines";
 import Pipeline from "./Pipeline";
 import { Link } from "react-router";
 import { Button } from "@mui/material";
-import { useState } from "react";
-import { StartPipeline } from "../pages/StartPipeline";
 
 export function RunningPipelines() {
     const { data: pipelinesData } = useQuery(GET_ALL_PIPELINES, {
