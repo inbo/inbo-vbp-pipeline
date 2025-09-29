@@ -15,7 +15,7 @@ import {
 } from "@apollo/client";
 import { AuthProvider } from "react-oidc-context";
 import { SetContextLink } from "@apollo/client/link/context";
-import { BrowserRouter, Route, Routes } from "react-router";
+import { BrowserRouter, HashRouter, Route, Routes } from "react-router";
 import { User } from "oidc-client-ts";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorLink } from "@apollo/client/link/error";
@@ -107,14 +107,14 @@ createRoot(document.getElementById("root")!).render(
     >
       <AuthProvider {...oidcConfig}>
         <ApolloProvider client={client}>
-          <BrowserRouter basename="/pipeline">
+          <HashRouter>
             <Routes>
               <Route element={<App />} path="/" />
-              <Route element={<StartPipeline />} path="/start-pipeline" />
-              <Route element={<Pipeline />} path="/pipeline/:id" />
+              <Route element={<StartPipeline />} path="/start" />
               <Route element={<DataResource />} path="/data_resource/:id" />
+              <Route element={<Pipeline />} path="/:id" />
             </Routes>
-          </BrowserRouter>
+          </HashRouter>
         </ApolloProvider>
       </AuthProvider>
     </ErrorBoundary>

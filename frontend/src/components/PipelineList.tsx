@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@apollo/client/react";
 import { CANCEL_PIPELINE, GET_ALL_PIPELINES } from "../graphql/pipelines";
+import { Link } from "react-router";
 
 export function PipelineList() {
     const { data: pipelinesData } = useQuery(GET_ALL_PIPELINES);
@@ -22,7 +23,7 @@ export function PipelineList() {
                     <div>Started At: {pipeline.startedAt}</div>
                     <div>Stopped At: {pipeline.stoppedAt}</div>
                     <div>
-                        <a href={`/pipeline/${pipeline.id}`}>Details</a>
+                        <Link to={`/${pipeline.id}`}>Details</Link>
                     </div>
                     {pipeline.status === "RUNNING" && (
                         <button

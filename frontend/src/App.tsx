@@ -3,6 +3,7 @@ import { withAuthenticationRequired } from "react-oidc-context";
 import { PipelineList } from "./components/PipelineList";
 import { IndexList } from "./components/IndexList";
 import { RunningPipelines } from "./components/RunningPipelines";
+import { Link } from "react-router";
 
 function App() {
   return (
@@ -10,9 +11,9 @@ function App() {
       <h1>VBP Data Pipelines</h1>
       <div id="main">
         <RunningPipelines />
-        <a className="btn btn-primary" href="/start-pipeline">
+        <Link to="/start" className="btn btn-primary">
           Start New Pipeline
-        </a>
+        </Link>
         <div id="overview">
           <div id="indices">
             <h2>Available Indices:</h2>
