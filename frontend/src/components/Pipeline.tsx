@@ -62,9 +62,13 @@ export const Pipeline = ({ id }: { id?: string }) => {
         setDataResourceFilter,
     ]);
 
+    const dataResourcesCount =
+        stats?.steps.find((step) => step.step === dataResourceFilter.step)?.[
+            (dataResourceFilter.state?.toLowerCase() ||
+                "total") as keyof typeof stats.steps[0]
+        ] ?? 0;
     const dataResources = useMemo(
         () => {
-            const count = stats?.steps[dataResourceFilter.step as any]?.failed;
             return (
                 <>
                     <h4>
@@ -72,7 +76,9 @@ export const Pipeline = ({ id }: { id?: string }) => {
                         {dataResourceFilter.state
                             ? `with state ${dataResourceFilter.state}`
                             : ""}
-                        <div>{count}</div>
+                        <span className="data-resources-count">
+                            {dataResourcesCount}
+                        </span>
                     </h4>
                     {dataResourceFilter.step
                         ? (
@@ -94,6 +100,7 @@ export const Pipeline = ({ id }: { id?: string }) => {
                 ? stats?.steps[dataResourceFilter.step as any]
                 : null,
             setDataResourceFilter,
+            dataResourcesCount,
         ],
     );
 
