@@ -23,18 +23,21 @@ const envSettings = {
         domain: "natuurdata.dev.inbo.be",
         auth: {
             authority: "https://auth-dev.inbo.be/realms/vbp",
+            redirectUrl: "https://natuurdata.dev.inbo.be/pipeline/index.html",
         },
     },
     uat: {
         domain: "natuurdata.uat.inbo.be",
         auth: {
             authority: "https://auth-uat.inbo.be/realms/vbp",
+            redirectUrl: "https://natuurdata.uat.inbo.be/pipeline/index.html",
         },
     },
     prod: {
         domain: "natuurdata.inbo.be",
         auth: {
             authority: "https://auth.inbo.be/realms/vbp",
+            redirectUrl: "https://natuurdata.inbo.be/pipeline/index.html",
         },
     },
 };
