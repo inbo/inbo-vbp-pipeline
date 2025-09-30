@@ -27,13 +27,17 @@ export function StartPipeline() {
                     input: {
                         solrCollection,
                         dataResourceIds,
-                        shouldResetAllData:
-                            formData.get("should-reset-all-data")
-                                ? true
-                                : false,
-                        shouldRedownload: formData.get("should-redownload")
+                        resetAllData: formData.get("reset-all-data")
                             ? true
                             : false,
+                        forceDownload: formData.get("force-download")
+                            ? true
+                            : false,
+                        forceIndex: formData.get("force-index") ? true : false,
+                        forceSample: formData.get("force-sample")
+                            ? true
+                            : false,
+                        forceSolr: formData.get("force-solr") ? true : false,
                     },
                 },
             });
@@ -70,21 +74,47 @@ export function StartPipeline() {
                     </select>
                 </div>
                 <div>
-                    <label htmlFor="should-reset-all-data">
-                        Reset completely
+                    <label htmlFor="reset-all-data">
+                        Reset all data
                     </label>
                     <input
                         type="checkbox"
-                        id="should-reset-all-data"
-                        name="should-reset-all-data"
+                        id="reset-all-data"
+                        name="reset-all-data"
                     />
                 </div>
                 <div>
-                    <label htmlFor="should-redownload">Redownload data</label>
+                    <label htmlFor="force-download">
+                        Do not skip downloading
+                    </label>
                     <input
                         type="checkbox"
-                        id="should-redownload"
-                        name="should-redownload"
+                        id="force-download"
+                        name="force-download"
+                    />
+                </div>
+                <div>
+                    <label htmlFor="force-index">Do not skip indexing</label>
+                    <input
+                        type="checkbox"
+                        id="force-index"
+                        name="force-index"
+                    />
+                </div>
+                <div>
+                    <label htmlFor="force-sample">Do not skip sampling</label>
+                    <input
+                        type="checkbox"
+                        id="force-sample"
+                        name="force-sample"
+                    />
+                </div>
+                <div>
+                    <label htmlFor="force-solr">Do not skip solr</label>
+                    <input
+                        type="checkbox"
+                        id="force-solr"
+                        name="force-solr"
                     />
                 </div>
                 <DataResourceList />

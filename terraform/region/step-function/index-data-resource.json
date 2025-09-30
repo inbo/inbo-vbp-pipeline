@@ -23,7 +23,7 @@
       "Choices": [
         {
           "Next": "Do Nothing",
-          "Condition": "{% $toMillis($states.context.Execution.Input.dataResourceProcessingState.IndexedAt.S) >$toMillis($states.context.Execution.Input.dataResourceProcessingState.DownloadedAt.S) and ($merge($each($states.context.Execution.Input.dataResourceProcessingState.SpeciesLists.M, function($v,$k){{$k: $v.S}})) = $speciesLists) or false %}"
+          "Condition": "{% $not($states.context.Execution.Input.forceIndex or false) and $toMillis($states.context.Execution.Input.dataResourceProcessingState.IndexedAt.S) >$toMillis($states.context.Execution.Input.dataResourceProcessingState.DownloadedAt.S) and ($merge($each($states.context.Execution.Input.dataResourceProcessingState.SpeciesLists.M, function($v,$k){{$k: $v.S}})) = $speciesLists) or false %}"
         }
       ],
       "Default": "Big or Small?"

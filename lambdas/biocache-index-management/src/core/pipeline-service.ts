@@ -96,8 +96,11 @@ export type PipelineService = {
     startPipeline(
         dataResourceIds?: string[],
         solrCollection?: string,
-        shouldRedownload?: boolean,
-        shouldResetAllData?: boolean,
+        resetAllData?: boolean,
+        forceDownload?: boolean,
+        forceIndex?: boolean,
+        forceSample?: boolean,
+        forceSolr?: boolean,
     ): Promise<Pipeline>;
     cancelPipeline(id: string): Promise<void>;
 

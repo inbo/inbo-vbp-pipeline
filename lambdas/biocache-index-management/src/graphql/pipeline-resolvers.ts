@@ -57,16 +57,22 @@ export const Mutation: MutationResolvers = {
             input: {
                 dataResourceIds,
                 solrCollection,
-                shouldRedownload,
-                shouldResetAllData,
+                resetAllData,
+                forceDownload,
+                forceIndex,
+                forceSample,
+                forceSolr,
             },
         },
     ) => {
         const pipeline = await pipelineService.startPipeline(
             dataResourceIds,
             solrCollection ?? undefined,
-            shouldRedownload ?? undefined,
-            shouldResetAllData ?? undefined,
+            forceDownload ?? undefined,
+            resetAllData ?? undefined,
+            forceIndex ?? undefined,
+            forceSample ?? undefined,
+            forceSolr ?? undefined,
         );
 
         return {

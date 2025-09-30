@@ -88,15 +88,21 @@ export class AwsPipelineServiceImpl implements PipelineService {
     async startPipeline(
         dataResourceIds?: string[],
         solrCollection?: string,
-        shouldRedownload: boolean = false,
-        shouldResetAllData: boolean = false,
+        resetAllData: boolean = false,
+        forceDownload: boolean = false,
+        forceIndex: boolean = false,
+        forceSample: boolean = false,
+        forceSolr: boolean = false,
     ): Promise<Pipeline> {
         console.debug(
             "Starting pipeline with input:",
             dataResourceIds,
+            resetAllData,
             solrCollection,
-            shouldRedownload,
-            shouldResetAllData,
+            forceDownload,
+            forceIndex,
+            forceSample,
+            forceSolr,
         );
 
         const output = await this.sfn.startExecution({
@@ -104,8 +110,11 @@ export class AwsPipelineServiceImpl implements PipelineService {
             input: JSON.stringify({
                 dataResources: dataResourceIds,
                 solrCollection,
-                shouldRedownload,
-                shouldResetAllData,
+                resetAllData,
+                forceDownload,
+                forceIndex,
+                forceSample,
+                forceSolr,
             }),
         });
         return {

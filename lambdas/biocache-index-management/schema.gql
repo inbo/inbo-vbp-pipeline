@@ -204,8 +204,11 @@ type DataResourceHistoryOutput {
 input StartPipelineInput {
   dataResourceIds: [ID!]!
   solrCollection: String
-  shouldRedownload: Boolean
-  shouldResetAllData: Boolean
+  resetAllData: Boolean
+  forceDownload: Boolean
+  forceIndex: Boolean
+  forceSample: Boolean
+  forceSolr: Boolean
 }
 
 type StartPipelineOutput {

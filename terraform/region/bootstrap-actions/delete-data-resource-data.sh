@@ -10,10 +10,10 @@ ls -la /data/*
 if [ "${DATA_RESOURCE_ID}" == "ALL" ]; then
      echo "Deleting all pipeline data``"
       rm -rfv "/data/*" || true
-  else
-      echo "Deleting dataresource ${DATA_RESOURCE_ID} data"
-      rm -rfv "/data/dwca-export/${DATA_RESOURCE_ID}" || true
-      rm -rfv "/data/pipelines-data/${DATA_RESOURCE_ID}" || true
-      rm -rfv "/data/pipelines-all-datasets/${DATA_RESOURCE_ID}" || true
-  fi
+else
+    echo "Deleting dataresource ${DATA_RESOURCE_ID} data"
+    rm -rfv "/data/dwca-export/${DATA_RESOURCE_ID}" || true
+    rm -rfv "/data/pipelines-data/${DATA_RESOURCE_ID}" || true
+    rm -rfv "/data/pipelines-all-datasets/${DATA_RESOURCE_ID}" || true
+fi
 

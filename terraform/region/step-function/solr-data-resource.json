@@ -24,7 +24,7 @@
       "Choices": [
         {
           "Next": "Do Nothing",
-          "Condition": "{% ($toMillis($lookup($solrAt, $solrCollection)) > $max([$toMillis($states.context.Execution.Input.dataResourceProcessingState.IndexedAt.S),$toMillis($states.context.Execution.Input.dataResourceProcessingState.SampledAt.S)])) or false %}"
+          "Condition": "{% $not($states.context.Execution.Input.forceSolr or false) and ($toMillis($lookup($solrAt, $solrCollection)) > $max([$toMillis($states.context.Execution.Input.dataResourceProcessingState.IndexedAt.S),$toMillis($states.context.Execution.Input.dataResourceProcessingState.SampledAt.S)])) or false %}"
         }
       ],
       "Default": "Get or create EMR Cluster"

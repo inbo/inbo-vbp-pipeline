@@ -156,8 +156,8 @@
                         "rootPipelineName": "{% $states.context.Execution.Name %}",
                         "dataResourceId": "{% $states.input %}",
                         "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
-                        "shouldRedownload": "{% $states.context.Execution.Input.shouldRedownload or false %}",
-                        "shouldResetAllData": "{% $states.context.Execution.Input.shouldResetAllData or false %}"
+                        "forceDownload": "{% $states.context.Execution.Input.forceDownload or false %}",
+                        "resetAllData": "{% $states.context.Execution.Input.resetAllData or false %}"
                       }
                     },
                     "Assign": {
@@ -177,7 +177,8 @@
                         "rootPipelineName": "{% $states.context.Execution.Name %}",
                         "dataResourceId": "{% $dataResourceId %}",
                         "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
-                        "speciesLists": "{% $speciesLists %}"
+                        "speciesLists": "{% $speciesLists %}",
+                        "forceIndex": "{% $states.context.Execution.Input.forceIndex or false %}"
                       }
                     },
                     "Next": "Sample Spatial Layers"
@@ -195,7 +196,8 @@
                         "dataResourceId": "{% $dataResourceId %}",
                         "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
                         "concurrencyLimit": 2,
-                        "spatialFields": "{% $spatialFields %}"
+                        "spatialFields": "{% $spatialFields %}",
+                        "forceSample": "{% $states.context.Execution.Input.forceSample or false %}"
                       }
                     },
                     "Next": "Upload to Solr"
@@ -213,7 +215,8 @@
                         "dataResourceId": "{% $dataResourceId %}",
                         "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
                         "concurrencyLimit": 1,
-                        "solrCollection": "{% $solrCollection %}"
+                        "solrCollection": "{% $solrCollection %}",
+                        "forceSolr": "{% $states.context.Execution.Input.forceSolr or false %}"
                       }
                     },
                     "End": true
