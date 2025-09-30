@@ -16,7 +16,7 @@ import {
 } from "@apollo/client";
 import { AuthProvider } from "react-oidc-context";
 import { SetContextLink } from "@apollo/client/link/context";
-import { HashRouter, Route, Routes } from "react-router";
+import { HashRouter, redirect, Route, Routes } from "react-router";
 import { User } from "oidc-client-ts";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorLink } from "@apollo/client/link/error";
@@ -31,6 +31,7 @@ import { settings } from "./settings.ts";
 const oidcConfig = {
   authority: settings.auth.authority,
   client_id: settings.auth.client_id,
+  redirect_uri: settings.auth.redirectUrl,
   onSigninCallback: (): void => {
     window.history.replaceState(
       {},

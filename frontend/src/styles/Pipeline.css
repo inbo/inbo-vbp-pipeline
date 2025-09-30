@@ -6,11 +6,12 @@
 
 .pipeline-details {
     flex: 1;
+    min-width: 500px;
+    margin: 0 2em;
 }
 
 .pipeline-step-data-resources {
     flex: 1;
-    overflow: scroll;
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-border) transparent;
+    min-width: 500px;
+    margin: 0 2em;
 }

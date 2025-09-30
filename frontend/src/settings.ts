@@ -11,6 +11,7 @@ const defaultSettings = {
     auth: {
         authority: "https://auth-dev.inbo.be/realms/vbp",
         client_id: "vbp-branding",
+        redirectUrl: "http://localhost:5173/pipeline/index.html",
     },
     graphql: {
         uri: "/api/v1/biocache-index-management/graphql",
@@ -18,7 +19,11 @@ const defaultSettings = {
 };
 
 const envSettings = {
-    local: {},
+    local: {
+        auth: {
+            client_id: "vbp-pipeline-admin-ui",
+        },
+    },
     dev: {
         domain: "natuurdata.dev.inbo.be",
         auth: {

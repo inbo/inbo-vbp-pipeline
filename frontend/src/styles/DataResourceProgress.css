@@ -1,3 +1,43 @@
-.pipeline-step-data-resource-details {
+.pipeline-step-data-resources-list {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.pipeline-step-data-resource-details-summary {
+    display: flex !important;
+    align-items: center !important;
     width: 100%;
+}
+
+.pipeline-step-data-resource-details-summary-text {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    text-align: left;
+    margin-right: auto;
+}
+
+.pipeline-step-data-resource-details-chip {
+    font-weight: bold;
+    color: white !important;
+    margin-right: 1em;
+}
+
+.pipeline-step-data-resource-details-chip-succeeded {
+    background-color: #55c71b !important;
+}
+
+.pipeline-step-data-resource-details-chip-failed {
+    background-color: #fc2032 !important;
+}
+.pipeline-step-data-resource-details-chip-running {
+    background-color: #2d36b4 !important;
+}
+.pipeline-step-data-resource-details-chip-queued {
+    background-color: #a1a1a1 !important;
+}
+.pipeline-step-data-resource-details-chip-skipped {
+    background-color: #616161 !important;
 }

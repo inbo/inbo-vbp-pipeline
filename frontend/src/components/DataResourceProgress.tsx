@@ -6,14 +6,14 @@ import type {
     PipelineStep,
     PipelineStepState,
 } from "../__generated__/biocache-index-management/graphql";
-import { type Dispatch, type SetStateAction } from "react";
+import { type Dispatch, type SetStateAction, useCallback } from "react";
 import { Spinner } from "./Spinner";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
     Accordion,
     AccordionDetails,
     AccordionSummary,
-    Typography,
+    Chip,
 } from "@mui/material";
 import { ErrorDetails } from "./PipelineDataResourceDetails";
 
@@ -43,22 +43,51 @@ export function DataResourceProgress(
         ) ||
         [];
 
+    const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
+        const element = event.currentTarget;
+        if (
+            data?.pipeline?.dataResourceProgress?.pageInfo?.hasNextPage &&
+            Math.abs(
+                    element.scrollHeight - element.scrollTop -
+                        element.clientHeight,
+                ) < 5
+        ) {
+            fetchMore({
+                variables: {
+                    after: data?.pipeline
+                        ?.dataResourceProgress
+                        ?.pageInfo
+                        .endCursor,
+                },
+            });
+        }
+    }, [data, fetchMore]);
+
     return (
-        <div>
+        <div
+            className="pipeline-step-data-resources-list"
+            onScroll={handleScroll}
+        >
             {error && <li>Error: {error.message}</li>}
             {dataResources.map((
                 progress: any,
             ) => (
                 <Accordion
                     key={progress.dataResource.id}
-                    className={`pipeline-step-data-resource-details pipeline-step-data-resource-details-${state?.toLowerCase()}`}
+                    className={`pipeline-step-data-resource-details pipeline-step-data-resource-details-${progress.state?.toLowerCase()}`}
                 >
                     <AccordionSummary
+                        className="pipeline-step-data-resource-details-summary"
                         expandIcon={<ExpandMoreIcon />}
                     >
-                        <Typography>
+                        <span className="pipeline-step-data-resource-details-summary-text">
                             {progress.dataResource.name}
-                        </Typography>
+                            {" "}
+                        </span>
+                        <Chip
+                            label={progress.state}
+                            className={`pipeline-step-data-resource-details-chip pipeline-step-data-resource-details-chip-${progress.state?.toLowerCase()}`}
+                        />
                     </AccordionSummary>
                     <AccordionDetails>
                         <a
@@ -74,26 +103,7 @@ export function DataResourceProgress(
                 </Accordion>
             ))}
 
-            {loading
-                ? <Spinner />
-                : data?.pipeline?.dataResourceProgress?.pageInfo
-                    ?.hasNextPage &&
-                    (
-                        <button
-                            onClick={() => {
-                                fetchMore({
-                                    variables: {
-                                        after: data.pipeline
-                                            ?.dataResourceProgress
-                                            ?.pageInfo
-                                            .endCursor,
-                                    },
-                                });
-                            }}
-                        >
-                            Load More
-                        </button>
-                    )}
+            {loading && <Spinner />}
         </div>
     );
 }

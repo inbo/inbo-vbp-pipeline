@@ -16,7 +16,7 @@ import {
 } from "./DataResourceProgress";
 import { Spinner } from "./Spinner";
 import { ActionConfirmationModal } from "./ActionConfirmationModal";
-import { Button } from "@mui/material";
+import { Badge, Button, Chip } from "@mui/material";
 import { PipelineProgress } from "./PipelineProgress";
 
 export const Pipeline = ({ id }: { id?: string }) => {
@@ -62,25 +62,40 @@ export const Pipeline = ({ id }: { id?: string }) => {
         setDataResourceFilter,
     ]);
 
-    const dataResources = useMemo(() => (
-        dataResourceFilter.step
-            ? (
-                <DataResourceProgress
-                    pipelineId={pipelineId}
-                    step={dataResourceFilter.step}
-                    state={dataResourceFilter.state}
-                    setDataResourceFilter={setDataResourceFilter}
-                />
-            )
-            : null
-    ), [
-        pipelineId,
-        dataResourceFilter,
-        dataResourceFilter.step
-            ? stats?.steps[dataResourceFilter.step as any]
-            : null,
-        setDataResourceFilter,
-    ]);
+    const dataResources = useMemo(
+        () => {
+            const count = stats?.steps[dataResourceFilter.step as any]?.failed;
+            return (
+                <>
+                    <h4>
+                        Data Resources in {dataResourceFilter.step}{" "}
+                        {dataResourceFilter.state
+                            ? `with state ${dataResourceFilter.state}`
+                            : ""}
+                        <div>{count}</div>
+                    </h4>
+                    {dataResourceFilter.step
+                        ? (
+                            <DataResourceProgress
+                                pipelineId={pipelineId}
+                                step={dataResourceFilter.step}
+                                state={dataResourceFilter.state}
+                                setDataResourceFilter={setDataResourceFilter}
+                            />
+                        )
+                        : null}
+                </>
+            );
+        },
+        [
+            pipelineId,
+            dataResourceFilter,
+            dataResourceFilter.step
+                ? stats?.steps[dataResourceFilter.step as any]
+                : null,
+            setDataResourceFilter,
+        ],
+    );
 
     if (error) {
         return <p>Error: {error.message}</p>;
