@@ -16,6 +16,7 @@ import {
     Chip,
 } from "@mui/material";
 import { ErrorDetails } from "./PipelineDataResourceDetails";
+import { settings } from "../settings";
 
 export type DataResourceFilter = {
     step?: PipelineStep;
@@ -89,10 +90,10 @@ export function DataResourceProgress(
                             className={`pipeline-step-data-resource-details-chip pipeline-step-data-resource-details-chip-${progress.state?.toLowerCase()}`}
                         />
                     </AccordionSummary>
-                    <AccordionDetails>
+                    <AccordionDetails className="pipeline-step-data-resource-details-details">
                         <a
                             target="_blank"
-                            href={`https://natuurdata.dev.inbo.be/collectory/dataResource/show/${progress.dataResource.id}`}
+                            href={`https://${settings.domain}/collectory/dataResource/show/${progress.dataResource.id}`}
                         >
                             View in Collectory
                         </a>

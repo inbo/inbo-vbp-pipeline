@@ -41,3 +41,10 @@
 .pipeline-step-data-resource-details-chip-skipped {
     background-color: #616161 !important;
 }
+
+.pipeline-step-data-resource-details-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    font-size: 0.875rem;
+}

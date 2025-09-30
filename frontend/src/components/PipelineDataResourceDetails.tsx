@@ -1,3 +1,5 @@
+import { JsonData } from "./JsonData";
+
 type EmrErrorCause = {
     Step: {
         Id: string;
@@ -27,9 +29,7 @@ export function ErrorDetails({ cause }: { cause: string }) {
             {isEmrErrorCause(parsedCause) && (
                 <EmrErrorDetails cause={parsedCause} />
             )}
-            {hasJson
-                ? <pre>{JSON.stringify(parsedCause, null, 2)}</pre>
-                : <p>{parsed.Cause}</p>}
+            {hasJson ? <JsonData data={parsedCause} /> : <p>{parsed.Cause}</p>}
         </div>
     );
 }
@@ -39,5 +39,14 @@ function EmrErrorDetails(
 ) {
     const logUrl =
         `https://monitoring.natuurdata.dev.inbo.be/d/pipelines-logs-dev/pipelines-logs?orgId=1&refresh=1m&var-log_stream=${cause.Step.Id}&from=${cause.Step.Status.Timeline.StartDateTime}&to=${cause.Step.Status.Timeline.EndDateTime}`;
-    return <a href={logUrl} target="_blank" rel="noreferrer">Logs</a>;
+    return (
+        <div>
+            <div>
+                Reason: {cause.Step.Status.FailureDetails.Reason}
+            </div>
+            <div>
+                <a href={logUrl} target="_blank" rel="noreferrer">Logs</a>
+            </div>
+        </div>
+    );
 }

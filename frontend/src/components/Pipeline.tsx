@@ -3,7 +3,7 @@ import "../styles/Pipeline.css";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { CANCEL_PIPELINE, GET_PIPELINE_PROGRESS } from "../graphql/pipelines";
 import { useParams } from "react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
     PipelineStatus,
 } from "../__generated__/biocache-index-management/graphql";
@@ -16,7 +16,7 @@ import {
 } from "./DataResourceProgress";
 import { Spinner } from "./Spinner";
 import { ActionConfirmationModal } from "./ActionConfirmationModal";
-import { Badge, Button, Chip } from "@mui/material";
+import { Button } from "@mui/material";
 import { PipelineProgress } from "./PipelineProgress";
 
 export const Pipeline = ({ id }: { id?: string }) => {
@@ -35,18 +35,27 @@ export const Pipeline = ({ id }: { id?: string }) => {
     const [showDetails, setShowDetails] = useState(false);
     const [showConfirmCancel, setShowConfirmCancel] = useState(false);
 
-    const { data, loading, error, networkStatus } = useQuery(
-        GET_PIPELINE_PROGRESS,
-        {
-            variables: { id: pipelineId! },
-            pollInterval: 10_000,
-        },
-    );
+    const { data, loading, error, networkStatus, startPolling, stopPolling } =
+        useQuery(
+            GET_PIPELINE_PROGRESS,
+            {
+                variables: { id: pipelineId! },
+            },
+        );
     const [dataResourceFilter, setDataResourceFilter] = useState<
         DataResourceFilter
     >({});
 
     const stats = data?.pipeline?.stats;
+
+    useEffect(() => {
+        if (data?.pipeline?.status !== PipelineStatus.Running) {
+            startPolling(10_000);
+        }
+        return () => {
+            stopPolling();
+        };
+    }, [data?.pipeline?.status]);
 
     const progress = useMemo(() => {
         return stats && (
@@ -62,23 +71,26 @@ export const Pipeline = ({ id }: { id?: string }) => {
         setDataResourceFilter,
     ]);
 
-    const dataResourcesCount =
-        stats?.steps.find((step) => step.step === dataResourceFilter.step)?.[
-            (dataResourceFilter.state?.toLowerCase() ||
-                "total") as keyof typeof stats.steps[0]
-        ] ?? 0;
+    const dataResourcesCount = stats?.steps.find((step) =>
+        step.step === dataResourceFilter.step
+    )?.[
+        (dataResourceFilter.state?.toLowerCase() ||
+            "total") as keyof typeof stats.steps[0]
+    ];
     const dataResources = useMemo(
         () => {
-            return (
+            return dataResourceFilter.step && (
                 <>
                     <h4>
                         Data Resources in {dataResourceFilter.step}{" "}
                         {dataResourceFilter.state
                             ? `with state ${dataResourceFilter.state}`
                             : ""}
-                        <span className="data-resources-count">
-                            {dataResourcesCount}
-                        </span>
+                        {dataResourcesCount && (
+                            <span className="pipeline-step-data-resources-count">
+                                {dataResourcesCount}
+                            </span>
+                        )}
                     </h4>
                     {dataResourceFilter.step
                         ? (
