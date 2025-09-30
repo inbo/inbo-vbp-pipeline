@@ -53,12 +53,22 @@ export const Query: QueryResolvers = {
 export const Mutation: MutationResolvers = {
     startPipeline: async (
         _,
-        { input: { dataResourceIds, solrCollection } },
+        {
+            input: {
+                dataResourceIds,
+                solrCollection,
+                shouldRedownload,
+                shouldResetAllData,
+            },
+        },
     ) => {
         const pipeline = await pipelineService.startPipeline(
             dataResourceIds,
-            solrCollection ? solrCollection : undefined,
+            solrCollection ?? undefined,
+            shouldRedownload ?? undefined,
+            shouldResetAllData ?? undefined,
         );
+
         return {
             pipeline: maptoGraphql(pipeline),
         };

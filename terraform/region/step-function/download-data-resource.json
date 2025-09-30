@@ -38,11 +38,72 @@
       "Type": "Choice",
       "Choices": [
         {
+          "Next": "Reset Data Resource State",
+          "Condition": "{% $states.context.Execution.Input.shouldResetAllData or false %}"
+        },
+        {
           "Next": "Do Nothing",
-          "Condition": "{% $exists($states.context.Execution.Input.dataResourceProcessingState.DownloadedAt.S) and $toMillis($states.context.Execution.Input.dataResourceProcessingState.DownloadedAt.S) > $toMillis($lastUpdated) %}"
+          "Condition": "{% $not($states.context.Execution.Input.shouldRedownload or false) and $exists($states.context.Execution.Input.dataResourceProcessingState.DownloadedAt.S) and $toMillis($states.context.Execution.Input.dataResourceProcessingState.DownloadedAt.S) > $toMillis($lastUpdated) %}"
         }
       ],
       "Default": "Download Data Resource"
+    },
+    "Reset Data Resource State": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:deleteItem",
+      "Arguments": {
+        "TableName": "{% $config.dynamodb_table_name %}",
+        "Key": {
+          "PK": {
+            "S": "{% 'DATA_RESOURCE#' & $dataResourceId %}"
+          },
+          "SK": {
+            "S": "STATE"
+          }
+        }
+      },
+      "Next": "Reset All Data"
+    },
+    "Reset All Data": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::batch:submitJob.sync",
+      "Arguments": {
+        "JobDefinition": "{% $config.download_data_resource_job_definition_arn %}",
+        "JobName": "{% 'download-data-' & $dataResourceId %}",
+        "JobQueue": "{% $config.job_queue_arn %}",
+        "ContainerOverrides": {
+          "Environment": [
+            {
+              "Name": "DATA_RESOURCE_ID",
+              "Value": "{% $dataResourceId %}"
+            },
+            {
+              "Name": "DATA_RESOURCE_URL",
+              "Value": "{% $dataResourceUrl %}"
+            },
+            {
+              "Name": "DATA_RESOURCE_LAST_UPDATED",
+              "Value": "{% $lastUpdated %}"
+            },
+            {
+              "Name": "DOWNLOADED_EVENT_TIMESTAMP",
+              "Value": "{% $now() %}"
+            },
+            {
+              "Name": "ROOT_PIPELINE_NAME",
+              "Value": "{% $rootPipelineName %}"
+            },
+            {
+              "Name": "EXECUTION_PIPELINE_ID",
+              "Value": "{% $states.context.Execution.Id %}"
+            }
+          ]
+        }
+      },
+      "Next": "Download Data Resource",
+      "Output": {
+        "downloadedTimeStamp": "{% $states.result.Container.Environment[Name='DOWNLOADED_EVENT_TIMESTAMP'].Value %}"
+      }
     },
     "Do Nothing": {
       "Type": "Pass",
@@ -149,10 +210,10 @@
           }
         }
       },
-      "End": true,
       "Output": {
         "result": "SUCCEEDED"
-      }
+      },
+      "End": true
     },
     "Fail": {
       "Type": "Fail",

@@ -27,6 +27,13 @@ export function StartPipeline() {
                     input: {
                         solrCollection,
                         dataResourceIds,
+                        shouldResetAllData:
+                            formData.get("should-reset-all-data")
+                                ? true
+                                : false,
+                        shouldRedownload: formData.get("should-redownload")
+                            ? true
+                            : false,
                     },
                 },
             });
@@ -63,13 +70,13 @@ export function StartPipeline() {
                     </select>
                 </div>
                 <div>
-                    <label htmlFor="should-reset-completely">
+                    <label htmlFor="should-reset-all-data">
                         Reset completely
                     </label>
                     <input
                         type="checkbox"
-                        id="should-reset-completely"
-                        name="should-reset-completely"
+                        id="should-reset-all-data"
+                        name="should-reset-all-data"
                     />
                 </div>
                 <div>

@@ -155,7 +155,9 @@
                         "stepName": "Download",
                         "rootPipelineName": "{% $states.context.Execution.Name %}",
                         "dataResourceId": "{% $states.input %}",
-                        "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}"
+                        "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
+                        "shouldRedownload": "{% $states.context.Execution.Input.shouldRedownload or false %}",
+                        "shouldResetAllData": "{% $states.context.Execution.Input.shouldResetAllData or false %}"
                       }
                     },
                     "Assign": {

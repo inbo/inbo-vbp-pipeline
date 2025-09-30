@@ -204,6 +204,8 @@ type DataResourceHistoryOutput {
 input StartPipelineInput {
   dataResourceIds: [ID!]!
   solrCollection: String
+  shouldRedownload: Boolean
+  shouldResetAllData: Boolean
 }
 
 type StartPipelineOutput {
