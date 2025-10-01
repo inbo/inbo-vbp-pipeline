@@ -1,15 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "5.81.0"
-    }
-    awscc = {
-      source  = "hashicorp/awscc"
-      version = "1.23.0"
-    }
-  }
-}
 # IAM Role for EC2 Instance Profile
 data "aws_iam_policy_document" "ec2_assume_role" {
   statement {
