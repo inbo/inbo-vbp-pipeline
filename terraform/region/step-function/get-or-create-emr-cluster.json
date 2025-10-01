@@ -213,7 +213,6 @@
               "Args": [
                 "{% $config.efs_data_volume_id %}",
                 "{% $config.efs_data_access_point_id %}",
-                "2049",
                 "/data"
               ],
               "Path": "{% 's3://' & $config.s3_bucket_name_pipeline & '/bootstrap-actions/mount-efs.sh' %}"
