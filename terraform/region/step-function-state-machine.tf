@@ -1,6 +1,6 @@
 data "aws_emr_release_labels" "emr_release" {
   filters {
-    application = "spark@3.5.1"
+    application = "Spark@3"
   }
 }
 
