@@ -145,11 +145,7 @@ resource "aws_iam_role_policy" "iam_emr_instance_profile_policy" {
   policy = data.aws_iam_policy_document.iam_emr_instance_profile_policy.json
 }
 
-data "awscc_iam_managed_policy" "ssm_managed_instance_core" {
-  id = "AmazonSSMManagedInstanceCore"
-}
-
 resource "aws_iam_role_policy_attachment" "ssm_managed_instance_core" {
   role       = aws_iam_role.iam_emr_instance_role.id
-  policy_arn = data.awscc_iam_managed_policy.ssm_managed_instance_core.policy_arn
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
