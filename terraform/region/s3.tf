@@ -82,7 +82,7 @@ resource "aws_ssm_parameter" "emr_cloudwatch_agent_config" {
                {
                   "file_path":"/mnt/var/log/hadoop/steps/*/*",
                   "log_group_name":"${var.log_group_name}",
-                  "log_stream_name": "{instance_id}/{file_name}",
+                  "log_stream_name": "{instance_id}/{file_path}/{file_name}",
                   "multi_line_start_pattern":"^\\d{2}/\\d{2}/\\d{2}",
                   "timezone":"UTC"
                }
