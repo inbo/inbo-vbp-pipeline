@@ -1,3 +1,15 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "5.81.0"
+    }
+    awscc = {
+      source  = "hashicorp/awscc"
+      version = "1.23.0"
+    }
+  }
+}
 # IAM Role for EC2 Instance Profile
 data "aws_iam_policy_document" "ec2_assume_role" {
   statement {
@@ -145,4 +157,13 @@ resource "aws_iam_role_policy" "iam_emr_instance_profile_policy" {
   name   = "iam_emr_instance_profile_policy"
   role   = aws_iam_role.iam_emr_instance_role.id
   policy = data.aws_iam_policy_document.iam_emr_instance_profile_policy.json
+}
+
+data "awscc_iam_managed_policy" "ssm_managed_instance_core" {
+  id = "AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_role_policy_attachment" "ssm_managed_instance_core" {
+  role       = aws_iam_role.iam_emr_instance_role.id
+  policy_arn = data.awscc_iam_managed_policy.ssm_managed_instance_core.policy_arn
 }
