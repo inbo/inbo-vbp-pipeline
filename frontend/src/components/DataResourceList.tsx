@@ -153,7 +153,7 @@ export const DataResourceList = () => {
                                 id={dr.id}
                                 name="data-resource"
                                 value={dr.id}
-                                checked={selectedResources[index]}
+                                checked={selectedResources[index] || false}
                                 onChange={() => changeSingleResource(index)}
                             />
                         </div>

@@ -17,7 +17,7 @@ run:
   spark-cluster:
     dwcaTmp: /data/dwca-tmp
     dwcaImportDir: /data/dwca-export
-    jar: s3://test-emr-pipelines/pipelines-2.18.6-SNAPSHOT-shaded.jar
+    jar: s3://test-emr-pipelines/pipelines-3.2.11-SNAPSHOT-shaded.jar
     sparkSubmit: /usr/bin/spark-submit
     sparkTmp: /data/spark-tmp
     # dont specify spark master for EMR

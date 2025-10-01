@@ -1,16 +1,35 @@
 import { useMutation, useQuery } from "@apollo/client/react";
 import { GET_INDICES } from "../graphql/indices";
 import DataResourceList from "../components/DataResourceList";
-import { START_PIPELINE } from "../graphql/pipelines";
+import { PIPELINE_FRAGMENT, START_PIPELINE } from "../graphql/pipelines";
 import { useCallback } from "react";
 import { useNavigate } from "react-router";
-import { Button } from "@mui/material";
+import { Button, MenuItem, Select } from "@mui/material";
 import { Spinner } from "../components/Spinner";
 
 export function StartPipeline() {
     const { data: indicesData } = useQuery(GET_INDICES);
     const [startPipeline, { loading, error }] = useMutation(
         START_PIPELINE,
+        {
+            update(cache, { data }) {
+                cache.modify({
+                    fields: {
+                        pipelines(existingPipelines = []) {
+                            if (data?.startPipeline?.pipeline) {
+                                const newPipelineRef = cache.writeFragment({
+                                    data: data.startPipeline.pipeline,
+                                    fragment: PIPELINE_FRAGMENT,
+                                });
+                                return [...existingPipelines, newPipelineRef];
+                            } else {
+                                return existingPipelines;
+                            }
+                        },
+                    },
+                });
+            },
+        },
     );
     const navigate = useNavigate();
 
@@ -59,19 +78,20 @@ export function StartPipeline() {
 
                 <div>
                     <label htmlFor="index">Select Index:</label>
-                    <select
+                    <Select
                         name="index"
-                        value={indicesData?.indices.find((i) => i.active)?.id}
+                        defaultValue={indicesData?.indices.find((i) => i.active)
+                            ?.id}
                     >
                         {indicesData?.indices.map((index) => (
-                            <option
+                            <MenuItem
                                 key={index.id}
                                 value={index.id}
                             >
                                 {index.id} {index.active ? " (active)" : ""}
-                            </option>
+                            </MenuItem>
                         ))}
-                    </select>
+                    </Select>
                 </div>
                 <div>
                     <label htmlFor="reset-all-data">
@@ -81,6 +101,7 @@ export function StartPipeline() {
                         type="checkbox"
                         id="reset-all-data"
                         name="reset-all-data"
+                        defaultChecked={false}
                     />
                 </div>
                 <div>
@@ -91,6 +112,7 @@ export function StartPipeline() {
                         type="checkbox"
                         id="force-download"
                         name="force-download"
+                        defaultChecked={false}
                     />
                 </div>
                 <div>
@@ -99,6 +121,7 @@ export function StartPipeline() {
                         type="checkbox"
                         id="force-index"
                         name="force-index"
+                        defaultChecked={false}
                     />
                 </div>
                 <div>
@@ -107,6 +130,7 @@ export function StartPipeline() {
                         type="checkbox"
                         id="force-sample"
                         name="force-sample"
+                        defaultChecked={false}
                     />
                 </div>
                 <div>
@@ -115,6 +139,7 @@ export function StartPipeline() {
                         type="checkbox"
                         id="force-solr"
                         name="force-solr"
+                        defaultChecked={false}
                     />
                 </div>
                 <DataResourceList />

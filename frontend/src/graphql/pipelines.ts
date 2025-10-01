@@ -144,3 +144,17 @@ export const GET_PIPELINE_DATA_RESOURCE_DETAILS = gql(`
     }
   }
 `);
+
+export const PIPELINE_FRAGMENT = gql(`
+  fragment PipelineFragment on Pipeline {
+    id
+    executionArn
+    status
+    startedAt
+    stoppedAt
+    input
+    output
+    error
+    cause
+  }
+`);

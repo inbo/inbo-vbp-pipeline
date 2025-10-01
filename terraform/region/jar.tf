@@ -16,7 +16,7 @@ docker rm -v download-pipeline-jar || true
 
 # Copy jar from th docker image
 docker create --name download-pipeline-jar ${var.ecr_repo}/${var.resource_prefix}pipelines:${var.docker_version}
-docker cp download-pipeline-jar:/app/livingatlas/pipelines/target/pipelines-2.18.6-SNAPSHOT-shaded.jar ./pipelines-${var.docker_version}.jar
+docker cp download-pipeline-jar:/app/livingatlas/pipelines/target/pipelines-3.2.11-SNAPSHOT-shaded.jar ./pipelines-${var.docker_version}.jar
 
 # Upload jar to S3
 aws s3 cp ./pipelines-${var.docker_version}.jar s3://${aws_s3_bucket.pipelines.bucket}/pipelines-${var.docker_version}.jar
