@@ -75,14 +75,14 @@ resource "aws_ssm_parameter" "emr_cloudwatch_agent_config" {
                {
                   "file_path":"/emr/instance-controller/log/bootstrap-actions/*/*",
                   "log_group_name":"${var.log_group_name}",
-                  "log_stream_name": "{instance_id}/{file_name}",
+                  "log_stream_name": "emr/boostrap/{instance_id}",
                   "multi_line_start_pattern":"^\\d{2}/\\d{2}/\\d{2}",
                   "timezone":"UTC"
                },
                {
                   "file_path":"/mnt/var/log/hadoop/steps/*/*",
                   "log_group_name":"${var.log_group_name}",
-                  "log_stream_name": "{instance_id}/{file_path}/{file_name}",
+                  "log_stream_name": "emr/steps/{instance_id}",
                   "multi_line_start_pattern":"^\\d{2}/\\d{2}/\\d{2}",
                   "timezone":"UTC"
                }
