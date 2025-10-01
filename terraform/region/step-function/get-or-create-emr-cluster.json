@@ -194,16 +194,6 @@
         ],
         "BootstrapActions": [
           {
-            "Name": "install-pipelines",
-            "ScriptBootstrapAction": {
-              "Args": [
-                "{% $config.api_key_secret_arn %}",
-                "{% $config.s3_bucket_name_pipeline %}"
-              ],
-              "Path": "{% 's3://' & $config.s3_bucket_name_pipeline & '/bootstrap-actions/install-pipelines.sh' %}"
-            }
-          },
-          {
             "Name": "cloudwatch",
             "ScriptBootstrapAction": {
               "Args": [],
@@ -227,6 +217,16 @@
                 "/data"
               ],
               "Path": "file:/opt/inbo/pipelines/bootstrap-actions/mount-efs.sh"
+            }
+          },
+          {
+            "Name": "install-pipelines",
+            "ScriptBootstrapAction": {
+              "Args": [
+                "{% $config.api_key_secret_arn %}",
+                "{% $config.s3_bucket_name_pipeline %}"
+              ],
+              "Path": "{% 's3://' & $config.s3_bucket_name_pipeline & '/bootstrap-actions/install-pipelines.sh' %}"
             }
           }
         ]
