@@ -11,7 +11,7 @@ sudo chown -R hadoop:yarn /opt/inbo/pipelines
 sudo chmod +x /opt/inbo/pipelines/bootstrap-actions/*.sh
 
 sudo mkdir -p /data/
-sudo chown hadoop:yarn -Rv /data
+#sudo chown hadoop:yarn -Rv /data
 
 mkdir -p /data/dwca-exports
 
