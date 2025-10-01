@@ -1,6 +1,13 @@
+data "aws_emr_release_labels" "emr_release" {
+  filters {
+    application = "spark@3.5.1"
+  }
+}
+
 locals {
   statemachine_config = jsonencode({
     base_domain                                  = var.base_domain
+    emr_release = one(data.aws_emr_release_labels.emr_release.release_labels)
     iam_emr_service_role_arn                     = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipelines-emr-service-role"
     iam_emr_instance_profile_arn                 = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:instance-profile/${var.resource_prefix}pipelines-emr-instance-profile"
     emr_managed_master_security_group            = aws_security_group.emr_cluster_instances.id

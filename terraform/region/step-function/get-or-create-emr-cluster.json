@@ -104,7 +104,7 @@
         "ServiceRole": "{% $config.iam_emr_service_role_arn %}",
         "JobFlowRole": "{% $config.iam_emr_instance_profile_arn %}",
         "Tags": "{% $config.emr_tags %}",
-        "ReleaseLabel": "emr-5.36.2",
+        "ReleaseLabel": "{% $config.emr_release %}",
         "LogUri": "{% 's3://' & $config.s3_bucket_name_pipeline & '/logs' %}",
         "EbsRootVolumeSize": "{% $config.ebs_root_volume_size %}",
         "AutoTerminationPolicy": {
