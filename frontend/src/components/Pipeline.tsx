@@ -16,8 +16,9 @@ import {
 } from "./DataResourceProgress";
 import { Spinner } from "./Spinner";
 import { ActionConfirmationModal } from "./ActionConfirmationModal";
-import { Button } from "@mui/material";
+import { Button, Icon } from "@mui/material";
 import { PipelineProgress } from "./PipelineProgress";
+import RefreshIcon from "@mui/icons-material/Refresh";
 
 export const Pipeline = ({ id }: { id?: string }) => {
     const pipelineId = id ?? useParams().id!;
@@ -35,13 +36,20 @@ export const Pipeline = ({ id }: { id?: string }) => {
     const [showDetails, setShowDetails] = useState(false);
     const [showConfirmCancel, setShowConfirmCancel] = useState(false);
 
-    const { data, loading, error, networkStatus, startPolling, stopPolling } =
-        useQuery(
-            GET_PIPELINE_PROGRESS,
-            {
-                variables: { id: pipelineId! },
-            },
-        );
+    const {
+        data,
+        loading,
+        error,
+        networkStatus,
+        startPolling,
+        stopPolling,
+        refetch,
+    } = useQuery(
+        GET_PIPELINE_PROGRESS,
+        {
+            variables: { id: pipelineId! },
+        },
+    );
     const [dataResourceFilter, setDataResourceFilter] = useState<
         DataResourceFilter
     >({});
@@ -49,7 +57,7 @@ export const Pipeline = ({ id }: { id?: string }) => {
     const stats = data?.pipeline?.stats;
 
     useEffect(() => {
-        if (data?.pipeline?.status !== PipelineStatus.Running) {
+        if (data?.pipeline?.status === PipelineStatus.Running) {
             startPolling(10_000);
         }
         return () => {
@@ -166,13 +174,11 @@ export const Pipeline = ({ id }: { id?: string }) => {
                         </div>
                     </div>
                 )}
-                {data?.pipeline?.status == PipelineStatus.Running && (
+                {data.pipeline.status === PipelineStatus.Running && (
                     <Button
-                        variant="outlined"
-                        color="error"
-                        onClick={() => setShowConfirmCancel(true)}
+                        onClick={() => refetch()}
                     >
-                        Cancel Pipeline
+                        <RefreshIcon />
                     </Button>
                 )}
                 {showDetails
@@ -208,6 +214,15 @@ export const Pipeline = ({ id }: { id?: string }) => {
                             Show Details
                         </Button>
                     )}
+                {data?.pipeline?.status == PipelineStatus.Running && (
+                    <Button
+                        variant="outlined"
+                        color="error"
+                        onClick={() => setShowConfirmCancel(true)}
+                    >
+                        Cancel Pipeline
+                    </Button>
+                )}
                 {showConfirmCancel && (
                     <ActionConfirmationModal
                         title="Confirm Cancel Pipeline"
@@ -215,10 +230,12 @@ export const Pipeline = ({ id }: { id?: string }) => {
                         actionLabel={cancelPipelineLoading
                             ? "Cancelling..."
                             : "Confirm"}
-                        onConfirm={() =>
-                            cancelPipeline({
+                        onConfirm={async () => {
+                            await cancelPipeline({
                                 variables: { input: { id: pipelineId } },
-                            })}
+                            });
+                            setShowConfirmCancel(false);
+                        }}
                         onCancel={() => setShowConfirmCancel(false)}
                     />
                 )}

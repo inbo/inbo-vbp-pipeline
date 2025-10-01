@@ -70,6 +70,33 @@ data "aws_iam_policy_document" "iam_emr_instance_profile_policy" {
 
   statement {
     effect = "Allow"
+
+    actions = [
+      "elasticfilesystem:ClientMount",
+      "elasticfilesystem:ClientWrite",
+      "elasticfilesystem:ClientRootAccess"
+    ]
+
+    #tfsec:ignore:aws-iam-no-policy-wildcards
+    resources = [
+
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "s3:PutObject",
+    ]
+
+    #tfsec:ignore:aws-iam-no-policy-wildcards
+    resources = ["arn:aws:s3:::${var.resource_prefix}${var.aws_env}-pipelines/logs/*"]
+  }
+
+
+  statement {
+    effect = "Allow"
     actions = ["ssm:DescribeParameters"]
     #tfsec:ignore:aws-iam-no-policy-wildcards
     resources = ["*"]
