@@ -99,13 +99,11 @@ data "aws_iam_policy_document" "iam_emr_instance_profile_policy" {
     ]
   }
 
+  # Needed to allow ssm ssh sessions
   statement {
     effect = "Allow"
     actions = [
-      "ssmmessages:CreateControlChannel",
-      "ssmmessages:CreateDataChannel",
-      "ssmmessages:OpenControlChannel",
-      "ssmmessages:OpenDataChannel"
+      "kms:Decrypt"
     ]
     #tfsec:ignore:aws-iam-no-policy-wildcards
     resources = ["*"]
