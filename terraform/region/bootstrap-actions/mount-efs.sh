@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -e -o pipefail
 
 EFS_VOLUME_ID=${1:?EFS_VOLUME_ID is required as first argument}
 EFS_ACCESS_POINT_ID=${2:?EFS_ACCESS_POINT_ID is required as second argument}

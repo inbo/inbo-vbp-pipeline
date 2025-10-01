@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e -x -o pipefail
+set -e -o pipefail
 ## Name: SSM Agent Installer Script
 ## Description: Installs SSM Agent on EMR cluster EC2 instances and update hosts file
 ##

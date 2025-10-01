@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -e -o pipefail
 
 APIKEY_SECRET_ARN=${1:?No APIKEY_SECRET_ARN provided}
 PIPELINE_BUCKET_NAME=${2:?No PIPELINE_BUCKET_NAME provided}

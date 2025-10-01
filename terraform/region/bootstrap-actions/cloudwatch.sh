@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e -x -o pipefail
+set -e -o pipefail
 
 echo -e 'Installing CloudWatch Agent... \n'
 sudo rpm -ivv -Uvh --force https://amazoncloudwatch-agent.s3.amazonaws.com/amazon_linux/arm64/latest/amazon-cloudwatch-agent.rpm

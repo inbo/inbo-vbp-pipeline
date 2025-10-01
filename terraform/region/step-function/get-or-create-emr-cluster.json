@@ -197,14 +197,14 @@
             "Name": "cloudwatch",
             "ScriptBootstrapAction": {
               "Args": [],
-              "Path": "file:/opt/inbo/pipelines/bootstrap-actions/cloudwatch.sh"
+              "Path": "{% 's3://' & $config.s3_bucket_name_pipeline & '/bootstrap-actions/cloudwatch.sh %}"
             }
           },
           {
             "Name": "ssm-agent",
             "ScriptBootstrapAction": {
               "Args": [],
-              "Path": "file:/opt/inbo/pipelines/bootstrap-actions/install-ssm-agent.sh"
+              "Path": "{% 's3://' & $config.s3_bucket_name_pipeline & '/bootstrap-actions/install-ssm-agent.sh %}"
             }
           },
           {
@@ -216,7 +216,7 @@
                 "2049",
                 "/data"
               ],
-              "Path": "file:/opt/inbo/pipelines/bootstrap-actions/mount-efs.sh"
+              "Path": "{% 's3://' & $config.s3_bucket_name_pipeline & '/bootstrap-actions/mount-efs.sh %}"
             }
           },
           {

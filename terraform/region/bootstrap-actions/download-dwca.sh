@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e -x
+set -e -o pipefail
 
 DATA_RESOURCE_UID=${1:?No data resource UID provided}
 DWCA_URL=${2:?No DWCA url provided}
