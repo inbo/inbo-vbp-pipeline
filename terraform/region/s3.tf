@@ -59,9 +59,11 @@ resource "aws_s3_object" "bootstrap_actions" {
 }
 
 resource "aws_ssm_parameter" "emr_cloudwatch_agent_config" {
-  name  = "EMRCloudwatchConfig.json"
-  type  = "String"
-  value = file("${path.module}/config/cloudwatch-agent.json")
+  name = "EMRCloudwatchConfig.json"
+  type = "String"
+  value = templatefile("${path.module}/config/cloudwatch-agent.json", {
+    log_group_name = var.log_group_name
+  })
 }
 
 resource "null_resource" "shp-layers" {

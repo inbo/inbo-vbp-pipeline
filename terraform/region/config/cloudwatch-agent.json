@@ -10,14 +10,14 @@
         "collect_list": [
           {
             "file_path": "/emr/instance-controller/log/bootstrap-actions/*/*",
-            "log_group_name": "${var.log_group_name}",
+            "log_group_name": "${log_group_name}",
             "log_stream_name": "emr/{instance_id}",
             "publish_multi_logs": true,
             "multi_line_start_pattern": "{timestamp_regex}"
           },
           {
             "file_path": "/mnt/var/log/hadoop/steps/*/*",
-            "log_group_name": "${var.log_group_name}",
+            "log_group_name": "${log_group_name}",
             "log_stream_name": "emr/{instance_id}",
             "publish_multi_logs": true,
             "timestamp_format": "%Y-%m-%dT%H:%M:%S.%f%z",
