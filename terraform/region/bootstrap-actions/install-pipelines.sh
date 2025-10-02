@@ -21,7 +21,7 @@ sudo aws s3 sync "s3://${PIPELINE_BUCKET_NAME}/bootstrap-actions" /opt/inbo/pipe
 
 
 sudo chown -R hadoop:yarn /opt/inbo/pipelines
-sudo chmod +x /opt/inbo/pipelines/boostrap-actions
+sudo chmod +x -R /opt/inbo/pipelines/boostrap-actions
 sudo chmod +x "/opt/inbo/pipelines/pipelines-${PIPELINE_VERSION}.jar"
 
 mkdir -p /data/dwca-exports
