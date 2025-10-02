@@ -231,7 +231,7 @@
                 ],
                 "Next": "Ignore Error",
                 "Output": {
-                  "dataResourceId": "{% $exists($dataResourceId) ? $dataResourceId : $states.input %}",
+                  "dataResourceId": "{% $states.input %}",
                   "Error": "{% $states.errorOutput.Error %}",
                   "Cause": "{% $states.errorOutput.Cause %}"
                 }
@@ -239,7 +239,8 @@
             ],
             "End": true,
             "Output": {
-              "state": "{% $states.result.state %}"
+              "state": "{% $states.result.state %}",
+              "dataResourceId": "{% $states.input %}"
             }
           },
           "Ignore Error": {
@@ -257,7 +258,12 @@
           ],
           "Next": "Cleanup EMR Cluster"
         }
-      ]
+      ],
+      "Output": {
+        "dataResourceId": "{% $states.result.dataResourceId %}",
+        "Error": "{% $states.result.Error or null %}",
+        "Cause": "{% $states.result.Cause or null %}"
+      }
     },
     "Cleanup EMR Cluster": {
       "Type": "Task",
