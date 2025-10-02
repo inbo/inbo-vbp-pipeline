@@ -167,82 +167,82 @@ export const Pipeline = ({ id }: { id?: string }) => {
                 <div className="pipeline-progress">
                     {progress}
                 </div>
-                {data?.pipeline?.status == PipelineStatus.Failed && (
-                    <div>
-                        <div>
-                            Error: <pre>{data?.pipeline?.error}</pre>
-                        </div>
-                        <div>
-                            Cause: <pre>{data?.pipeline?.cause}</pre>
-                        </div>
-                    </div>
-                )}
-                {data.pipeline.status === PipelineStatus.Running && (
-                    <Button
-                        onClick={() => refetch()}
-                        disabled={loading}
-                    >
-                        <RefreshIcon />
-                    </Button>
-                )}
-                {showDetails
-                    ? (
+                <div className="pipeline-actions">
+                    {data?.pipeline?.status == PipelineStatus.Failed && (
                         <div>
                             <div>
-                                <Button
-                                    onClick={() => setShowDetails(false)}
-                                >
-                                    Hide Details
-                                </Button>
+                                Error: <pre>{data?.pipeline?.error}</pre>
                             </div>
-                            Input: <pre>{data?.pipeline?.input}</pre>
+                            <div>
+                                Cause: <pre>{data?.pipeline?.cause}</pre>
+                            </div>
+                        </div>
+                    )}
+                    {data.pipeline.status === PipelineStatus.Running && (
+                        <Button
+                            onClick={() => refetch()}
+                            disabled={loading}
+                        >
+                            <RefreshIcon />
+                        </Button>
+                    )}
+                    <Button
+                        onClick={() => setShowDetails(!showDetails)}
+                    >
+                        {showDetails ? "Hide Details" : "Show Details"}
+                    </Button>
+                    {data?.pipeline?.status == PipelineStatus.Running && (
+                        <Button
+                            variant="outlined"
+                            color="error"
+                            onClick={() => setShowConfirmCancel(true)}
+                        >
+                            Cancel
+                            {showConfirmCancel && (
+                                <ActionConfirmationModal
+                                    title="Confirm Cancel Pipeline"
+                                    message="Are you sure you want to cancel this pipeline?"
+                                    actionLabel={cancelPipelineLoading
+                                        ? "Cancelling..."
+                                        : "Confirm"}
+                                    onConfirm={async () => {
+                                        await cancelPipeline({
+                                            variables: {
+                                                input: { id: pipelineId },
+                                            },
+                                        });
+                                        setShowConfirmCancel(false);
+                                    }}
+                                    onCancel={() => setShowConfirmCancel(false)}
+                                />
+                            )}
+                        </Button>
+                    )}
+                </div>
+
+                {showDetails &&
+                    (
+                        <div>
+                            Input:{" "}
+                            <pre>{JSON.stringify(JSON.parse(data?.pipeline?.input!)!, null, 2)}</pre>
                             {data?.pipeline?.status ==
                                     PipelineStatus.Succeeded && (
                                 <div>
-                                    Output: <pre>{data?.pipeline?.output}</pre>
+                                    Output:{" "}
+                                    <pre>{JSON.stringify(JSON.parse(data?.pipeline?.output!)!, null, 2)}</pre>
                                 </div>
                             )}
 
-                            <div>Started At: {data?.pipeline?.startedAt}</div>
+                            <div>
+                                Started At: {data?.pipeline?.startedAt}
+                            </div>
                             {data.pipeline?.stoppedAt && (
                                 <div>
                                     Stopped At: {data?.pipeline?.stoppedAt}
                                 </div>
                             )}
                         </div>
-                    )
-                    : (
-                        <Button
-                            onClick={() => setShowDetails(true)}
-                        >
-                            Show Details
-                        </Button>
                     )}
-                {data?.pipeline?.status == PipelineStatus.Running && (
-                    <Button
-                        variant="outlined"
-                        color="error"
-                        onClick={() => setShowConfirmCancel(true)}
-                    >
-                        Cancel Pipeline
-                    </Button>
-                )}
-                {showConfirmCancel && (
-                    <ActionConfirmationModal
-                        title="Confirm Cancel Pipeline"
-                        message="Are you sure you want to cancel this pipeline?"
-                        actionLabel={cancelPipelineLoading
-                            ? "Cancelling..."
-                            : "Confirm"}
-                        onConfirm={async () => {
-                            await cancelPipeline({
-                                variables: { input: { id: pipelineId } },
-                            });
-                            setShowConfirmCancel(false);
-                        }}
-                        onCancel={() => setShowConfirmCancel(false)}
-                    />
-                )}
             </div>
             <div className="pipeline-step-data-resources">
                 {dataResources}

@@ -201,13 +201,6 @@
             }
           },
           {
-            "Name": "ssm-agent",
-            "ScriptBootstrapAction": {
-              "Args": [],
-              "Path": "{% 's3://' & $config.s3_bucket_name_pipeline & '/bootstrap-actions/install-ssm-agent.sh' %}"
-            }
-          },
-          {
             "Name": "mount-data",
             "ScriptBootstrapAction": {
               "Args": [

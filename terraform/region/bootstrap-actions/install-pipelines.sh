@@ -19,7 +19,7 @@ sudo aws s3 sync "s3://${PIPELINE_BUCKET_NAME}/pipelines-vocabularies" /opt/inbo
 sudo mkdir -p /opt/inbo/pipelines/bootstrap-actions
 sudo aws s3 sync "s3://${PIPELINE_BUCKET_NAME}/bootstrap-actions" /opt/inbo/pipelines/bootstrap-actions
 
-sudo chown -R ec2-user:ec2-user /opt/inbo/pipelines
+sudo chown -R hadoop:yarn /opt/inbo/pipelines
 
 mkdir -p /data/dwca-exports
 
