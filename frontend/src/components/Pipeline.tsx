@@ -128,7 +128,10 @@ export const Pipeline = ({ id }: { id?: string }) => {
         return <p>Error: {error.message}</p>;
     }
 
-    if (loading && networkStatus !== NetworkStatus.poll) {
+    if (
+        loading && networkStatus !== NetworkStatus.poll &&
+        networkStatus !== NetworkStatus.refetch
+    ) {
         return <Spinner />;
     }
 
@@ -177,6 +180,7 @@ export const Pipeline = ({ id }: { id?: string }) => {
                 {data.pipeline.status === PipelineStatus.Running && (
                     <Button
                         onClick={() => refetch()}
+                        disabled={loading}
                     >
                         <RefreshIcon />
                     </Button>

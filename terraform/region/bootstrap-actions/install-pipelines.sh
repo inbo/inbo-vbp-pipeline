@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e -o pipefail
+set -e -x -o pipefail
 
 APIKEY_SECRET_ARN=${1:?No APIKEY_SECRET_ARN provided}
 PIPELINE_BUCKET_NAME=${2:?No PIPELINE_BUCKET_NAME provided}
@@ -24,4 +24,4 @@ sudo chown -R ec2-user:ec2-user /opt/inbo/pipelines
 mkdir -p /data/dwca-exports
 
 APIKEY=$(aws secretsmanager get-secret-value --secret-id "${APIKEY_SECRET_ARN}" --output text --query 'SecretString')
-sed -i "s@\${APIKEY}@${APIKEY}@g" /opt/inbo/pipelines/config/la-pipelines.yaml
+sudo sed -i "s@\${APIKEY}@${APIKEY}@g" /opt/inbo/pipelines/config/la-pipelines.yaml
