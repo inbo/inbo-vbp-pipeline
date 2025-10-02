@@ -86,8 +86,9 @@ resource "aws_ssm_parameter" "emr_cloudwatch_agent_config" {
                   "log_stream_name": "emr/{instance_id}",
                   "publish_multi_logs": true,
                   "timestamp_regex": "^(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.?\\d*Z).*",
-                  "multi_line_start_pattern":"{timestamp_regex}",
+                  "timestamp_layout" = ["2006-01-02T15:04:05.999999999Z0700"]
                   "timezone":"UTC"
+                  "multi_line_start_pattern":"{timestamp_regex}",
                }
             ]
          }
