@@ -61,41 +61,7 @@ resource "aws_s3_object" "bootstrap_actions" {
 resource "aws_ssm_parameter" "emr_cloudwatch_agent_config" {
   name  = "EMRCloudwatchConfig.json"
   type  = "String"
-  value = <<EOF
-{
-   "agent":{
-      "logfile":"/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log",
-      "debug":false,
-      "run_as_user":"cwagent"
-   },
-   "logs":{
-      "logs_collected":{
-         "files":{
-            "collect_list":[
-               {
-                  "file_path":"/emr/instance-controller/log/bootstrap-actions/*/*",
-                  "log_group_name":"${var.log_group_name}",
-                  "log_stream_name": "emr/{instance_id}",
-                  "publish_multi_logs": true,
-                  "multi_line_start_pattern":"{timestamp_regex}",
-                  "timezone":"UTC"
-               },
-               {
-                  "file_path":"/mnt/var/log/hadoop/steps/*/*",
-                  "log_group_name":"${var.log_group_name}",
-                  "log_stream_name": "emr/{instance_id}",
-                  "publish_multi_logs": true,
-                  "timestamp_regex": "^(\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.?\\d*Z).*",
-                  "timestamp_layout" = ["2006-01-02T15:04:05.999999999Z0700"],
-                  "timezone":"UTC",
-                  "multi_line_start_pattern":"{timestamp_regex}"
-               }
-            ]
-         }
-      }
-   }
-}
-EOF
+  value = file("${path.module}/config/cloudwatch-agent.json")
 }
 
 resource "null_resource" "shp-layers" {
