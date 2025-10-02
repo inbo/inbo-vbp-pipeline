@@ -194,6 +194,15 @@
         ],
         "BootstrapActions": [
           {
+            "Name": "set-timezone",
+            "ScriptBootstrapAction": {
+              "Args": [
+                "Europe/Brussels"
+              ],
+              "Path": "{% 's3://' & $config.s3_bucket_name_pipeline & '/bootstrap-actions/set-timezone.sh' %}"
+            }
+          },
+          {
             "Name": "cloudwatch",
             "ScriptBootstrapAction": {
               "Args": [],
