@@ -72,21 +72,6 @@ data "aws_iam_policy_document" "iam_emr_instance_profile_policy" {
     effect = "Allow"
 
     actions = [
-      "elasticfilesystem:ClientMount",
-      "elasticfilesystem:ClientWrite",
-      "elasticfilesystem:ClientRootAccess"
-    ]
-
-    #tfsec:ignore:aws-iam-no-policy-wildcards
-    resources = [
-
-    ]
-  }
-
-  statement {
-    effect = "Allow"
-
-    actions = [
       "s3:PutObject",
     ]
 
