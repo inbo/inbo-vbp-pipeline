@@ -33,7 +33,7 @@ fs:
   local:
     fsPath: /data
   hdfs:
-    fsPath: s3:///
+    fsPath: hdfs:///
 
 dataset-validated-dump:
 
@@ -144,7 +144,7 @@ alaNameMatchConfig:
   matchOnTaxonID: false
 
 # As PipelineOptions does not admits extra arguments, we use this comma separated list of --args to remove it after
-# use it. In the case of fsPath be substitute 's3:///pipelines-data' with fs.hdfs.fsPath if hdfs is selected in
+# use it. In the case of fsPath be substitute 'hdfs:///pipelines-data' with fs.hdfs.fsPath if hdfs is selected in
 # fs.platform or '/data' if 'local' is selected.
 pipelineExcludeArgs: fsPath
 
@@ -160,7 +160,7 @@ interpret:
   appName: Interpretation for {datasetId}
   interpretationTypes: ALL
   defaultDateFormat: DMYT,DMY
-  inputPath: 's3:///{datasetId}/0/verbatim/*.avro'
+  inputPath: 'hdfs:///{datasetId}/0/verbatim/*.avro'
   # Skips GBIF id generation and copies ids from ExtendedRecord ids
   useExtendedRecordId: true
   runner: SparkRunner
@@ -172,7 +172,7 @@ uuid:
   numberOfBackupsToKeep: 10
   percentageChangeAllowed: 50
   throwErrorOnValidationFail: false
-  inputPath: 's3:///'
+  inputPath: 'hdfs:///'
 
 images:
   appName: Image syncing for {datasetId}
@@ -180,11 +180,11 @@ images:
   tempLocation: /tmp
   # pipe separated list (note: YAML list not coming through correctly)
   recognisedPaths: "https://natuurdata.dev.inbo.be/images"
-  inputPath: 's3:///.'
+  inputPath: 'hdfs:///.'
 
 speciesLists:
   runner: SparkRunner
-  speciesAggregatesPath: 's3:///pipelines-species'
+  speciesAggregatesPath: 'hdfs:///pipelines-species'
   tempLocation: /tmp
   maxDownloadAgeInMinutes: 1440
   includeConservationStatus: true
@@ -193,17 +193,17 @@ speciesLists:
 # Sampling specific configuration
 sampling:
   appName: Sample for {datasetId}
-  allDatasetsInputPath: 's3:///pipelines-all-datasets'
+  allDatasetsInputPath: 'hdfs:///pipelines-all-datasets'
   runner: SparkRunner
-  inputPath: 's3:///'
+  inputPath: 'hdfs:///'
 
 # Calculate distance to the expert distribution layers
 # class:au.org.ala.pipelines.beam.DistributionOutlierPipeline
 outlier:
   appName: Expert distribution outliers for {datasetId}
   baseUrl: https://spatial-service.vbp.internal:8080/spatial-service/
-  targetPath: 's3:///pipelines-outlier'
-  allDatasetsInputPath: 's3:///pipelines-all-datasets'
+  targetPath: 'hdfs:///pipelines-outlier'
+  allDatasetsInputPath: 'hdfs:///pipelines-all-datasets'
   runner: SparkRunner
 
 annotation:
@@ -216,7 +216,7 @@ annotation:
 sensitive:
   appName: Sensitive Data Processing for {datasetId}
   runner: SparkRunner
-  inputPath: 's3:///.'
+  inputPath: 'hdfs:///.'
 
 # class: au.org.ala.pipelines.java.IndexRecordPipeline
 index:
@@ -226,19 +226,19 @@ index:
   # set this to false to avoid SDS requirement
   includeSensitiveDataChecks: true
   runner: SparkRunner
-  allDatasetsInputPath: 's3:///pipelines-all-datasets'
-  inputPath: 's3://///'
-  targetPath: 's3://///'
+  allDatasetsInputPath: 'hdfs:///pipelines-all-datasets'
+  inputPath: 'hdfs://///'
+  targetPath: 'hdfs://///'
 
 
 # class: au.org.ala.pipelines.beam.IndexRecordToSolrPipeline
 solr:
   appName: SOLR indexing for {datasetId}
-  allDatasetsInputPath: 's3:///pipelines-all-datasets'
-  jackKnifePath: "s3:///pipelines-jackknife"
-  clusteringPath: "s3:///pipelines-clustering"
-  outlierPath: 's3:///pipelines-outlier'
-  annotationsPath: 's3:///pipelines-annotations'
+  allDatasetsInputPath: 'hdfs:///pipelines-all-datasets'
+  jackKnifePath: "hdfs:///pipelines-jackknife"
+  clusteringPath: "hdfs:///pipelines-clustering"
+  outlierPath: 'hdfs:///pipelines-outlier'
+  annotationsPath: 'hdfs:///pipelines-annotations'
   solrCollection: biocache
   includeSampling: true
   includeJackKnife: true
@@ -246,7 +246,7 @@ solr:
   runner: SparkRunner
   zkHost: solr.vbp.internal:9983
   numOfPartitions: 3
-  inputPath: 's3:///'
+  inputPath: 'hdfs:///'
 
 # class: au.org.ala.pipelines.beam.IndexRecordToSolrPipeline
 elastic:
@@ -259,19 +259,19 @@ elastic:
   indexNumberReplicas: 0
   metaFileName: elastic.yml
   esDocumentId: internalId
-  inputPath: 's3:///'
+  inputPath: 'hdfs:///'
 
 
 export:
   appName: DwCA export for {datasetId}
   localExportPath: /tmp/pipelines-export
-  allDatasetsInputPath: 's3:///pipelines-all-datasets'
+  allDatasetsInputPath: 'hdfs:///pipelines-all-datasets'
   imageServicePath: "https://images.biodiversiteitsportaal/image/proxyImageThumbnailLarge?imageId={0}"
   runner: SparkRunner
   predicateExportEnabled: true
 
 predicate-export:
-  targetPath: 's3:///pipelines-export'
+  targetPath: 'hdfs:///pipelines-export'
   localExportPath: /tmp/pipelines-export
   skipEventExportFields:
     - "id"
@@ -298,27 +298,27 @@ solrSchema:
 # class: au.org.ala.pipelines.beam.ALAReverseJackKnifePipeline
 jackKnife:
   appName: Jack knife outlier detection
-  jackKnifePath: "s3:///pipelines-jackknife"
+  jackKnifePath: "hdfs:///pipelines-jackknife"
   layers: cl10001,cl10000,cl10002
   minSampleThreshold: 80
-  allDatasetsInputPath: 's3:///pipelines-all-datasets'
+  allDatasetsInputPath: 'hdfs:///pipelines-all-datasets'
   runner: SparkRunner
 
 clustering:
   appName: Occurrence clustering
-  clusteringPath: "s3:///pipelines-clustering"
-  allDatasetsInputPath: 's3:///pipelines-all-datasets'
+  clusteringPath: "hdfs:///pipelines-clustering"
+  allDatasetsInputPath: 'hdfs:///pipelines-all-datasets'
   runner: SparkRunner
 
 # class: DumpArchiveList
 dataset-archive-list:
-  inputPath: 's3:///dwca-imports'
+  inputPath: 'hdfs:///dwca-imports'
   targetPath: /tmp/dataset-archive-list.csv
 
 # class: au.org.ala.utils.DumpDatasetSize
 dataset-count-dump:
   targetPath: /tmp/dataset-counts.csv
-  dwcaImportPath: 's3:///dwca-imports'
+  dwcaImportPath: 'hdfs:///dwca-imports'
 
 validation-report:
   targetPath: /tmp/dataset-validation-list.csv
