@@ -157,9 +157,9 @@
         },
         "Configurations": [
           {
-            "Classification": "hdfs-site",
+            "Classification": "spark",
             "Properties": {
-              "dfs.webhdfs.enabled": "true"
+              "maximizeResourceAllocation": "true"
             }
           },
           {
@@ -183,15 +183,10 @@
             ]
           },
           {
-            "Classification": "yarn-env",
-            "Configurations": [
-              {
-                "Classification": "export",
+            "Classification": "spark-log4j2",
                 "Properties": {
-                  "APIKEY": "{% $config.apikey_secret_value %}"
+                  "appender.console.layout.pattern": "%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ} %p %c{1}: %m%n%ex"
                 }
-              }
-            ]
           }
         ],
         "BootstrapActions": [

@@ -114,9 +114,12 @@
           "Name": "{% 'sample-layers-' & $dataResourceId %}",
           "ActionOnFailure": "CONTINUE",
           "HadoopJarStep": {
-            "Jar": "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
-            "MainClass": "au.org.ala.sampling.LayerCrawler",
+            "Jar": "command-runner.jar",
             "Args": [
+              "/usr/lib/jvm/java-17-amazon-corretto.aarch64/bin/java",
+              "-cp",
+              "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
+              "au.org.ala.sampling.LayerCrawler",
               "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
               "--inputPath=hdfs:///."
