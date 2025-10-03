@@ -70,6 +70,7 @@ export function IndexList() {
                     className={`index-list-item index-list-item-${
                         index.active ? "active" : "inactive"
                     }`}
+                    slotProps={{ transition: { unmountOnExit: true } }}
                 >
                     <AccordionSummary
                         className="index-list-item-summary"
