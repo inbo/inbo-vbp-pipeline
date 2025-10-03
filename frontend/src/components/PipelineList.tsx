@@ -1,8 +1,20 @@
+import "../styles/PipelineList.css";
+
 import { useMutation, useQuery } from "@apollo/client/react";
 import { CANCEL_PIPELINE, GET_ALL_PIPELINES } from "../graphql/pipelines";
 import { Link } from "react-router";
 import { Spinner } from "./Spinner";
-import { Button } from "@mui/material";
+import {
+    Accordion,
+    AccordionDetails,
+    AccordionSummary,
+    Button,
+} from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { settings } from "../settings";
+import { AccessTime } from "@mui/icons-material";
+import { PipelineStatusChip } from "./PipelineStatusChip";
+import Pipeline from "./Pipeline";
 
 export function PipelineList() {
     const { data: pipelinesData, loading, error } = useQuery(GET_ALL_PIPELINES);
@@ -23,32 +35,40 @@ export function PipelineList() {
     }
 
     return (
-        <ul>
+        <div className="pipeline-list">
             {pipelinesData?.pipelines.map((pipeline) => (
-                <li key={pipeline.id}>
-                    <div>Pipeline ID: {pipeline.id}</div>
-                    <div>Pipeline Status: {pipeline.status}</div>
-                    <div>Started At: {pipeline.startedAt}</div>
-                    <div>Stopped At: {pipeline.stoppedAt}</div>
-                    <div>
-                        <Link to={`/${pipeline.id}`}>Details</Link>
-                    </div>
-                    {pipeline.status === "RUNNING" && (
-                        <Button
-                            variant="outlined"
-                            color="error"
-                            onClick={() => {
-                                cancelPipeline({
-                                    variables: { input: { id: pipeline.id } },
-                                });
-                            }}
-                            disabled={cancelPipelineLoading}
-                        >
-                            {cancelPipelineLoading ? "Cancelling..." : "Cancel"}
-                        </Button>
-                    )}
-                </li>
+                <Accordion
+                    key={pipeline.id}
+                    className={`pipeline-list-item`}
+                    slotProps={{ transition: { unmountOnExit: true } }}
+                >
+                    <AccordionSummary
+                        className="pipeline-list-item-summary"
+                        expandIcon={<ExpandMoreIcon />}
+                    >
+                        <div className="pipeline-list-item-summary-content">
+                            <AccessTime className="pipeline-list-item-time-icon" />
+                            {new Date(
+                                (pipeline.stoppedAt
+                                    ? new Date(pipeline.stoppedAt)
+                                    : new Date()).getTime() -
+                                    new Date(pipeline.startedAt).getTime(),
+                            ).toLocaleTimeString(settings.locale)}
+                            <br />
+                            <Link
+                                className="pipeline-list-item-link"
+                                to={`/${pipeline.id}`}
+                            >
+                                {pipeline.id}
+                            </Link>
+                        </div>
+                        <PipelineStatusChip status={pipeline.status} />
+                    </AccordionSummary>
+                    <AccordionDetails className="pipeline-list-item-details">
+                        <Pipeline id={pipeline.id} showHeader={false} />
+                    </AccordionDetails>
+                </Accordion>
             ))}
-        </ul>
+        </div>
     );
 }

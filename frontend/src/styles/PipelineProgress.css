@@ -47,22 +47,22 @@
 }
 
 .pipeline-step-progress-container-section-queued {
-    background-color: gray;
+    background-color: var(--queued);
 }
 
 .pipeline-step-progress-container-section-skipped {
-    background-color: #0f6e0f;
+    background-color: var(--skipped);
 }
 .pipeline-step-progress-container-section-running {
-    background-color: #268bff;
+    background-color: var(--running);
 }
 
 .pipeline-step-progress-container-section-succeeded {
-    background-color: #5cb85c;
+    background-color: var(--success);
 }
 
 .pipeline-step-progress-container-section-failed {
-    background-color: #ce150e;
+    background-color: var(--error);
 }
 
 .pipeline-progress-data-resources {

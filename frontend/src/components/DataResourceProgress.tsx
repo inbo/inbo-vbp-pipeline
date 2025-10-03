@@ -13,6 +13,7 @@ import {
     Accordion,
     AccordionDetails,
     AccordionSummary,
+    Button,
     Chip,
 } from "@mui/material";
 import { ErrorDetails } from "./PipelineDataResourceDetails";
@@ -91,15 +92,16 @@ export function DataResourceProgress(
                         />
                     </AccordionSummary>
                     <AccordionDetails className="pipeline-step-data-resource-details-details">
-                        <a
+                        {state === "FAILED" && (
+                            <ErrorDetails cause={progress.cause} />
+                        )}
+                        <Button
+                            className="pipeline-step-data-resource-details-button"
                             target="_blank"
                             href={`https://${settings.domain}/collectory/dataResource/show/${progress.dataResource.id}`}
                         >
                             View in Collectory
-                        </a>
-                        {state === "FAILED" && (
-                            <ErrorDetails cause={progress.cause} />
-                        )}
+                        </Button>
                     </AccordionDetails>
                 </Accordion>
             ))}

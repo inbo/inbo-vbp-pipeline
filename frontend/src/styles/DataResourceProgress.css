@@ -5,6 +5,10 @@
     border-radius: 5px;
 }
 
+.pipeline-step-data-resource-details {
+    margin: 0 !important;
+}
+
 .pipeline-step-data-resource-details-summary {
     display: flex !important;
     align-items: center !important;
@@ -26,20 +30,20 @@
 }
 
 .pipeline-step-data-resource-details-chip-succeeded {
-    background-color: #55c71b !important;
+    background-color: var(--success) !important;
 }
 
 .pipeline-step-data-resource-details-chip-failed {
-    background-color: #fc2032 !important;
+    background-color: var(--error) !important;
 }
 .pipeline-step-data-resource-details-chip-running {
-    background-color: #2d36b4 !important;
+    background-color: var(--running) !important;
 }
 .pipeline-step-data-resource-details-chip-queued {
-    background-color: #a1a1a1 !important;
+    background-color: var(--queued) !important;
 }
 .pipeline-step-data-resource-details-chip-skipped {
-    background-color: #616161 !important;
+    background-color: var(--skipped) !important;
 }
 
 .pipeline-step-data-resource-details-details {
@@ -47,4 +51,20 @@
     flex-direction: column;
     gap: 0.5em;
     font-size: 0.875rem;
+
+    h4 {
+        margin-top: 0;
+    }
+}
+
+.pipeline-step-data-resource-details-button {
+    width: 100%;
+}
+
+.pipeline-step-data-resource-details-failure-reason {
+    font-weight: bold;
+}
+
+.pipeline-step-data-resource-details-failure-message {
+    font-weight: bold;
 }

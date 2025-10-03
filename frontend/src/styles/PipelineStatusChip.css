@@ -1,0 +1,19 @@
+.pipeline-status-chip {
+    color: white !important;
+    font-weight: bold;
+    margin: auto 1em;
+}
+
+.pipeline-status-chip-failed {
+    background-color: var(--mui-palette-error-light) !important; /* Red */
+}
+
+.pipeline-status-chip-aborted {
+    background-color: #999 !important; /* Grey */
+}
+.pipeline-status-chip-running {
+    background-color: var(--mui-palette-primary-light) !important; /* Blue */
+}
+.pipeline-status-chip-completed {
+    background-color: var(--mui-palette-success-light) !important; /* Green */
+}

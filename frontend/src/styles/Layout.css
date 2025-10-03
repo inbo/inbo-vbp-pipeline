@@ -1,0 +1,12 @@
+.title-header-link {
+    text-decoration: none;
+    color: inherit;
+
+    text-align: center;
+
+    &:hover {
+        text-decoration: underline;
+        cursor: pointer;
+        color: var(--mui-palette-primary-light);
+    }
+}

@@ -1,3 +1,5 @@
+import "../styles/IndexList.css";
+
 import { useMutation, useQuery } from "@apollo/client/react";
 import {
     DELETE_INDEX,
@@ -16,9 +18,19 @@ import type {
     SetActiveIndexMutation,
 } from "../__generated__/biocache-index-management/graphql";
 import { Spinner } from "./Spinner";
-import { Button } from "@mui/material";
+import {
+    Accordion,
+    AccordionDetails,
+    AccordionSummary,
+    Button,
+} from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { Check } from "@mui/icons-material";
+import { ActionConfirmationModal } from "./ActionConfirmationModal";
+import { IndexDataResourceCounts } from "./indexDataResourceCounts";
 
 export function IndexList() {
+    const [showConfirmDelete, setShowConfirmDelete] = useState(false);
     const { data: IndexListData, loading, error } = useQuery(GET_INDICES);
     const [operatedOnIndex, setOperatedOnIndex] = useState<
         string | undefined
@@ -51,57 +63,95 @@ export function IndexList() {
     if (error) return <p>Error loading indices: {error.message}</p>;
 
     return (
-        <ul>
+        <div className="index-list">
             {IndexListData?.indices.map((index) => (
-                <li key={index.id}>
-                    {index.id}[{index.counts?.total}]{" "}
-                    {index.active ? " (active)" : " (inactive)"}
-                    {!index.active && (
-                        <>
-                            <Button
-                                variant="outlined"
-                                onClick={() => {
-                                    setOperatedOnIndex(index.id);
-                                    setActiveIndex({
-                                        variables: {
-                                            input: { indexId: index.id },
-                                        },
-                                    });
-                                }}
-                                disabled={(setActiveIndexLoading ||
-                                    deleteIndexLoading) &&
-                                    operatedOnIndex === index.id}
-                            >
-                                {setActiveIndexLoading &&
-                                        operatedOnIndex === index.id
-                                    ? "Activating..."
-                                    : "Activate"}
-                            </Button>
-                            <Button
-                                variant="outlined"
-                                color="error"
-                                onClick={() => {
-                                    setOperatedOnIndex(index.id);
-                                    deleteIndex({
-                                        variables: {
-                                            input: { indexId: index.id },
-                                        },
-                                    });
-                                }}
-                                disabled={(setActiveIndexLoading ||
-                                    deleteIndexLoading) &&
-                                    operatedOnIndex === index.id}
-                            >
-                                {deleteIndexLoading &&
-                                        operatedOnIndex === index.id
-                                    ? "Deleting..."
-                                    : "Delete"}
-                            </Button>
-                        </>
-                    )}
-                </li>
+                <Accordion
+                    key={index.id}
+                    className={`index-list-item index-list-item-${
+                        index.active ? "active" : "inactive"
+                    }`}
+                >
+                    <AccordionSummary
+                        className="index-list-item-summary"
+                        expandIcon={<ExpandMoreIcon />}
+                    >
+                        <div className="index-list-item-summary-content">
+                            {index.id}
+                        </div>
+                        {index.active
+                            ? (
+                                <Check className="index-list-item-summary-active-check" />
+                            )
+                            : (
+                                <div className="index-list-item-summary-buttons">
+                                    <Button
+                                        variant="outlined"
+                                        onClick={() => {
+                                            setOperatedOnIndex(index.id);
+                                            setActiveIndex({
+                                                variables: {
+                                                    input: {
+                                                        indexId: index.id,
+                                                    },
+                                                },
+                                            });
+                                        }}
+                                        disabled={(setActiveIndexLoading ||
+                                            deleteIndexLoading) &&
+                                            operatedOnIndex === index.id}
+                                    >
+                                        {setActiveIndexLoading &&
+                                                operatedOnIndex === index.id
+                                            ? "Activating..."
+                                            : "Activate"}
+                                    </Button>
+                                    <Button
+                                        variant="outlined"
+                                        color="error"
+                                        onClick={() => {
+                                            setOperatedOnIndex(index.id);
+                                            setShowConfirmDelete(true);
+                                        }}
+                                        disabled={(setActiveIndexLoading ||
+                                            deleteIndexLoading) &&
+                                            operatedOnIndex === index.id}
+                                    >
+                                        {deleteIndexLoading &&
+                                                operatedOnIndex === index.id
+                                            ? "Deleting..."
+                                            : "Delete"}
+                                    </Button>
+
+                                    {showConfirmDelete && (
+                                        <ActionConfirmationModal
+                                            title="Confirm Delete Index"
+                                            message="Are you sure you want to delete this index?"
+                                            actionLabel={deleteIndexLoading
+                                                ? "Cancelling..."
+                                                : "Confirm"}
+                                            onConfirm={async () => {
+                                                await deleteIndex({
+                                                    variables: {
+                                                        input: {
+                                                            indexId: index.id,
+                                                        },
+                                                    },
+                                                });
+                                                setShowConfirmDelete(false);
+                                            }}
+                                            onCancel={() =>
+                                                setShowConfirmDelete(false)}
+                                        />
+                                    )}
+                                </div>
+                            )}
+                    </AccordionSummary>
+                    <AccordionDetails className="index-list-item-details">
+                        <IndexDataResourceCounts indexId={index.id} />
+                    </AccordionDetails>
+                </Accordion>
             ))}
-        </ul>
+        </div>
     );
 }
 

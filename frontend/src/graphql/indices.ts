@@ -5,6 +5,14 @@ export const GET_INDICES = gql(`
     indices {
       id
       active
+    }
+  }
+`);
+
+export const GET_INDEX_COUNTS = gql(`
+  query GetIndexCounts($indexId: ID!) {
+    index(id: $indexId) {
+      id
       counts {
         total
         dataResourceCounts {

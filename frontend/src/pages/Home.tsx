@@ -8,7 +8,9 @@ export function Home() {
             <RunningPipelines />
             <div id="overview">
                 <div id="indices">
-                    <h2>Available Indices:</h2>
+                    <h2>
+                        Available Indices:
+                    </h2>
                     <div>
                         <IndexList />
                     </div>

@@ -7,7 +7,9 @@ const environment = process.env.NODE_ENV === "development"
     : "::ENVIRONMENT::" as Environment;
 
 const defaultSettings = {
+    environment: environment,
     domain: "localhost:5173",
+    locale: "nl-BE",
     auth: {
         authority: "https://auth-dev.inbo.be/realms/vbp",
         client_id: "vbp-branding",
@@ -16,6 +18,8 @@ const defaultSettings = {
     graphql: {
         uri: "/api/v1/biocache-index-management/graphql",
     },
+    logsUrl:
+        "https://monitoring.natuurdata.dev.inbo.be/d/pipelines-logs-dev/pipelines-logs",
 };
 
 const envSettings = {
@@ -37,6 +41,8 @@ const envSettings = {
             authority: "https://auth-uat.inbo.be/realms/vbp",
             redirectUrl: "https://natuurdata.uat.inbo.be/pipeline/index.html",
         },
+        logsUrl:
+            "https://monitoring.natuurdata.dev.inbo.be/d/pipelines-logs-uat/pipelines-logs",
     },
     prod: {
         domain: "natuurdata.inbo.be",
@@ -44,6 +50,8 @@ const envSettings = {
             authority: "https://auth.inbo.be/realms/vbp",
             redirectUrl: "https://natuurdata.inbo.be/pipeline/index.html",
         },
+        logsUrl:
+            "https://monitoring.natuurdata.dev.inbo.be/d/pipelines-logs-prod/pipelines-logs",
     },
 };
 

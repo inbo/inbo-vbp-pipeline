@@ -2,7 +2,7 @@ import "../styles/Pipeline.css";
 
 import { useMutation, useQuery } from "@apollo/client/react";
 import { CANCEL_PIPELINE, GET_PIPELINE_PROGRESS } from "../graphql/pipelines";
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
     PipelineStatus,
@@ -16,11 +16,16 @@ import {
 } from "./DataResourceProgress";
 import { Spinner } from "./Spinner";
 import { ActionConfirmationModal } from "./ActionConfirmationModal";
-import { Button, Icon } from "@mui/material";
+import { Button } from "@mui/material";
 import { PipelineProgress } from "./PipelineProgress";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import { PipelineStatusChip } from "./PipelineStatusChip";
+import { AccessTime, Close } from "@mui/icons-material";
+import { settings } from "../settings";
 
-export const Pipeline = ({ id }: { id?: string }) => {
+export const Pipeline = (
+    { id, showHeader = true }: { id?: string; showHeader?: boolean },
+) => {
     const pipelineId = id ?? useParams().id!;
 
     const [
@@ -89,16 +94,24 @@ export const Pipeline = ({ id }: { id?: string }) => {
         () => {
             return dataResourceFilter.step && (
                 <>
-                    <h4>
-                        Data Resources in {dataResourceFilter.step}{" "}
-                        {dataResourceFilter.state
-                            ? `with state ${dataResourceFilter.state}`
-                            : ""}
-                        {dataResourcesCount && (
-                            <span className="pipeline-step-data-resources-count">
-                                {dataResourcesCount}
-                            </span>
-                        )}
+                    <h4 className="pipeline-step-data-resources-header">
+                        <span>
+                            Data Resources in {dataResourceFilter.step}{" "}
+                            {dataResourceFilter.state
+                                ? `with state ${dataResourceFilter.state}`
+                                : ""}
+                            {dataResourcesCount && (
+                                <span className="pipeline-step-data-resources-header-count">
+                                    {dataResourcesCount}
+                                </span>
+                            )}
+                        </span>
+                        <Button
+                            className="pipeline-step-data-resources-header-close"
+                            onClick={() => setDataResourceFilter({})}
+                        >
+                            <Close />
+                        </Button>
                     </h4>
                     {dataResourceFilter.step
                         ? (
@@ -129,8 +142,7 @@ export const Pipeline = ({ id }: { id?: string }) => {
     }
 
     if (
-        loading && networkStatus !== NetworkStatus.poll &&
-        networkStatus !== NetworkStatus.refetch
+        loading && data === undefined
     ) {
         return <Spinner />;
     }
@@ -146,46 +158,53 @@ export const Pipeline = ({ id }: { id?: string }) => {
     return (
         <div className="pipeline">
             <div className="pipeline-details">
-                <div className="pipeline-header">
-                    ID:
-                    <a
-                        href={`https://eu-west-1.console.aws.amazon.com/states/home?region=eu-west-1#/v2/executions/details/${data.pipeline.executionArn}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        {data?.pipeline?.id}
-                    </a>
-                </div>
-                <div className="pipeline-status">
-                    Status:{" "}
-                    <span
-                        className={`pipeline-status-value pipeline-status-value-${data?.pipeline?.status.toLowerCase()}`}
-                    >
-                        {data?.pipeline?.status}
-                    </span>
-                </div>
+                {showHeader && (
+                    <div className="pipeline-header">
+                        <div className="pipeline-list-item-summary-content">
+                            <AccessTime className="pipeline-list-item-time-icon" />
+                            {new Date(
+                                (data.pipeline.stoppedAt
+                                    ? new Date(data.pipeline.stoppedAt)
+                                    : new Date()).getTime() -
+                                    new Date(data.pipeline.startedAt).getTime(),
+                            ).toLocaleTimeString(settings.locale)}
+                            <br />
+                            <Link
+                                className="pipeline-list-item-link"
+                                to={`/${data.pipeline.id}`}
+                            >
+                                {data.pipeline.id}
+                            </Link>
+                        </div>
+                        <PipelineStatusChip status={data.pipeline.status} />
+                        {data.pipeline.status === PipelineStatus.Running && (
+                            <Button
+                                onClick={() => refetch()}
+                                disabled={loading}
+                            >
+                                <RefreshIcon />
+                            </Button>
+                        )}
+                    </div>
+                )}
                 <div className="pipeline-progress">
                     {progress}
                 </div>
                 <div className="pipeline-actions">
-                    {data?.pipeline?.status == PipelineStatus.Failed && (
-                        <div>
-                            <div>
-                                Error: <pre>{data?.pipeline?.error}</pre>
-                            </div>
-                            <div>
-                                Cause: <pre>{data?.pipeline?.cause}</pre>
-                            </div>
-                        </div>
-                    )}
-                    {data.pipeline.status === PipelineStatus.Running && (
-                        <Button
-                            onClick={() => refetch()}
-                            disabled={loading}
-                        >
-                            <RefreshIcon />
-                        </Button>
-                    )}
+                    <Button
+                        href={`${settings.logsUrl}?refresh=1m&from=${data.pipeline.startedAt}&to=${
+                            data.pipeline.stoppedAt ?? "now"
+                        }`}
+                        target="_blank"
+                    >
+                        Logs
+                    </Button>
+                    <Button
+                        href={`https://eu-west-1.console.aws.amazon.com/states/home?region=eu-west-1#/v2/executions/details/${data.pipeline.executionArn}`}
+                        target="_blank"
+                    >
+                        AWS Console
+                    </Button>
                     <Button
                         onClick={() => setShowDetails(!showDetails)}
                     >
@@ -198,28 +217,37 @@ export const Pipeline = ({ id }: { id?: string }) => {
                             onClick={() => setShowConfirmCancel(true)}
                         >
                             Cancel
-                            {showConfirmCancel && (
-                                <ActionConfirmationModal
-                                    title="Confirm Cancel Pipeline"
-                                    message="Are you sure you want to cancel this pipeline?"
-                                    actionLabel={cancelPipelineLoading
-                                        ? "Cancelling..."
-                                        : "Confirm"}
-                                    onConfirm={async () => {
-                                        await cancelPipeline({
-                                            variables: {
-                                                input: { id: pipelineId },
-                                            },
-                                        });
-                                        setShowConfirmCancel(false);
-                                    }}
-                                    onCancel={() => setShowConfirmCancel(false)}
-                                />
-                            )}
                         </Button>
                     )}
+                    {showConfirmCancel && (
+                        <ActionConfirmationModal
+                            title="Confirm Cancel Pipeline"
+                            message="Are you sure you want to cancel this pipeline?"
+                            actionLabel={cancelPipelineLoading
+                                ? "Cancelling..."
+                                : "Confirm"}
+                            onConfirm={async () => {
+                                await cancelPipeline({
+                                    variables: {
+                                        input: { id: pipelineId },
+                                    },
+                                });
+                                setShowConfirmCancel(false);
+                            }}
+                            onCancel={() => setShowConfirmCancel(false)}
+                        />
+                    )}
                 </div>
-
+                {data?.pipeline?.status == PipelineStatus.Failed && (
+                    <div className="pipeline-error">
+                        <div>
+                            Error: <pre>{data?.pipeline?.error}</pre>
+                        </div>
+                        <div>
+                            Cause: <pre>{data?.pipeline?.cause}</pre>
+                        </div>
+                    </div>
+                )}
                 {showDetails &&
                     (
                         <div>
@@ -244,9 +272,11 @@ export const Pipeline = ({ id }: { id?: string }) => {
                         </div>
                     )}
             </div>
-            <div className="pipeline-step-data-resources">
-                {dataResources}
-            </div>
+            {dataResourceFilter.step !== undefined && (
+                <div className="pipeline-step-data-resources">
+                    {dataResources}
+                </div>
+            )}
         </div>
     );
 };
