@@ -12,29 +12,33 @@
             "file_path": "/emr/instance-controller/log/bootstrap-actions/*/stdout",
             "log_group_name": "${log_group_name}",
             "log_stream_name": "emr/{instance_id}",
-            "publish_multi_logs": true
+            "publish_multi_logs": true,
+            "time_zone": "UTC"
           },
           {
             "file_path": "/emr/instance-controller/log/bootstrap-actions/*/stderr",
             "log_group_name": "${log_group_name}",
             "log_stream_name": "emr/{instance_id}",
-            "publish_multi_logs": true
+            "publish_multi_logs": true,
+            "time_zone": "UTC"
           },
           {
             "file_path": "/mnt/var/log/hadoop/steps/*/stdout",
             "log_group_name": "${log_group_name}",
             "log_stream_name": "emr/{instance_id}",
             "publish_multi_logs": true,
-            "timestamp_format": "%Y-%m-%dT%H:%M:%S.%fZ",
-            "multi_line_start_pattern": "{timestamp_regex}"
+            "timestamp_format": "%Y-%m-%dT%H:%M:%S.%f",
+            "multi_line_start_pattern": "{timestamp_regex}",
+            "time_zone": "UTC"
           },
           {
             "file_path": "/mnt/var/log/hadoop/steps/*/stderr",
             "log_group_name": "${log_group_name}",
             "log_stream_name": "emr/{instance_id}",
             "publish_multi_logs": true,
-            "timestamp_format": "%Y-%m-%dT%H:%M:%S.%fZ",
-            "multi_line_start_pattern": "{timestamp_regex}"
+            "timestamp_format": "%Y-%m-%dT%H:%M:%S.%f",
+            "multi_line_start_pattern": "{timestamp_regex}",
+            "time_zone": "UTC"
           }
         ]
       }
