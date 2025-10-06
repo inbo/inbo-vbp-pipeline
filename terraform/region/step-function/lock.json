@@ -60,7 +60,7 @@
     "Wait for Lock or Long Poll Timeout": {
       "Type": "Task",
       "Arguments": {
-        "QueueUrl": "{% 'https://sqs.eu-west-1.amazonaws.com/632683202044/inbo-vbp-pipeline-lock-' & $lowercase($states.context.Execution.Input.lockKey) %}",
+        "QueueUrl": "{% $config.sqs_lock_queues[$lowercase($states.context.Execution.Input.lockKey)] %}",
         "WaitTimeSeconds": 20,
         "MaxNumberOfMessages": 1
       },
