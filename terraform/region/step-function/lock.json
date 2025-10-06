@@ -60,7 +60,7 @@
     "Wait for Lock or Long Poll Timeout": {
       "Type": "Task",
       "Arguments": {
-        "QueueUrl": "{% $config.sqs_lock_queues[$lowercase($states.context.Execution.Input.lockKey)] %}",
+        "QueueUrl": "{% $lookup($config.sqs_lock_queues, $lowercase($states.context.Execution.Input.lockKey)) %}",
         "WaitTimeSeconds": 20,
         "MaxNumberOfMessages": 1
       },
