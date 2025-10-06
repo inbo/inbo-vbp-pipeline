@@ -413,10 +413,10 @@
               "TableName": "{% $config.dynamodb_table_name %}",
               "Key": {
                 "PK": {
-                  "S": "{% 'LOCK#' & $states.context.Execution.Input.stepArn %}"
+                  "S": "{% 'LOCK#' & $states.context.Execution.Input.stepName %}"
                 },
                 "SK": {
-                  "S": "{% 'LOCK#' & $states.context.Execution.Input.stepArn  %}"
+                  "S": "{% 'LOCK#' & $states.context.Execution.Input.stepName  %}"
                 }
               },
               "UpdateExpression": "DELETE #executionIds :executionId",
