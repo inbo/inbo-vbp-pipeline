@@ -10,6 +10,7 @@ locals {
     emr_release                                  = data.aws_emr_release_labels.emr_release.release_labels[0]
     iam_emr_service_role_arn                     = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipelines-emr-service-role"
     iam_emr_instance_profile_arn                 = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:instance-profile/${var.resource_prefix}pipelines-emr-instance-profile"
+    iam_emr_scaling_role                         = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipelines-emr-scaling-role"
     emr_managed_master_security_group            = aws_security_group.emr_cluster_instances.id
     emr_managed_slave_security_group             = aws_security_group.emr_cluster_instances.id
     batch_security_group                         = aws_security_group.batch.id
@@ -32,10 +33,11 @@ locals {
     apikey_secret_value                          = aws_secretsmanager_secret_version.apikey_credentials.secret_string
     dataresource_size_threshold                  = 10000000
     pipelines_version                            = var.docker_version
-    master_ec2_instance_type                     = "m7g.2xlarge"
-    worker_ec2_instance_type                     = "m7g.4xlarge"
-    number_of_cluster_workers                    = 2
-    idle_timout_termination_seconds              = 1 * 60 * 60
+    master_ec2_instance_type                     = "m7g.xlarge"
+    worker_ec2_instance_type                     = "m7g.xlarge"
+    min_number_of_cluster_workers                = 1
+    max_number_of_cluster_workers                = 4
+    idle_timout_termination_seconds              = 1 * 30 * 60
     emr_tags                                     = [
       for key, value in merge(data.aws_default_tags.current.tags, {
         for-use-with-amazon-emr-managed-policies = "true"

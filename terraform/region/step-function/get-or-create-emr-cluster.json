@@ -132,28 +132,28 @@
             "{% $config.batch_security_group %}"
           ],
           "KeepJobFlowAliveWhenNoSteps": true,
-          "InstanceFleets": [
+          "InstanceGroups": [
             {
-              "InstanceFleetType": "MASTER",
+              "InstanceGroupType": "MASTER",
               "Name": "Master",
-              "TargetOnDemandCapacity": 1,
-              "InstanceTypeConfigs": [
-                {
-                  "InstanceType": "{% $config.master_ec2_instance_type %}"
-                }
-              ]
+              "InstanceCount": 1,
+              "InstanceType": "{% $config.master_ec2_instance_type %}"
             },
             {
-              "InstanceFleetType": "CORE",
+              "InstanceGroupType": "CORE",
               "Name": "Core",
-              "TargetOnDemandCapacity": "{% $config.number_of_cluster_workers %}",
-              "InstanceTypeConfigs": [
-                {
-                  "InstanceType": "{% $config.worker_ec2_instance_type %}"
-                }
-              ]
+              "InstanceCount": "{% $config.min_number_of_cluster_workers %}",
+              "InstanceType": "{% $config.worker_ec2_instance_type %}"
             }
           ]
+        },
+        "AutoScalingRole": "{% $config.iam_emr_scaling_role %}",
+        "ManagedScalingPolicy": {
+          "ComputeLimits": {
+            "MinimumCapacityUnits": "{% $config.min_number_of_cluster_workers %}",
+            "MaximumCapacityUnits": "{% $config.max_number_of_cluster_workers %}",
+            "UnitType": "Instances"
+          }
         },
         "Configurations": [
           {
