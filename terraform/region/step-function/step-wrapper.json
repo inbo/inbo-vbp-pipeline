@@ -114,7 +114,7 @@
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
                   "dynamodbTableName": "{% $config.dynamodb_table_name %}",
-                  "lockKey": "{% $states.context.Execution.Input.stepArn %}",
+                  "lockKey": "{% $states.context.Execution.Input.stepName %}",
                   "lockLimit": "{% $states.context.Execution.Input.concurrencyLimit %}",
                   "lockCheckInterval": "{% $config.concurrency_lock_check_interval_s %}",
                   "lockTimeout": "{% $config.concurrency_lock_timeout_ms %}"
@@ -435,7 +435,7 @@
         ]
       },
       "Resource": "arn:aws:states:::aws-sdk:dynamodb:transactWriteItems",
-      "Next": "Step Result?",
+      "Next": "Should send Unlock",
       "Output": "{% $states.input %}",
       "Retry": [
         {
@@ -448,6 +448,26 @@
           "JitterStrategy": "FULL"
         }
       ]
+    },
+    "Should send Unlock": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "Send Unlock Message",
+          "Condition": "{% $exists($states.context.Execution.Input.concurrencyLimit) %}"
+        }
+      ],
+      "Default": "Step Result?"
+    },
+    "Send Unlock Message": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sqs:sendMessage",
+      "Arguments": {
+        "QueueUrl": "{% 'https://sqs.eu-west-1.amazonaws.com/632683202044/inbo-vbp-pipeline-lock-' & $lowercase($states.context.Execution.Input.stepName) %}",
+        "MessageBody": {}
+      },
+      "Next": "Step Result?",
+      "Output": "{% $states.input %}"
     },
     "Step Result?": {
       "Type": "Choice",
