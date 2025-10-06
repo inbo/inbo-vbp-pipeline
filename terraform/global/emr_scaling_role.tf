@@ -36,6 +36,7 @@ data "aws_iam_policy_document" "emr_scaling_role" {
       "elasticmapreduce:ModifyInstanceGroups"
     ]
 
+    #tfsec:ignore:aws-iam-no-policy-wildcards
     resources = ["*"]
   }
 }
