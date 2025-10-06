@@ -102,7 +102,7 @@ data "aws_iam_policy_document" "pipeline" {
       "iam:PassRole"
     ]
 
-    resources = [aws_iam_role.iam_emr_instance_role.arn, aws_iam_role.iam_emr_service_role.arn]
+    resources = [aws_iam_role.iam_emr_instance_role.arn, aws_iam_role.iam_emr_service_role.arn, aws_iam_role.iam_emr_scaling_role.arn]
   }
 
   statement {
