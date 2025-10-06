@@ -8,9 +8,6 @@ data "aws_iam_policy_document" "emr_scaling_role_assume_policy" {
   statement {
     effect = "Allow"
     actions = ["sts:AssumeRole"]
-    resources = [
-      "arn:aws:iam::123456789012:role/ApplicationAutoScalingEMRRole"
-    ]
     condition {
       test     = "StringEquals"
       variable = "aws:SourceAccount"
