@@ -9,7 +9,6 @@ import {
 } from "../__generated__/biocache-index-management/graphql";
 
 import "../styles/PipelineProgress.css";
-import { NetworkStatus } from "@apollo/client";
 import {
     type DataResourceFilter,
     DataResourceProgress,
@@ -20,8 +19,10 @@ import { Button } from "@mui/material";
 import { PipelineProgress } from "./PipelineProgress";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { PipelineStatusChip } from "./PipelineStatusChip";
-import { AccessTime, Close } from "@mui/icons-material";
+import { AccessTime, Close, Timer } from "@mui/icons-material";
 import { settings } from "../settings";
+import { formatDuration } from "../utils/datetime";
+import { PipelineHeader } from "./PipelineHeader";
 
 export const Pipeline = (
     { id, showHeader = true }: { id?: string; showHeader?: boolean },
@@ -45,7 +46,6 @@ export const Pipeline = (
         data,
         loading,
         error,
-        networkStatus,
         startPolling,
         stopPolling,
         refetch,
@@ -159,24 +159,8 @@ export const Pipeline = (
         <div className="pipeline">
             <div className="pipeline-details">
                 {showHeader && (
-                    <div className="pipeline-header">
-                        <div className="pipeline-list-item-summary-content">
-                            <AccessTime className="pipeline-list-item-time-icon" />
-                            {new Date(
-                                (data.pipeline.stoppedAt
-                                    ? new Date(data.pipeline.stoppedAt)
-                                    : new Date()).getTime() -
-                                    new Date(data.pipeline.startedAt).getTime(),
-                            ).toLocaleTimeString(settings.locale)}
-                            <br />
-                            <Link
-                                className="pipeline-list-item-link"
-                                to={`/${data.pipeline.id}`}
-                            >
-                                {data.pipeline.id}
-                            </Link>
-                        </div>
-                        <PipelineStatusChip status={data.pipeline.status} />
+                    <div className="pipeline-header-container">
+                        <PipelineHeader pipeline={data.pipeline} />
                         {data.pipeline.status === PipelineStatus.Running && (
                             <Button
                                 onClick={() => refetch()}

@@ -12,9 +12,11 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { settings } from "../settings";
-import { AccessTime } from "@mui/icons-material";
+import { AccessTime, Timer } from "@mui/icons-material";
 import { PipelineStatusChip } from "./PipelineStatusChip";
 import Pipeline from "./Pipeline";
+import { formatDuration } from "../utils/datetime";
+import { PipelineHeader } from "./PipelineHeader";
 
 export function PipelineList() {
     const { data: pipelinesData, loading, error } = useQuery(GET_ALL_PIPELINES);
@@ -46,23 +48,7 @@ export function PipelineList() {
                         className="pipeline-list-item-summary"
                         expandIcon={<ExpandMoreIcon />}
                     >
-                        <div className="pipeline-list-item-summary-content">
-                            <AccessTime className="pipeline-list-item-time-icon" />
-                            {new Date(
-                                (pipeline.stoppedAt
-                                    ? new Date(pipeline.stoppedAt)
-                                    : new Date()).getTime() -
-                                    new Date(pipeline.startedAt).getTime(),
-                            ).toLocaleTimeString(settings.locale)}
-                            <br />
-                            <Link
-                                className="pipeline-list-item-link"
-                                to={`/${pipeline.id}`}
-                            >
-                                {pipeline.id}
-                            </Link>
-                        </div>
-                        <PipelineStatusChip status={pipeline.status} />
+                        <PipelineHeader pipeline={pipeline} />
                     </AccordionSummary>
                     <AccordionDetails className="pipeline-list-item-details">
                         <Pipeline id={pipeline.id} showHeader={false} />

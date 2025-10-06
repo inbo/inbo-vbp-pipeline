@@ -8,6 +8,7 @@ export const GET_ALL_PIPELINES = gql(`
       status
       startedAt
       stoppedAt
+      duration
     }
   }
 `);
@@ -20,6 +21,7 @@ export const GET_PIPELINE = gql(`
       status
       startedAt
       stoppedAt
+      duration
       input
       output
       error
@@ -36,6 +38,7 @@ export const START_PIPELINE = gql(`
       status
       startedAt
       stoppedAt
+      duration
       input
       output
       error
@@ -53,6 +56,7 @@ export const CANCEL_PIPELINE = gql(`
       status
       startedAt
       stoppedAt
+      duration
       input
       output
       error
@@ -70,6 +74,7 @@ export const GET_PIPELINE_PROGRESS = gql(`
       status
       startedAt
       stoppedAt
+      duration
       input
       output
       error
@@ -152,6 +157,7 @@ export const PIPELINE_FRAGMENT = gql(`
     status
     startedAt
     stoppedAt
+    duration
     input
     output
     error

@@ -16,7 +16,7 @@
     margin: 0 2em;
 }
 
-.pipeline-header {
+.pipeline-header-container {
     display: flex;
     justify-content: space-between;
     align-items: center;

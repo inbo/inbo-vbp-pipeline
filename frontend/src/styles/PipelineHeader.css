@@ -1,0 +1,50 @@
+.pipeline-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    grid-template-columns: auto 1fr auto;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.pipeline-header-times {
+    flex: 1;
+    min-width: fit-content;
+    display: flex;
+    align-items: center;
+    gap: 1em;
+}
+
+.pipeline-header-times-started-at {
+    width: 12em;
+}
+
+.pipeline-header-times-duration {
+    width: 8em;
+}
+
+.pipeline-header-time-icon {
+    margin-right: 0.25em;
+    vertical-align: middle;
+}
+
+.pipeline-header-link {
+    flex: 3;
+    margin: 0 2em;
+    color: var(--mui-palette-primary-main);
+    text-decoration: none;
+    min-width: fit-content;
+
+    &:hover {
+        text-decoration: underline;
+        cursor: pointer;
+        color: var(--mui-palette-primary-light);
+    }
+}
+
+.pipeline-header-status-chip {
+    flex: 1;
+    min-width: fit-content;
+    max-width: fit-content;
+    margin: auto 1em;
+}

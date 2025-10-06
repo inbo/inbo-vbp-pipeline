@@ -158,6 +158,9 @@ function maptoGraphql(pipeline: Pipeline): GqlPipeline {
         status: pipeline.status as GqlPipelineStatus,
         startedAt: pipeline.startedAt?.toISOString(),
         stoppedAt: pipeline.stoppedAt?.toISOString(),
+        duration: pipeline.stoppedAt && pipeline.startedAt
+            ? pipeline.stoppedAt.getTime() - pipeline.startedAt.getTime()
+            : null,
         input: pipeline.input,
         output: pipeline.output,
         error: pipeline.error,

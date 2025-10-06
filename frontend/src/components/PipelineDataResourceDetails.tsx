@@ -40,17 +40,26 @@ function isEmrErrorCause(cause: any): cause is EmrErrorCause {
 }
 
 export function ErrorDetails({ cause }: { cause: string }) {
-    const parsed = JSON.parse(cause);
-    const hasJson = parsed.Cause.startsWith("{");
-    const parsedCause = hasJson ? JSON.parse(parsed.Cause) : null;
-
     let errorComponents;
-    if (isBatchErrorCause(parsedCause)) {
-        errorComponents = <BatchErrorDetails cause={parsedCause} />;
-    } else if (isEmrErrorCause(parsedCause)) {
-        errorComponents = <EmrErrorDetails cause={parsedCause} />;
-    } else {
-        errorComponents = <h4>{parsed.Error}</h4>;
+    let hasJson = false;
+    let parsedCause: any = null;
+    let parsed: any = null;
+
+    try {
+        parsed = JSON.parse(cause);
+        hasJson = parsed.Cause.startsWith("{");
+        parsedCause = hasJson ? JSON.parse(parsed.Cause) : null;
+
+        if (isBatchErrorCause(parsedCause)) {
+            errorComponents = <BatchErrorDetails cause={parsedCause} />;
+        } else if (isEmrErrorCause(parsedCause)) {
+            errorComponents = <EmrErrorDetails cause={parsedCause} />;
+        } else {
+            errorComponents = <h4>{parsed.Error}</h4>;
+        }
+    } catch (e) {
+        console.error("Error parsing error details", e);
+        errorComponents = <p>Unable to parse error details</p>;
     }
 
     return (
@@ -63,7 +72,7 @@ export function ErrorDetails({ cause }: { cause: string }) {
                         data={parsedCause}
                     />
                 )
-                : <p>{parsed.Cause}</p>}
+                : <p>{parsed ? parsed.Cause : cause}</p>}
         </div>
     );
 }

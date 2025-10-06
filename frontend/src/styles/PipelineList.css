@@ -13,12 +13,7 @@
     display: flex;
     gap: 1em;
     justify-content: space-between;
-    line-height: 5em;
-    height: 5em;
-}
-
-.pipeline-list-item-time-icon {
-    margin-right: 0.25em;
+    line-height: 3em;
 }
 
 .pipeline-list-item-summary-content {
@@ -33,16 +28,4 @@
     height: fit-content;
     display: flex;
     align-self: center;
-}
-
-.pipeline-list-item-link {
-    margin: 0 2em;
-    color: var(--mui-palette-primary-main);
-    text-decoration: none;
-
-    &:hover {
-        text-decoration: underline;
-        cursor: pointer;
-        color: var(--mui-palette-primary-light);
-    }
 }
