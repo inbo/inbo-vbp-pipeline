@@ -60,7 +60,7 @@ locals {
     concurrency_lock_check_interval_s = 10
     concurrency_lock_timeout_ms       = 4 * 3600 * 1000
     emr_step_concurrency_limit        = 20
-    sqs_lock_queues                   = {for name, queue in aws_sqs_queue.lock-queues : name => queue.arn}
+    sqs_lock_queues                   = {for name, queue in aws_sqs_queue.lock-queues : name => queue.url}
   })
 }
 
