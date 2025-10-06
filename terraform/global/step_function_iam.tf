@@ -183,11 +183,11 @@ data "aws_iam_policy_document" "pipeline" {
 
   statement {
     effect = "Allow"
-    actions : [
+    actions = [
       "sqs:ReceiveMessage",
       "sqs:SendMessage"
     ],
-    resourcse : [
+    resourcse = [
       "arn:aws:sqs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:${var.resource_prefix}pipeline-lock-sample",
       "arn:aws:sqs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:${var.resource_prefix}pipeline-lock-solr"
     ]
