@@ -134,13 +134,13 @@
           "KeepJobFlowAliveWhenNoSteps": true,
           "InstanceGroups": [
             {
-              "InstanceGroupType": "MASTER",
+              "InstanceRole": "MASTER",
               "Name": "Master",
               "InstanceCount": 1,
               "InstanceType": "{% $config.master_ec2_instance_type %}"
             },
             {
-              "InstanceGroupType": "CORE",
+              "InstanceRole": "CORE",
               "Name": "Core",
               "InstanceCount": "{% $config.min_number_of_cluster_workers %}",
               "InstanceType": "{% $config.worker_ec2_instance_type %}"
