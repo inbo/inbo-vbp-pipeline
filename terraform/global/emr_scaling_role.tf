@@ -8,6 +8,10 @@ data "aws_iam_policy_document" "emr_scaling_role_assume_policy" {
   statement {
     effect = "Allow"
     actions = ["sts:AssumeRole"]
+    principals {
+      type = "Service"
+      identifiers = ["elasticmapreduce.amazonaws.com"]
+    }
     condition {
       test     = "StringEquals"
       variable = "aws:SourceAccount"
