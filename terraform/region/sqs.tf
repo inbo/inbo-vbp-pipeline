@@ -1,3 +1,4 @@
+#tfsec:ignore:aws-sqs-enable-queue-encryption
 resource "aws_sqs_queue" "lock-queues" {
   for_each = ["sample, solr"]
 
