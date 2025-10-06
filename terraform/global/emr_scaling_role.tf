@@ -1,10 +1,10 @@
 resource "aws_iam_role" "iam_emr_scaling_role" {
   name = "${var.resource_prefix}pipelines-emr-scaling-role"
 
-  assume_role_policy = data.aws_iam_policy_document.emr_role_assume_policy.json
+  assume_role_policy = data.aws_iam_policy_document.emr_scaling_role_assume_policy.json
 }
 
-data "aws_iam_policy_document" "emr_role_assume_policy" {
+data "aws_iam_policy_document" "emr_scaling_role_assume_policy" {
   statement {
     effect = "Allow"
     actions = ["sts:AssumeRole"]
