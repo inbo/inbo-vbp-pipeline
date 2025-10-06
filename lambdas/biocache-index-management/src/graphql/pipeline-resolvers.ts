@@ -68,8 +68,8 @@ export const Mutation: MutationResolvers = {
         const pipeline = await pipelineService.startPipeline(
             dataResourceIds,
             solrCollection ?? undefined,
-            forceDownload ?? undefined,
             resetAllData ?? undefined,
+            forceDownload ?? undefined,
             forceIndex ?? undefined,
             forceSample ?? undefined,
             forceSolr ?? undefined,
