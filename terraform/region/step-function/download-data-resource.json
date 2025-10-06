@@ -80,10 +80,7 @@
           ]
         }
       },
-      "Next": "Download Data Resource",
-      "Output": {
-        "downloadedTimeStamp": "{% $states.result.Container.Environment[Name='DOWNLOADED_EVENT_TIMESTAMP'].Value %}"
-      }
+      "Next": "Download Data Resource"
     },
     "Do Nothing": {
       "Type": "Pass",
