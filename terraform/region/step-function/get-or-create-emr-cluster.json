@@ -152,7 +152,6 @@
           "ComputeLimits": {
             "MinimumCapacityUnits": "{% $config.min_number_of_cluster_workers %}",
             "MaximumCapacityUnits": "{% $config.max_number_of_cluster_workers %}",
-            "MaximumOnDemandCapacityUnits": "{% $config.max_on_demand_number_of_cluster_workers %}",
             "UnitType": "Instances"
           }
         },
