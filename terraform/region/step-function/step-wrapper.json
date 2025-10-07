@@ -114,6 +114,7 @@
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
                   "dynamodbTableName": "{% $config.dynamodb_table_name %}",
+                  "lockQueueUrl": "{% $lookup($config.sqs_lock_queues, $lowercase($states.context.Execution.Input.stepName)) %}",
                   "lockKey": "{% $states.context.Execution.Input.stepName %}",
                   "lockLimit": "{% $states.context.Execution.Input.concurrencyLimit %}",
                   "lockCheckInterval": "{% $config.concurrency_lock_check_interval_s %}",
