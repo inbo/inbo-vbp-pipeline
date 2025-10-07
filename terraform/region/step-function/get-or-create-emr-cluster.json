@@ -143,7 +143,8 @@
               "InstanceRole": "CORE",
               "Name": "Core",
               "InstanceCount": "{% $config.min_number_of_cluster_workers %}",
-              "InstanceType": "{% $config.worker_ec2_instance_type %}"
+              "InstanceType": "{% $config.worker_ec2_instance_type %}",
+              "BidPrice": "{% $config.worker_max_spot_price %}"
             }
           ]
         },
@@ -152,6 +153,7 @@
           "ComputeLimits": {
             "MinimumCapacityUnits": "{% $config.min_number_of_cluster_workers %}",
             "MaximumCapacityUnits": "{% $config.max_number_of_cluster_workers %}",
+            "MaximumOnDemandCapacityUnits": "{% $config.max_on_demand_number_of_cluster_workers %}",
             "UnitType": "Instances"
           }
         },
