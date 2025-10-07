@@ -143,8 +143,7 @@
               "InstanceRole": "CORE",
               "Name": "Core",
               "InstanceCount": "{% $config.min_number_of_cluster_workers %}",
-              "InstanceType": "{% $config.worker_ec2_instance_type %}",
-              "BidPrice": "{% $string($config.worker_max_spot_price) %}"
+              "InstanceType": "{% $config.worker_ec2_instance_type %}"
             }
           ]
         },
