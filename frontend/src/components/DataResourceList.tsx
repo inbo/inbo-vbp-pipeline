@@ -2,8 +2,16 @@ import "../styles/DataResourceList.css";
 import { useQuery } from "@apollo/client/react";
 import { GET_ALL_DATA_RESOURCES } from "../graphql/dataResources";
 import { useCallback, useEffect, useState } from "react";
-import React from "react";
-import { Button } from "@mui/material";
+import {
+    Checkbox,
+    FormControl,
+    InputAdornment,
+    InputLabel,
+    TextField,
+} from "@mui/material";
+
+import type { DataResource } from "../__generated__/biocache-index-management/graphql";
+import { FilterListRounded } from "@mui/icons-material";
 
 const SelectAllStates = [
     "all",
@@ -14,28 +22,40 @@ const SelectAllStates = [
 ] as const;
 type SelectAllState = (typeof SelectAllStates)[number];
 
-export const DataResourceList = () => {
+export const DataResourceList = ({ className }: { className?: string }) => {
     const { data } = useQuery(GET_ALL_DATA_RESOURCES);
+    const [dataResourceFilter, setDataResourceFilter] = useState("");
 
-    const [showList, setShowList] = useState(false);
-
-    const [selectAllState, setSelectAllState] = useState<SelectAllState>("all");
+    const [selectAllState, setSelectAllState] = useState<SelectAllState>(
+        "none",
+    );
     const [selectedResources, setSelectedResources] = useState<boolean[]>([]);
 
-    const [selectAllRef] = useState<React.RefObject<HTMLInputElement | null>>(
-        () => React.createRef<HTMLInputElement>(),
-    );
+    const matchesFilter = useCallback((dr: DataResource) => {
+        let matches = true;
+        dataResourceFilter.split(" ").forEach((term) => {
+            matches = matches &&
+                ((dr.name?.toLowerCase().includes(term)) ||
+                    (dr.id.toLowerCase().includes(term)));
+        });
+        return matches;
+    }, [dataResourceFilter]);
+
     useEffect(
         () => {
             switch (selectAllState) {
                 case "all":
                     setSelectedResources(
-                        new Array(data?.dataResources.length).fill(true),
+                        data?.dataResources.map((dr, idx) =>
+                            matchesFilter(dr) || selectedResources[idx]
+                        ) || [],
                     );
                     break;
                 case "none":
                     setSelectedResources(
-                        new Array(data?.dataResources.length).fill(false),
+                        data?.dataResources.map((dr, idx) =>
+                            selectedResources[idx] && !matchesFilter(dr)
+                        ) || [],
                     );
                     break;
                 case "updated":
@@ -44,6 +64,7 @@ export const DataResourceList = () => {
                             data?.dataResources[i].updated == true
                         )
                     );
+
                     break;
                 case "new":
                     setSelectedResources((prev) =>
@@ -60,101 +81,146 @@ export const DataResourceList = () => {
                         "Invalid select all state triggered through toggling",
                     );
             }
-
-            // Need to set indeterminate state manually, not supported through JSX
-            if (selectAllRef.current) {
-                selectAllRef.current.indeterminate = selectAllState !== "all" &&
-                    selectAllState !== "none" && selectedResources.some((v) =>
-                        v
-                    );
-            }
         },
         [selectAllState, data],
     );
 
     const changeSelectAll = useCallback(() => {
-        const newState = (SelectAllStates.indexOf(selectAllState) + 1) %
+        let newState = (SelectAllStates.indexOf(selectAllState) + 1) %
             (SelectAllStates.length - 1);
+
+        if (
+            SelectAllStates[newState] == "updated" &&
+            !(data?.dataResources.some((dr) => dr.updated))
+        ) {
+            newState = (newState + 1) %
+                (SelectAllStates.length - 1);
+        }
+
+        if (
+            SelectAllStates[newState] == "new" &&
+            !(data?.dataResources.some((dr) => dr.new))
+        ) {
+            newState = (newState + 1) %
+                (SelectAllStates.length - 1);
+        }
+
         setSelectAllState(SelectAllStates[newState]);
     }, [selectAllState, data?.dataResources]);
+
+    const updateSelectAllState = useCallback((newStates: boolean[]) => {
+        const isHidden = data?.dataResources.map((dr) => !matchesFilter(dr)) ||
+            [];
+        if (newStates.length === 0) {
+            setSelectAllState("none");
+        } else if (
+            newStates.every((isSelected, i) => isSelected || isHidden[i])
+        ) {
+            setSelectAllState("all");
+        } else if (
+            newStates.every((isSelected, i) => !isSelected || isHidden[i])
+        ) {
+            setSelectAllState("none");
+        } else if (
+            newStates.every((isSelected, i) =>
+                isSelected ===
+                    (data?.dataResources[i].updated == true) || isHidden[i]
+            )
+        ) {
+            setSelectAllState("updated");
+        } else if (
+            newStates.every((isSelected, i) =>
+                isSelected ===
+                    (data?.dataResources[i].new == true) || isHidden[i]
+            )
+        ) {
+            setSelectAllState("new");
+        } else {
+            setSelectAllState("some");
+        }
+    }, [data, matchesFilter]);
+
+    useEffect(() => {
+        updateSelectAllState(selectedResources);
+    }, [matchesFilter]);
 
     const changeSingleResource = (index: number) => {
         setSelectedResources((prev) => {
             const newStates = [...prev];
             newStates[index] = !newStates[index];
-
-            if (newStates.every((isSelected) => isSelected)) {
-                setSelectAllState("all");
-            } else if (newStates.every((isSelected) => !isSelected)) {
-                setSelectAllState("none");
-            } else if (
-                newStates.every((isSelected, i) =>
-                    isSelected ===
-                        (data?.dataResources[i].updated == true)
-                )
-            ) {
-                setSelectAllState("updated");
-            } else if (
-                newStates.every((isSelected, i) =>
-                    isSelected ===
-                        (data?.dataResources[i].new == true)
-                )
-            ) {
-                setSelectAllState("new");
-            } else {
-                setSelectAllState("some");
-            }
-
+            updateSelectAllState(newStates);
             return newStates;
         });
     };
 
     return (
-        <div className="data-resource-list">
-            <div className="data-resource-select">
-                <div>
-                    <label htmlFor="select-all">
-                        Select Data Resources{" "}
-                        <span className="select-all-state">
-                            {selectAllState}
-                        </span>
-                    </label>
-
-                    <input
-                        ref={selectAllRef}
-                        type="checkbox"
+        <div className={`data-resource-list ${className}`}>
+            <div className="data-resource-list-header">
+                <div className="data-resource-list-header-checkbox">
+                    <Checkbox
                         id="select-all"
                         name="data-resource-all"
                         onChange={changeSelectAll}
                         checked={selectAllState === "all"}
+                        indeterminate={selectAllState === "some" ||
+                            selectAllState === "updated" ||
+                            selectAllState === "new"}
                         value="all"
+                        className="data-resource-list-checkbox data-resource-list-select-all"
+                    />
+                    <label
+                        htmlFor="select-all"
+                        className="data-resource-list-header-select-state-label"
+                    >
+                        {selectAllState}
+                    </label>
+                </div>
+                <div className="data-resource-list-header-filter-container">
+                    <TextField
+                        id="data-resource-list-filter"
+                        label="Filter"
+                        variant="outlined"
+                        className="data-resource-list-header-filter"
+                        onChange={(e) =>
+                            setDataResourceFilter(
+                                e.target.value.toLowerCase(),
+                            )}
+                        value={dataResourceFilter}
+                        slotProps={{
+                            input: {
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <FilterListRounded />
+                                    </InputAdornment>
+                                ),
+                            },
+                        }}
                     />
                 </div>
-                <Button
-                    onClick={(e) => {
-                        e.preventDefault();
-                        setShowList((prev) => !prev);
-                    }}
-                >
-                    {showList
-                        ? "Hide Individual Data Resources"
-                        : "Show Individual Data Resources"}
-                </Button>
+                <div className="data-resource-list-header-count">
+                    Selected {(selectedResources.reduce(
+                        (acc, curr) => acc + (curr ? 1 : 0),
+                        0,
+                    )) || 0} of
+                    {data?.dataResources.length || 0} data resources
+                </div>
             </div>
-            <ul style={{ display: showList ? "block" : "none" }}>
+            <ul className="data-resource-list-items">
                 {data?.dataResources.map((dr, index) => (
                     <li
                         key={dr.id}
-                        className="data-resource-list-item"
+                        className={`data-resource-list-item ${
+                            matchesFilter(dr) ? "" : "hidden"
+                        }`}
                     >
                         <div className="data-resource-select">
-                            <input
-                                type="checkbox"
+                            <Checkbox
                                 id={dr.id}
                                 name="data-resource"
                                 value={dr.id}
                                 checked={selectedResources[index] || false}
                                 onChange={() => changeSingleResource(index)}
+                                className="data-resource-list-checkbox data-resource-list-select-item"
                             />
                         </div>
                         <div className="data-resource-id">

@@ -1,0 +1,25 @@
+.start-pipeline-form {
+    display: grid;
+    grid-template-columns: 16em 1fr;
+    gap: 1em;
+    justify-content: flex-start;
+    margin: 2em;
+
+    @media screen and (max-width: 50em) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.start-pipeline-form-indices-select {
+    height: 4em;
+}
+
+.start-pipeline-form-indices-spinner {
+    height: 4em;
+}
+
+.start-pipeline-form-submit-button {
+    margin-top: 1em !important;
+    width: 100%;
+    max-width: 18em;
+}

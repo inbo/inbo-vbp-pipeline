@@ -74,6 +74,7 @@ export function IndexList() {
                 >
                     <AccordionSummary
                         className="index-list-item-summary"
+                        component="div"
                         expandIcon={<ExpandMoreIcon />}
                     >
                         <div className="index-list-item-summary-content">

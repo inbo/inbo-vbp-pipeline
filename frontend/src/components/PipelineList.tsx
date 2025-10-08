@@ -1,40 +1,18 @@
 import "../styles/PipelineList.css";
 
-import { useMutation, useQuery } from "@apollo/client/react";
-import { CANCEL_PIPELINE, GET_ALL_PIPELINES } from "../graphql/pipelines";
-import { Link } from "react-router";
+import { useQuery } from "@apollo/client/react";
+import { GET_ALL_PIPELINES } from "../graphql/pipelines";
 import { Spinner } from "./Spinner";
-import {
-    Accordion,
-    AccordionDetails,
-    AccordionSummary,
-    Button,
-} from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { settings } from "../settings";
-import { AccessTime, Timer } from "@mui/icons-material";
-import { PipelineStatusChip } from "./PipelineStatusChip";
 import Pipeline from "./Pipeline";
-import { formatDuration } from "../utils/datetime";
 import { PipelineHeader } from "./PipelineHeader";
 
 export function PipelineList() {
     const { data: pipelinesData, loading, error } = useQuery(GET_ALL_PIPELINES);
-    const [
-        cancelPipeline,
-        {
-            loading: cancelPipelineLoading,
-            error: cancelPipelineError,
-        },
-    ] = useMutation(
-        CANCEL_PIPELINE,
-    );
 
     if (loading) return <Spinner />;
     if (error) return <p>Error loading pipelines: {error.message}</p>;
-    if (cancelPipelineError) {
-        return <p>Error cancelling pipeline: {cancelPipelineError.message}</p>;
-    }
 
     return (
         <div className="pipeline-list">

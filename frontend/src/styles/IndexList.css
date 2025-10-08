@@ -40,6 +40,7 @@
 }
 .index-list-item-summary-buttons {
     display: flex;
+    justify-content: flex-end;
     gap: 1em;
     align-items: center;
 }

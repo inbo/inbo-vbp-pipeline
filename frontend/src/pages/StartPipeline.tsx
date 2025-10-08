@@ -1,14 +1,25 @@
+import "../styles/StartPipelines.css";
+
 import { useMutation, useQuery } from "@apollo/client/react";
 import { GET_INDICES } from "../graphql/indices";
 import DataResourceList from "../components/DataResourceList";
 import { PIPELINE_FRAGMENT, START_PIPELINE } from "../graphql/pipelines";
 import { useCallback } from "react";
 import { useNavigate } from "react-router";
-import { Button, MenuItem, Select } from "@mui/material";
+import {
+    Button,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
+} from "@mui/material";
 import { Spinner } from "../components/Spinner";
+import { Checkbox } from "@mui/material";
 
 export function StartPipeline() {
-    const { data: indicesData } = useQuery(GET_INDICES);
+    const { data: indicesData, loading: indicesLoading } = useQuery(
+        GET_INDICES,
+    );
     const [startPipeline, { loading, error }] = useMutation(
         START_PIPELINE,
         {
@@ -69,80 +80,106 @@ export function StartPipeline() {
     if (error) return <p>Error starting pipeline: {error.message}</p>;
 
     return (
-        <div id="start-pipeline">
-            <h2>Start a new Pipeline:</h2>
-            <form onSubmit={submitForm}>
-                <Button variant="contained" type="submit">
-                    Start Pipeline
-                </Button>
+        <div className="start-pipeline">
+            <h2>
+                Start a new Pipeline:
+            </h2>
+            <form
+                id="start-pipeline-form"
+                className="start-pipeline-form"
+                onSubmit={submitForm}
+            >
+                <div className="start-pipeline-form-section start-pipeline-form-section">
+                    {indicesLoading
+                        ? (
+                            <Spinner className="start-pipeline-form-indices-spinner" />
+                        )
+                        : (
+                            <FormControl>
+                                <InputLabel id="start-pipeline-form-indices-select-label">
+                                    Index
+                                </InputLabel>
+                                <Select
+                                    name="index"
+                                    label="Index"
+                                    labelId="start-pipeline-form-indices-select-label"
+                                    className="start-pipeline-form-indices-select"
+                                    defaultValue={indicesData?.indices.find((
+                                        i,
+                                    ) => i.active)
+                                        ?.id}
+                                >
+                                    {indicesData?.indices.map((index) => (
+                                        <MenuItem
+                                            key={index.id}
+                                            value={index.id}
+                                        >
+                                            {index.id}{" "}
+                                            {index.active ? " (active)" : ""}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        )}
+                    <div>
+                        <Checkbox
+                            id="reset-all-data"
+                            name="reset-all-data"
+                            defaultChecked={false}
+                        />
+                        <label htmlFor="reset-all-data">
+                            Reset all data
+                        </label>
+                    </div>
+                    <div>
+                        <Checkbox
+                            id="force-download"
+                            name="force-download"
+                            defaultChecked={false}
+                        />
+                        <label htmlFor="force-download">
+                            Do not skip downloading
+                        </label>
+                    </div>
+                    <div>
+                        <Checkbox
+                            id="force-index"
+                            name="force-index"
+                            defaultChecked={false}
+                        />
+                        <label htmlFor="force-index">
+                            Do not skip indexing
+                        </label>
+                    </div>
+                    <div>
+                        <Checkbox
+                            id="force-sample"
+                            name="force-sample"
+                            defaultChecked={false}
+                        />
+                        <label htmlFor="force-sample">
+                            Do not skip sampling
+                        </label>
+                    </div>
+                    <div>
+                        <Checkbox
+                            id="force-solr"
+                            name="force-solr"
+                            defaultChecked={false}
+                        />
+                        <label htmlFor="force-solr">Do not skip solr</label>
+                    </div>
 
-                <div>
-                    <label htmlFor="index">Select Index:</label>
-                    <Select
-                        name="index"
-                        defaultValue={indicesData?.indices.find((i) => i.active)
-                            ?.id}
+                    <Button
+                        variant="contained"
+                        type="submit"
+                        className="start-pipeline-form-submit-button"
                     >
-                        {indicesData?.indices.map((index) => (
-                            <MenuItem
-                                key={index.id}
-                                value={index.id}
-                            >
-                                {index.id} {index.active ? " (active)" : ""}
-                            </MenuItem>
-                        ))}
-                    </Select>
+                        Start
+                    </Button>
                 </div>
-                <div>
-                    <label htmlFor="reset-all-data">
-                        Reset all data
-                    </label>
-                    <input
-                        type="checkbox"
-                        id="reset-all-data"
-                        name="reset-all-data"
-                        defaultChecked={false}
-                    />
-                </div>
-                <div>
-                    <label htmlFor="force-download">
-                        Do not skip downloading
-                    </label>
-                    <input
-                        type="checkbox"
-                        id="force-download"
-                        name="force-download"
-                        defaultChecked={false}
-                    />
-                </div>
-                <div>
-                    <label htmlFor="force-index">Do not skip indexing</label>
-                    <input
-                        type="checkbox"
-                        id="force-index"
-                        name="force-index"
-                        defaultChecked={false}
-                    />
-                </div>
-                <div>
-                    <label htmlFor="force-sample">Do not skip sampling</label>
-                    <input
-                        type="checkbox"
-                        id="force-sample"
-                        name="force-sample"
-                        defaultChecked={false}
-                    />
-                </div>
-                <div>
-                    <label htmlFor="force-solr">Do not skip solr</label>
-                    <input
-                        type="checkbox"
-                        id="force-solr"
-                        name="force-solr"
-                        defaultChecked={false}
-                    />
-                </div>
-                <DataResourceList />
+
+                <DataResourceList className="start-pipeline-form-section" />
             </form>
         </div>
     );

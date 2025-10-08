@@ -2,7 +2,7 @@ import "../styles/Pipeline.css";
 
 import { useMutation, useQuery } from "@apollo/client/react";
 import { CANCEL_PIPELINE, GET_PIPELINE_PROGRESS } from "../graphql/pipelines";
-import { Link, useParams } from "react-router";
+import { useParams } from "react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
     PipelineStatus,
@@ -18,10 +18,8 @@ import { ActionConfirmationModal } from "./ActionConfirmationModal";
 import { Button } from "@mui/material";
 import { PipelineProgress } from "./PipelineProgress";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import { PipelineStatusChip } from "./PipelineStatusChip";
-import { AccessTime, Close, Timer } from "@mui/icons-material";
+import { Close } from "@mui/icons-material";
 import { settings } from "../settings";
-import { formatDuration } from "../utils/datetime";
 import { PipelineHeader } from "./PipelineHeader";
 
 export const Pipeline = (
