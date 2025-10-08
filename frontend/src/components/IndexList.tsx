@@ -2,11 +2,12 @@ import "../styles/IndexList.css";
 
 import { useMutation, useQuery } from "@apollo/client/react";
 import {
+    CREATE_INDEX,
     DELETE_INDEX,
     GET_INDICES,
     SET_ACTIVE_INDEX,
 } from "../graphql/indices";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { Reference } from "@apollo/client";
 import type { MutationUpdaterFunction } from "@apollo/client";
 import type { ApolloCache } from "@apollo/client";
@@ -14,6 +15,8 @@ import type {
     DeleteIndexInput,
     DeleteIndexMutation,
     Exact,
+    GetOrCreateIndexInput,
+    GetOrCreateIndexMutation,
     SetActiveIndexInput,
     SetActiveIndexMutation,
 } from "../__generated__/biocache-index-management/graphql";
@@ -23,9 +26,11 @@ import {
     AccordionDetails,
     AccordionSummary,
     Button,
+    InputAdornment,
+    TextField,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { Check } from "@mui/icons-material";
+import { AddRounded, Check, PlusOneRounded } from "@mui/icons-material";
 import { ActionConfirmationModal } from "./ActionConfirmationModal";
 import { IndexDataResourceCounts } from "./indexDataResourceCounts";
 
@@ -35,6 +40,8 @@ export function IndexList() {
     const [operatedOnIndex, setOperatedOnIndex] = useState<
         string | undefined
     >();
+    const [createIndexIdValidationError, setCreateIndexIdValidationError] =
+        useState<string | undefined>(undefined);
 
     const [
         setActiveIndex,
@@ -48,6 +55,17 @@ export function IndexList() {
         },
     );
     const [
+        createIndex,
+        {
+            loading: createIndexLoading,
+        },
+    ] = useMutation(
+        CREATE_INDEX,
+        {
+            update: createIndexLocally,
+        },
+    );
+    const [
         deleteIndex,
         {
             loading: deleteIndexLoading,
@@ -58,6 +76,59 @@ export function IndexList() {
             update: deleteIndexLocally,
         },
     );
+
+    const validateCreateIndexId = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            const value = e.target.value;
+            if (!/^[a-zA-Z0-9-]+$/.test(value)) {
+                setCreateIndexIdValidationError(
+                    "Only letters, numbers and hyphens are allowed.",
+                );
+                return false;
+            } else if (
+                IndexListData?.indices.some((index) =>
+                    index.id === `biocache-${value}`
+                )
+            ) {
+                setCreateIndexIdValidationError(
+                    "An index with this ID already exists.",
+                );
+                return false;
+            } else {
+                setCreateIndexIdValidationError(undefined);
+                return true;
+            }
+        },
+        [IndexListData],
+    );
+
+    const submitCreateIndexForm = useCallback(
+        (e: React.FormEvent<HTMLFormElement>) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            const inputValue = formData.get("index-id") as string;
+            if (inputValue) {
+                const indexId = `biocache-${inputValue}`;
+                setOperatedOnIndex(indexId);
+                createIndex({
+                    variables: {
+                        input: { indexId },
+                    },
+                });
+            }
+        },
+        [setOperatedOnIndex, createIndex],
+    );
+
+    const defaultIndexId = useMemo(() => {
+        const now = new Date();
+        const padZero = (
+            value: number,
+        ) => (value < 10 ? `0${value}` : `${value}`);
+        return `${now.getFullYear()}${padZero(now.getMonth() + 1)}${
+            padZero(now.getDay())
+        }`;
+    }, []);
 
     if (loading) return <Spinner />;
     if (error) return <p>Error loading indices: {error.message}</p>;
@@ -153,6 +224,43 @@ export function IndexList() {
                     </AccordionDetails>
                 </Accordion>
             ))}
+            <Accordion>
+                <AccordionDetails>
+                    <form
+                        className="index-list-item-create-new-index-form"
+                        onSubmit={submitCreateIndexForm}
+                    >
+                        <TextField
+                            variant="outlined"
+                            label="Create New Index"
+                            className="index-list-item-create-new-index-textfield"
+                            name="index-id"
+                            onChange={validateCreateIndexId}
+                            defaultValue={defaultIndexId}
+                            helperText={createIndexIdValidationError}
+                            disabled={createIndexLoading}
+                            error={!!createIndexIdValidationError}
+                            slotProps={{
+                                input: {
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            biocache-
+                                        </InputAdornment>
+                                    ),
+                                },
+                            }}
+                        />
+                        <Button
+                            variant="outlined"
+                            type="submit"
+                            disabled={createIndexLoading}
+                            className="index-list-item-create-new-index-button"
+                        >
+                            <AddRounded />
+                        </Button>
+                    </form>
+                </AccordionDetails>
+            </Accordion>
         </div>
     );
 }
@@ -189,6 +297,29 @@ const updateActiveIndexLocally: MutationUpdaterFunction<
                             },
                         });
                     }
+                },
+            },
+        });
+    }
+};
+
+const createIndexLocally: MutationUpdaterFunction<
+    GetOrCreateIndexMutation,
+    Exact<{
+        input: GetOrCreateIndexInput;
+    }>,
+    ApolloCache
+> = (cache, { data }) => {
+    const indexId = data?.getOrCreateIndex.indexId;
+    if (indexId) {
+        cache.modify({
+            fields: {
+                indices(existingIndices = []) {
+                    return [...existingIndices, {
+                        __typename: "Index",
+                        id: indexId,
+                        active: false,
+                    }];
                 },
             },
         });

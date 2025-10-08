@@ -55,3 +55,14 @@
 .index-list-item-details-count-item-label {
     font-weight: bold;
 }
+
+.index-list-item-create-new-index-form {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    margin-top: 1em;
+}
+
+.index-list-item-create-new-index-button {
+    height: 4em;
+}

@@ -35,6 +35,14 @@ export const SET_ACTIVE_INDEX = gql(`
   }
 `);
 
+export const CREATE_INDEX = gql(`
+  mutation GetOrCreateIndex($input: GetOrCreateIndexInput!) {
+    getOrCreateIndex(input: $input) {
+      indexId 
+    }
+  }
+`);
+
 export const DELETE_INDEX = gql(`
   mutation DeleteIndex($input: DeleteIndexInput!) {
     deleteIndex(input: $input) {
