@@ -171,9 +171,6 @@ resource "aws_cloudwatch_event_connection" "portal_authenticated_connection_oaut
         client_id     = var.oauth.client_id
         client_secret = var.oauth.client_secret
       }
-
-      oauth_http_parameters {
-      }
     }
   }
 }
