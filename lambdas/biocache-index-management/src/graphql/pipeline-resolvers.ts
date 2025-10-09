@@ -62,6 +62,7 @@ export const Mutation: MutationResolvers = {
                 forceIndex,
                 forceSample,
                 forceSolr,
+                switchIndex,
             },
         },
     ) => {
@@ -73,6 +74,7 @@ export const Mutation: MutationResolvers = {
             forceIndex ?? undefined,
             forceSample ?? undefined,
             forceSolr ?? undefined,
+            switchIndex ?? undefined,
         );
 
         return {

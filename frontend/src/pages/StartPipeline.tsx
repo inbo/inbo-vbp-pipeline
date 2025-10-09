@@ -68,6 +68,9 @@ export function StartPipeline() {
                             ? true
                             : false,
                         forceSolr: formData.get("force-solr") ? true : false,
+                        switchIndex: formData.get("switch-index")
+                            ? true
+                            : false,
                     },
                 },
             });
@@ -168,6 +171,14 @@ export function StartPipeline() {
                             defaultChecked={false}
                         />
                         <label htmlFor="force-solr">Do not skip solr</label>
+                    </div>
+                    <div>
+                        <Checkbox
+                            id="switch-index"
+                            name="switch-index"
+                            defaultChecked={true}
+                        />
+                        <label htmlFor="switch-index">Switch index</label>
                     </div>
 
                     <Button

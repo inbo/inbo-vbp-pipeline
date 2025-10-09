@@ -136,21 +136,6 @@ resource "aws_sfn_state_machine" "cleanup_emr_cluster" {
   definition = replace(file("${path.module}/step-function/cleanup-emr-cluster.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 }
 
-resource "aws_cloudwatch_event_connection" "portal_authenticated_connection_sf" {
-  name               = "${var.resource_prefix}pipelines-step-function"
-  authorization_type = "API_KEY"
-  auth_parameters {
-    api_key {
-      key   = "apiKey"
-      value = aws_secretsmanager_secret_version.apikey_credentials.secret_string
-    }
-  }
-
-  lifecycle {
-    ignore_changes = [auth_parameters]
-  }
-}
-
 resource "aws_ec2_tag" "subnet_emr_managed_policy_tag" {
   for_each = toset(var.private_subnet_ids)
   resource_id = each.value

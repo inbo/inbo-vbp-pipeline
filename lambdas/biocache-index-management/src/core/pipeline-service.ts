@@ -101,6 +101,7 @@ export type PipelineService = {
         forceIndex?: boolean,
         forceSample?: boolean,
         forceSolr?: boolean,
+        switchIndex?: boolean,
     ): Promise<Pipeline>;
     cancelPipeline(id: string): Promise<void>;
 

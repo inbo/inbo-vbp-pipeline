@@ -15,6 +15,6 @@
 .pipeline-status-chip-running {
     background-color: var(--mui-palette-primary-light) !important; /* Blue */
 }
-.pipeline-status-chip-completed {
+.pipeline-status-chip-succeeded {
     background-color: var(--mui-palette-success-light) !important; /* Green */
 }

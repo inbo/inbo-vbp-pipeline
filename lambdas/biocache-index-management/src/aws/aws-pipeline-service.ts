@@ -93,6 +93,7 @@ export class AwsPipelineServiceImpl implements PipelineService {
         forceIndex: boolean = false,
         forceSample: boolean = false,
         forceSolr: boolean = false,
+        switchIndex: boolean = true,
     ): Promise<Pipeline> {
         console.debug(
             "Starting pipeline with input:",
@@ -115,6 +116,7 @@ export class AwsPipelineServiceImpl implements PipelineService {
                 forceIndex,
                 forceSample,
                 forceSolr,
+                switchIndex,
             }),
         });
         return {

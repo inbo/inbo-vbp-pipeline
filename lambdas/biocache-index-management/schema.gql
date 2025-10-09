@@ -211,6 +211,7 @@ input StartPipelineInput {
   forceIndex: Boolean
   forceSample: Boolean
   forceSolr: Boolean
+  switchIndex: Boolean
 }
 
 type StartPipelineOutput {

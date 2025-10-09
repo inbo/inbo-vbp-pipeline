@@ -256,11 +256,7 @@
           "Next": "Cleanup EMR Cluster"
         }
       ],
-      "Output": {
-        "dataResourceId": "{% $states.result.dataResourceId %}",
-        "Error": "{% $states.result.Error or null %}",
-        "Cause": "{% $states.result.Cause or null %}"
-      }
+      "Output": "{% $states.result %}"
     },
     "Cleanup EMR Cluster": {
       "Type": "Task",
@@ -272,18 +268,22 @@
           "rootPipelineName": "{% $states.context.Execution.Name %}"
         }
       },
-      "Next": "Has Errors?",
+      "Next": "Has Errors and should Switch Index?",
       "Output": "{% $states.input %}"
     },
-    "Has Errors?": {
+    "Has Errors and should Switch Index?": {
       "Type": "Choice",
       "Choices": [
         {
           "Next": "Fail",
           "Condition": "{% $exists($states.input.Error) %}"
+        },
+        {
+          "Next": "Switch Active Index",
+          "Condition": "{% $states.context.Execution.Input.switchIndex or false %}"
         }
       ],
-      "Default": "Switch Active Index"
+      "Default": "Do Nothing"
     },
     "Fail": {
       "Type": "Fail",
@@ -307,7 +307,7 @@
           "rawPath": "/",
           "routeKey": "/",
           "originatesFromStepFunction": true,
-          "body": "{% $string({\n  'query': 'mutation SetActiveIndex($input: SetActiveIndexInput!) { setActiveIndex(input: $input) { indexId }}',\n'variables': {\n  'input': {\n    'indexId': $solrCollection\n  }\n}\n}) %}"
+          "body": "{% $string({\n  'query': 'mutation SetActiveIndex($input: SetActiveIndexInput!) {\n    setActiveIndex(input: $input) {\n      index {\n        id\n        active\n      }\n    }\n  }',\n'variables': {\n  'input': {\n    'indexId': $solrCollection\n  }\n}\n}) %}"
         }
       },
       "Retry": [
@@ -330,7 +330,7 @@
       "Type": "Task",
       "Resource": "arn:aws:states:::http:invoke",
       "Arguments": {
-        "ApiEndpoint": "{% $config.biocache_service_base_url & '/biocache-service/sync' %}",
+        "ApiEndpoint": "{% $config.biocache_service_base_url & '/sync' %}",
         "Method": "GET",
         "Authentication": {
           "ConnectionArn": "{% $config.portal_authenticated_connection_arn %}"
@@ -347,6 +347,10 @@
           "JitterStrategy": "FULL"
         }
       ],
+      "End": true
+    },
+    "Do Nothing": {
+      "Type": "Pass",
       "End": true
     }
   },
