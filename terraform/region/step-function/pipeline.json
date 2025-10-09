@@ -293,7 +293,7 @@
     "Switch Active Index": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
-      "Output": "{% $states.result.Payload %}",
+      "Output": "{% $states.input %}",
       "Arguments": {
         "FunctionName": "{% $config.lambda_biocache_index_management_arn %}",
         "Payload": {
@@ -347,7 +347,17 @@
           "JitterStrategy": "FULL"
         }
       ],
-      "End": true
+      "End": true,
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.Http.StatusCode.416"
+          ],
+          "Next": "Do Nothing",
+          "Comment": "Ignore stupid 416 error",
+          "Output": "{% $states.input %}"
+        }
+      ]
     },
     "Do Nothing": {
       "Type": "Pass",
