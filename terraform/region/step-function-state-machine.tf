@@ -164,12 +164,19 @@ resource "aws_cloudwatch_event_connection" "portal_authenticated_connection_oaut
 
   auth_parameters {
     oauth {
-      authorization_endpoint = var.oauth.authorization_endpoint
-      http_method            = "GET"
+      authorization_endpoint = var.oauth.token_endpoint
+      http_method            = "POST"
 
       client_parameters {
         client_id     = var.oauth.client_id
         client_secret = var.oauth.client_secret
+      }
+
+      oauth_http_parameters {
+        body {
+          key   = "grant_type"
+          value = "client_credentials"
+        }
       }
     }
   }
