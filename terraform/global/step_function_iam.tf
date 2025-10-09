@@ -51,7 +51,8 @@ data "aws_iam_policy_document" "pipeline" {
 
     #tfsec:ignore:aws-iam-no-policy-wildcards
     resources = [
-      "arn:aws:events:${var.aws_region}:${data.aws_caller_identity.current.account_id}:connection/${var.resource_prefix}pipelines-step-function/*"
+      "arn:aws:events:${var.aws_region}:${data.aws_caller_identity.current.account_id}:connection/${var.resource_prefix}pipelines-step-function/*",
+      "arn:aws:events:${var.aws_region}:${data.aws_caller_identity.current.account_id}:connection/${var.resource_prefix}pipelines-step-function-oauth-connection/*"
     ]
   }
 
