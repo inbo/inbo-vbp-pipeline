@@ -238,10 +238,7 @@
               }
             ],
             "End": true,
-            "Output": {
-              "state": "{% $states.result.state %}",
-              "dataResourceId": "{% $states.input %}"
-            }
+            "Output": "{% $merge(Output($states.result.Output, {\"dataResourceId\": $states.input}) %}"
           },
           "Ignore Error": {
             "Type": "Pass",

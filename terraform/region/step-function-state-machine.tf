@@ -15,7 +15,7 @@ locals {
     emr_managed_slave_security_group             = aws_security_group.emr_cluster_instances.id
     batch_security_group                         = aws_security_group.batch.id
     service_access_security_group                = aws_security_group.emr_service_access.id
-    portal_authenticated_connection_arn          = aws_cloudwatch_event_connection.portal_authenticated_connection_sf.arn
+    portal_authenticated_connection_arn          = aws_cloudwatch_event_connection.portal_authenticated_connection_oauth.arn
     biocache_service_base_url                    = "https://${var.base_domain}/biocache-service"
     collectory_base_url                          = "https://${var.base_domain}/collectory"
     species_list_base_url                        = "https://${var.base_domain}/species-list"
@@ -156,4 +156,24 @@ resource "aws_ec2_tag" "subnet_emr_managed_policy_tag" {
   resource_id = each.value
   key         = "for-use-with-amazon-emr-managed-policies"
   value       = "true"
+}
+
+resource "aws_cloudwatch_event_connection" "portal_authenticated_connection_oauth" {
+  name               = "${var.resource_prefix}pipelines-step-function-oauth-connection"
+  authorization_type = "OAUTH_CLIENT_CREDENTIALS"
+
+  auth_parameters {
+    oauth {
+      authorization_endpoint = var.oauth.authorization_endpoint
+      http_method            = "GET"
+
+      client_parameters {
+        client_id     = var.oauth.client_id
+        client_secret = var.oauth.client_secret
+      }
+
+      oauth_http_parameters {
+      }
+    }
+  }
 }

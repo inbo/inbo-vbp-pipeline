@@ -73,7 +73,7 @@ resource "aws_lambda_function" "biocache_index_management_lambda" {
       SOLR_BIOCACHE_MAX_SHARDS_PER_NODE = "4"
       AWS_STATE_MACHINE_ARN             = aws_sfn_state_machine.pipeline.arn
       AWS_DYNAMODB_TABLE_NAME           = aws_dynamodb_table.biodiversiteitsportaal_pipelines.name
-      JWKS_URI                          = var.jwks_uri
+      JWKS_URI                          = var.oauth.jwks_uri
       COLLECTORY_BASE_URL               = "https://${var.base_domain}/collectory"
     }
   }

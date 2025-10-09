@@ -11,12 +11,12 @@ variable "name" {
 }
 
 variable "organisation" {
-  type = string
+  type    = string
   default = "inbo"
 }
 
 variable "resource_prefix" {
-  type = string
+  type    = string
   default = "inbo-vbp-"
 }
 
@@ -108,14 +108,14 @@ variable "aws_env" {
 
 variable "solr" {
   type = object({
-    base_url = string
+    base_url          = string
     security_group_id = string
   })
 }
 
 variable "lambdas" {
   type = object({
-    bucket = string
+    bucket         = string
     log_group_name = string
     versions = object({
       biocache-index-management = string
@@ -123,6 +123,12 @@ variable "lambdas" {
   })
 }
 
-variable "jwks_uri" {
-  type = string
+variable "oauth" {
+  type = object({
+    authorization_endpoint = string
+    jwks_uri               = string
+    client_id              = string
+    client_secret          = string
+  })
+  sensitive = true
 }
