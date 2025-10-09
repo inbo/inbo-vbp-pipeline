@@ -125,10 +125,10 @@ variable "lambdas" {
 
 variable "oauth" {
   type = object({
-    authorization_endpoint = string
-    jwks_uri               = string
-    client_id              = string
-    client_secret          = string
+    token_endpoint = string
+    jwks_uri       = string
+    client_id      = string
+    client_secret  = string
   })
   sensitive = true
 }
