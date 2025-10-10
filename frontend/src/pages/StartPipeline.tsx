@@ -129,6 +129,9 @@ export function StartPipeline() {
                             id="reset-all-data"
                             name="reset-all-data"
                             defaultChecked={false}
+                            onKeyDown={(e) => {
+                                e.key === "Enter" && e.preventDefault();
+                            }}
                         />
                         <label htmlFor="reset-all-data">
                             Reset all data
@@ -139,6 +142,9 @@ export function StartPipeline() {
                             id="force-download"
                             name="force-download"
                             defaultChecked={false}
+                            onKeyDown={(e) => {
+                                e.key === "Enter" && e.preventDefault();
+                            }}
                         />
                         <label htmlFor="force-download">
                             Do not skip downloading
@@ -149,6 +155,9 @@ export function StartPipeline() {
                             id="force-index"
                             name="force-index"
                             defaultChecked={false}
+                            onKeyDown={(e) => {
+                                e.key === "Enter" && e.preventDefault();
+                            }}
                         />
                         <label htmlFor="force-index">
                             Do not skip indexing
@@ -159,6 +168,9 @@ export function StartPipeline() {
                             id="force-sample"
                             name="force-sample"
                             defaultChecked={false}
+                            onKeyDown={(e) => {
+                                e.key === "Enter" && e.preventDefault();
+                            }}
                         />
                         <label htmlFor="force-sample">
                             Do not skip sampling
@@ -169,6 +181,9 @@ export function StartPipeline() {
                             id="force-solr"
                             name="force-solr"
                             defaultChecked={false}
+                            onKeyDown={(e) => {
+                                e.key === "Enter" && e.preventDefault();
+                            }}
                         />
                         <label htmlFor="force-solr">Do not skip solr</label>
                     </div>
@@ -177,6 +192,9 @@ export function StartPipeline() {
                             id="switch-index"
                             name="switch-index"
                             defaultChecked={true}
+                            onKeyDown={(e) => {
+                                e.key === "Enter" && e.preventDefault();
+                            }}
                         />
                         <label htmlFor="switch-index">Switch index</label>
                     </div>

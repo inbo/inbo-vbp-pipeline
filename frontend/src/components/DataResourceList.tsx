@@ -167,6 +167,9 @@ export const DataResourceList = ({ className }: { className?: string }) => {
                             selectAllState === "new"}
                         value="all"
                         className="data-resource-list-checkbox data-resource-list-select-all"
+                        onKeyDown={(e) => {
+                            e.key === "Enter" && e.preventDefault();
+                        }}
                     />
                     <label
                         htmlFor="select-all"
@@ -185,6 +188,9 @@ export const DataResourceList = ({ className }: { className?: string }) => {
                             setDataResourceFilter(
                                 e.target.value.toLowerCase(),
                             )}
+                        onKeyDown={(e) => {
+                            e.key === "Enter" && e.preventDefault();
+                        }}
                         value={dataResourceFilter}
                         slotProps={{
                             input: {
@@ -221,6 +227,9 @@ export const DataResourceList = ({ className }: { className?: string }) => {
                                 checked={selectedResources[index] || false}
                                 onChange={() => changeSingleResource(index)}
                                 className="data-resource-list-checkbox data-resource-list-select-item"
+                                onKeyDown={(e) => {
+                                    e.key === "Enter" && e.preventDefault();
+                                }}
                             />
                         </div>
                         <div className="data-resource-id">
