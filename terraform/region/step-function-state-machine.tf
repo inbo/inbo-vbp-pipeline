@@ -39,7 +39,7 @@ locals {
     min_number_of_cluster_workers                = 1
     max_number_of_cluster_workers                = 4
     max_on_demand_number_of_cluster_workers      = 2
-    idle_timout_termination_seconds              = 1 * 30 * 60
+    idle_timout_termination_seconds              = 8 * 30 * 60
     emr_tags                                     = [
       for key, value in merge(data.aws_default_tags.current.tags, {
         for-use-with-amazon-emr-managed-policies = "true"
