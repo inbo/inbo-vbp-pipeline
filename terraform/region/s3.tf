@@ -30,6 +30,12 @@ resource "aws_s3_object" "batch_pipelines_config" {
   etag = filemd5("${path.module}/config/la-pipelines-batch.yaml")
 }
 
+resource "aws_s3_object" "batch_pipelines_log_config" {
+  bucket = aws_s3_bucket.pipelines.bucket
+  key    = "config/log4j.properties"
+  source = "${path.module}/config/log4j.properties"
+  etag = filemd5("${path.module}/config/log4j.properties")
+}
 
 resource "aws_s3_object" "emr_pipelines_elastic_schema" {
   bucket = aws_s3_bucket.pipelines.bucket

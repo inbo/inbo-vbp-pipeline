@@ -33,7 +33,7 @@
             "log_group_name": "${log_group_name}",
             "log_stream_name": "emr/{instance_id}",
             "publish_multi_logs": true,
-            "timestamp_format": "%Y-%m-%dT%H:%M:%S%L",
+            "timestamp_format": "%Y-%m-%dT%H:%M:%S.%f",
             "multi_line_start_pattern": "{timestamp_regex}"
           }
         ]

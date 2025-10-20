@@ -20,6 +20,7 @@ resource "aws_batch_job_definition" "la_pipelines" {
     environment = [
       { name : "COMPUTE_ENVIRONMENT", value : "embedded" },
       { name : "DATA_RESOURCE_ID", value : "Ref::DATA_RESOURCE_ID" },
+      { name : "LOG_CONFIG", value : "../configs/log4j.properties" },
     ],
     secrets = [
       {
@@ -43,6 +44,7 @@ resource "aws_batch_job_definition" "la_pipelines" {
         aws s3 sync s3://${aws_s3_bucket.pipelines.bucket}/pipelines-vocabularies/ /data/pipelines-vocabularies
 
         aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_config.id} ../configs/la-pipelines.yaml
+        aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_log_config.id} ../configs/log4j.properties
         sed -i "s\\\$${APIKEY}\\$${APIKEY}\\g" ../configs/la-pipelines.yaml
 
         cp /data/dwca-export/$${DATA_RESOURCE_ID}/$${DATA_RESOURCE_ID}.zip /data/biocache-load/$${DATA_RESOURCE_ID}/$${DATA_RESOURCE_ID}.zip
@@ -111,6 +113,7 @@ resource "aws_batch_job_definition" "la_pipelines" {
         awslogs-group         = var.log_group_name,
         awslogs-region        = var.aws_region,
         awslogs-stream-prefix = "batch/dwca-to-index"
+        awslogs-datetime-format = "%Y-%m-%d %H:%M:%S.%f"
       },
       secretOptions = []
     }
