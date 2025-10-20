@@ -113,7 +113,7 @@ resource "aws_batch_job_definition" "la_pipelines" {
         awslogs-group         = var.log_group_name,
         awslogs-region        = var.aws_region,
         awslogs-stream-prefix = "batch/dwca-to-index"
-        awslogs-datetime-format = "%Y-%m-%d %H:%M:%S.%f"
+        awslogs-multiline-pattern = "^\\d\\d\\d\\d-\\d\\d-\\d\\d \\d\\d:\\d\\d:\\d\\d,\\d\\d\\d"
       },
       secretOptions = []
     }
