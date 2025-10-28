@@ -185,7 +185,7 @@
           {
             "Classification": "spark-log4j2",
                 "Properties": {
-                  "appender.console.layout.pattern": "%d{ISO8601} highlight{[%level]} %logger{1.}: %m%n%ex"
+                  "appender.console.layout.pattern": "%d{DEFAULT} [%level] %logger{1.}: %m%n%ex"
                 }
           }
         ],
