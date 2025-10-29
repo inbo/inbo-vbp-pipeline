@@ -6,7 +6,7 @@ type EmrErrorCause = {
     Step: {
         Id: string;
         Status: {
-            FailureDetails: {
+            FailureDetails?: {
                 LogFile: string;
                 Reason?: string;
                 Message?: string;
@@ -45,35 +45,30 @@ export function ErrorDetails({ cause }: { cause: string }) {
     let parsedCause: any = null;
     let parsed: any = null;
 
-    try {
-        parsed = JSON.parse(cause);
-        hasJson = parsed.Cause.startsWith("{");
-        parsedCause = hasJson ? JSON.parse(parsed.Cause) : null;
+    parsed = JSON.parse(cause);
+    hasJson = parsed.Cause.startsWith("{");
+    parsedCause = hasJson ? JSON.parse(parsed.Cause) : null;
 
-        if (isBatchErrorCause(parsedCause)) {
-            errorComponents = <BatchErrorDetails cause={parsedCause} />;
-        } else if (isEmrErrorCause(parsedCause)) {
-            errorComponents = <EmrErrorDetails cause={parsedCause} />;
-        } else {
-            errorComponents = <h4>{parsed.Error}</h4>;
-        }
-        return (
-            <div>
-                {errorComponents}
-                {hasJson
-                    ? (
-                        <JsonData
-                            className="pipeline-step-data-resource-details-button"
-                            data={parsedCause}
-                        />
-                    )
-                    : <p>{parsed ? parsed.Cause : cause}</p>}
-            </div>
-        );
-    } catch (e) {
-        console.error("Error parsing error details", e);
-        return <p>Unable to parse error details</p>;
+    if (isBatchErrorCause(parsedCause)) {
+        errorComponents = <BatchErrorDetails cause={parsedCause} />;
+    } else if (isEmrErrorCause(parsedCause)) {
+        errorComponents = <EmrErrorDetails cause={parsedCause} />;
+    } else {
+        errorComponents = <h4>{parsed.Error}</h4>;
     }
+    return (
+        <div>
+            {errorComponents}
+            {hasJson
+                ? (
+                    <JsonData
+                        className="pipeline-step-data-resource-details-button"
+                        data={parsedCause}
+                    />
+                )
+                : <p>{parsed ? parsed.Cause : cause}</p>}
+        </div>
+    );
 }
 
 function EmrErrorDetails(
@@ -84,12 +79,12 @@ function EmrErrorDetails(
     return (
         <>
             <h4>EMR Step Failed</h4>
-            {cause.Step.Status.FailureDetails.Reason && (
+            {cause.Step.Status.FailureDetails?.Reason && (
                 <h5 className="pipeline-step-data-resource-details-failure-reason">
                     Reason: {cause.Step.Status.FailureDetails.Reason}
                 </h5>
             )}
-            {cause.Step.Status.FailureDetails.Message && (
+            {cause.Step.Status.FailureDetails?.Message && (
                 <h5 className="pipeline-step-data-resource-details-failure-message">
                     Message: {cause.Step.Status.FailureDetails.Message}
                 </h5>

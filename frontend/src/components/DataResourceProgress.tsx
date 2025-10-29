@@ -18,6 +18,8 @@ import {
 } from "@mui/material";
 import { ErrorDetails } from "./PipelineDataResourceDetails";
 import { settings } from "../settings";
+import { ErrorBoundary } from "react-error-boundary";
+import { onError } from "@apollo/client/link/error";
 
 export type DataResourceFilter = {
     step?: PipelineStep;
@@ -93,7 +95,12 @@ export function DataResourceProgress(
                     </AccordionSummary>
                     <AccordionDetails className="pipeline-step-data-resource-details-details">
                         {state === "FAILED" && (
-                            <ErrorDetails cause={progress.cause} />
+                            <ErrorBoundary
+                                fallback={<p>Could not load error details</p>}
+                                onError={(e) => console.error(e)}
+                            >
+                                <ErrorDetails cause={progress.cause} />
+                            </ErrorBoundary>
                         )}
                         <Button
                             className="pipeline-step-data-resource-details-button"
