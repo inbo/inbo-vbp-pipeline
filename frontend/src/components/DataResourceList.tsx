@@ -2,13 +2,7 @@ import "../styles/DataResourceList.css";
 import { useQuery } from "@apollo/client/react";
 import { GET_ALL_DATA_RESOURCES } from "../graphql/dataResources";
 import { useCallback, useEffect, useState } from "react";
-import {
-    Checkbox,
-    FormControl,
-    InputAdornment,
-    InputLabel,
-    TextField,
-} from "@mui/material";
+import { Checkbox, InputAdornment, TextField } from "@mui/material";
 
 import type { DataResource } from "../__generated__/biocache-index-management/graphql";
 import { FilterListRounded } from "@mui/icons-material";
@@ -22,12 +16,17 @@ const SelectAllStates = [
 ] as const;
 type SelectAllState = (typeof SelectAllStates)[number];
 
-export const DataResourceList = ({ className }: { className?: string }) => {
+export const DataResourceList = (
+    { className, preSelectedResources = [] }: {
+        className?: string;
+        preSelectedResources?: string[];
+    },
+) => {
     const { data } = useQuery(GET_ALL_DATA_RESOURCES);
     const [dataResourceFilter, setDataResourceFilter] = useState("");
 
     const [selectAllState, setSelectAllState] = useState<SelectAllState>(
-        "none",
+        preSelectedResources.length > 0 ? "some" : "none",
     );
     const [selectedResources, setSelectedResources] = useState<boolean[]>([]);
 
@@ -74,7 +73,19 @@ export const DataResourceList = ({ className }: { className?: string }) => {
                     );
                     break;
                 case "some":
-                    // Do nothing, handled through individual toggles
+                    debugger;
+                    // Do nothing, handled through individual toggles unless on first load with preselected resources
+                    if (
+                        data?.dataResources &&
+                        preSelectedResources.length > 0 &&
+                        selectedResources.length === 0
+                    ) {
+                        setSelectedResources(() => {
+                            return data.dataResources.map((dr) => {
+                                return preSelectedResources.includes(dr.id);
+                            });
+                        });
+                    }
                     break;
                 default:
                     throw new Error(
@@ -82,7 +93,7 @@ export const DataResourceList = ({ className }: { className?: string }) => {
                     );
             }
         },
-        [selectAllState, data],
+        [selectAllState, data?.dataResources],
     );
 
     const changeSelectAll = useCallback(() => {
@@ -109,6 +120,10 @@ export const DataResourceList = ({ className }: { className?: string }) => {
     }, [selectAllState, data?.dataResources]);
 
     const updateSelectAllState = useCallback((newStates: boolean[]) => {
+        if (selectedResources.length === 0) {
+            return;
+        }
+
         const isHidden = data?.dataResources.map((dr) => !matchesFilter(dr)) ||
             [];
         if (newStates.length === 0) {
@@ -138,7 +153,7 @@ export const DataResourceList = ({ className }: { className?: string }) => {
         } else {
             setSelectAllState("some");
         }
-    }, [data, matchesFilter]);
+    }, [data?.dataResources, matchesFilter]);
 
     useEffect(() => {
         updateSelectAllState(selectedResources);

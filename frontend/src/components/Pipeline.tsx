@@ -2,7 +2,7 @@ import "../styles/Pipeline.css";
 
 import { useMutation, useQuery } from "@apollo/client/react";
 import { CANCEL_PIPELINE, GET_PIPELINE_PROGRESS } from "../graphql/pipelines";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
     PipelineStatus,
@@ -18,6 +18,8 @@ import { ActionConfirmationModal } from "./ActionConfirmationModal";
 import { Button } from "@mui/material";
 import { PipelineProgress } from "./PipelineProgress";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import DifferenceIcon from "@mui/icons-material/Difference";
 import { Close } from "@mui/icons-material";
 import { settings } from "../settings";
 import { PipelineHeader } from "./PipelineHeader";
@@ -25,6 +27,7 @@ import { PipelineHeader } from "./PipelineHeader";
 export const Pipeline = (
     { id, showHeader = true }: { id?: string; showHeader?: boolean },
 ) => {
+    const navigate = useNavigate();
     const pipelineId = id ?? useParams().id!;
 
     const [
@@ -153,18 +156,68 @@ export const Pipeline = (
         return <p>Error cancelling pipeline: {cancelPipelineError.message}</p>;
     }
 
+    const inputDataResources: string[] =
+        JSON.parse(data.pipeline.input || "{}").dataResources || [];
+
+    let failedIds: string[] = [];
+
+    if (
+        data.pipeline.status === PipelineStatus.Failed &&
+        data.pipeline.error === "SomeDataResourceProcessingFailed"
+    ) {
+        debugger;
+        try {
+            failedIds = JSON.parse(data.pipeline.cause || "{}").map(
+                ({ dataResourceId }: { dataResourceId: string }) => {
+                    return dataResourceId;
+                },
+            );
+        } catch (ignored) {
+        }
+    }
+
     return (
         <div className="pipeline">
             <div className="pipeline-details">
                 {showHeader && (
                     <div className="pipeline-header-container">
                         <PipelineHeader pipeline={data.pipeline} />
-                        {data.pipeline.status === PipelineStatus.Running && (
+                        {data.pipeline.status === PipelineStatus.Running
+                            ? (
+                                <Button
+                                    onClick={() => refetch()}
+                                    disabled={loading}
+                                >
+                                    <RefreshIcon />
+                                </Button>
+                            )
+                            : (
+                                <Button
+                                    onClick={() =>
+                                        navigate(
+                                            `/start?${
+                                                inputDataResources.map((id) =>
+                                                    `dr=${id}`
+                                                ).join("&")
+                                            }`,
+                                        )}
+                                    disabled={loading}
+                                >
+                                    <ContentCopyIcon />
+                                </Button>
+                            )}
+                        {failedIds.length > 0 && (
                             <Button
-                                onClick={() => refetch()}
+                                onClick={() =>
+                                    navigate(
+                                        `/start?${
+                                            failedIds.map((id) => `dr=${id}`)
+                                                .join("&")
+                                        }`,
+                                    )}
                                 disabled={loading}
                             >
-                                <RefreshIcon />
+                                <DifferenceIcon />
                             </Button>
                         )}
                     </div>

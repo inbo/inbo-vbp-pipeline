@@ -5,7 +5,7 @@ import { GET_INDICES } from "../graphql/indices";
 import DataResourceList from "../components/DataResourceList";
 import { PIPELINE_FRAGMENT, START_PIPELINE } from "../graphql/pipelines";
 import { useCallback } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import {
     Button,
     FormControl,
@@ -17,6 +17,8 @@ import { Spinner } from "../components/Spinner";
 import { Checkbox } from "@mui/material";
 
 export function StartPipeline() {
+    const [searchParams] = useSearchParams();
+
     const { data: indicesData, loading: indicesLoading } = useQuery(
         GET_INDICES,
     );
@@ -208,7 +210,11 @@ export function StartPipeline() {
                     </Button>
                 </div>
 
-                <DataResourceList className="start-pipeline-form-section" />
+                <DataResourceList
+                    className="start-pipeline-form-section"
+                    preSelectedResources={searchParams.getAll("dr") ||
+                        undefined}
+                />
             </form>
         </div>
     );
