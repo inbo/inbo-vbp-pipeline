@@ -57,24 +57,23 @@ export function ErrorDetails({ cause }: { cause: string }) {
         } else {
             errorComponents = <h4>{parsed.Error}</h4>;
         }
+        return (
+            <div>
+                {errorComponents}
+                {hasJson
+                    ? (
+                        <JsonData
+                            className="pipeline-step-data-resource-details-button"
+                            data={parsedCause}
+                        />
+                    )
+                    : <p>{parsed ? parsed.Cause : cause}</p>}
+            </div>
+        );
     } catch (e) {
         console.error("Error parsing error details", e);
-        errorComponents = <p>Unable to parse error details</p>;
+        return <p>Unable to parse error details</p>;
     }
-
-    return (
-        <div>
-            {errorComponents}
-            {hasJson
-                ? (
-                    <JsonData
-                        className="pipeline-step-data-resource-details-button"
-                        data={parsedCause}
-                    />
-                )
-                : <p>{parsed ? parsed.Cause : cause}</p>}
-        </div>
-    );
 }
 
 function EmrErrorDetails(
