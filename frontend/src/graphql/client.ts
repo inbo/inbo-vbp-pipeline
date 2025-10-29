@@ -11,7 +11,6 @@ import { relayStylePagination } from "@apollo/client/utilities";
 import { settings } from "../settings";
 import { oidcConfig } from "../auth";
 import { User } from "oidc-client-ts";
-import type Pipeline from "../components/Pipeline";
 
 const errorLink = new ErrorLink(({ error }) => {
     if (CombinedGraphQLErrors.is(error)) {

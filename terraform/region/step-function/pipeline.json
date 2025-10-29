@@ -232,8 +232,7 @@
                 "Next": "Ignore Error",
                 "Output": {
                   "dataResourceId": "{% $states.input %}",
-                  "Error": "{% $states.errorOutput.Error %}",
-                  "Cause": "{% $states.errorOutput.Cause %}"
+                  "Error": "{% $states.errorOutput.Error %}"
                 }
               }
             ],
