@@ -19,7 +19,6 @@ import {
 import { ErrorDetails } from "./PipelineDataResourceDetails";
 import { settings } from "../settings";
 import { ErrorBoundary } from "react-error-boundary";
-import { onError } from "@apollo/client/link/error";
 
 export type DataResourceFilter = {
     step?: PipelineStep;
@@ -113,7 +112,9 @@ export function DataResourceProgress(
                 </Accordion>
             ))}
 
-            {loading && <Spinner />}
+            {loading && (
+                <Spinner className="pipeline-step-data-resource-spinner" />
+            )}
         </div>
     );
 }

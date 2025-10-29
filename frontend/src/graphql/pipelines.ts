@@ -107,6 +107,7 @@ export const GET_PIPELINE_PROGRESS = gql(`
 export const GET_PIPELINE_DATA_RESOURCE_PROGRESS = gql(`
   query GetPipelineDataResourceProgress($step: PipelineStep!, $state: PipelineStepState, $id: ID!, $first: Int, $after: ID) {
     pipeline(id: $id) {
+      id
       dataResourceProgress(step: $step, state: $state, first: $first, after: $after) {
         pageInfo {
           endCursor

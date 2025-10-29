@@ -68,3 +68,8 @@
 .pipeline-step-data-resource-details-failure-message {
     font-weight: bold;
 }
+
+.pipeline-step-data-resource-spinner {
+    margin-top: 2em;
+    margin-bottom: 2em;
+}

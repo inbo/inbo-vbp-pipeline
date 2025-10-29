@@ -8,7 +8,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { ApolloProvider } from "@apollo/client/react";
 import { AuthProvider } from "react-oidc-context";
-import { HashRouter, redirect, Route, Routes } from "react-router";
+import { HashRouter, Route, Routes } from "react-router";
 import { ErrorBoundary } from "react-error-boundary";
 import Pipeline from "./components/Pipeline.tsx";
 import DataResource from "./components/DataResourceList.tsx";
