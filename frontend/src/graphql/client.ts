@@ -74,6 +74,30 @@ export const client = new ApolloClient({
                         "step",
                         "state",
                     ]),
+                    stats: {
+                        merge(existing, incoming, { cache, readField }) {
+                            // When stats change, evict the dataResourceProgress cache
+                            // for this pipeline to ensure fresh data is fetched
+                            const pipelineId = readField("id");
+                            if (pipelineId && existing && incoming) {
+                                // Check if stats actually changed by comparing stringified versions
+                                const existingStr = JSON.stringify(existing);
+                                const incomingStr = JSON.stringify(incoming);
+
+                                if (existingStr !== incomingStr) {
+                                    // Evict all dataResourceProgress cache entries for this pipeline
+                                    cache.evict({
+                                        id: cache.identify({
+                                            __typename: "Pipeline",
+                                            id: pipelineId,
+                                        }),
+                                        fieldName: "dataResourceProgress",
+                                    });
+                                }
+                            }
+                            return incoming;
+                        },
+                    },
                 },
             },
         },

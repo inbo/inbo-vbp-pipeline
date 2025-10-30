@@ -212,6 +212,21 @@ data "aws_iam_policy_document" "pipeline" {
     ]
     resources = [var.dynamodb_kms_key_arn]
   }
+
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "xray:PutTraceSegments",
+      "xray:PutTelemetryRecords",
+      "xray:GetSamplingRules",
+      "xray:GetSamplingTargets"
+    ]
+    #tfsec:ignore:aws-iam-no-policy-wildcards
+    resources = [
+      "*"
+    ]
+  }
 }
 
 resource "aws_iam_role_policy" "pipeline" {
