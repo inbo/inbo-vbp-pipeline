@@ -134,7 +134,8 @@ data "aws_iam_policy_document" "pipeline" {
       "states:Create*",
       "states:Update*",
       "states:List*",
-      "states:Start*"
+      "states:Start*",
+      "states:Stop*"
     ]
     #tfsec:ignore:aws-iam-no-policy-wildcards
     resources = [
