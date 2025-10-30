@@ -195,7 +195,7 @@
                         "rootPipelineName": "{% $states.context.Execution.Name %}",
                         "dataResourceId": "{% $dataResourceId %}",
                         "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
-                        "concurrencyLimit": 2,
+                        "concurrencyLimit": "{% $config.max_sample_concurrency %}",
                         "spatialFields": "{% $spatialFields %}",
                         "forceSample": "{% $states.context.Execution.Input.forceSample or false %}"
                       }
@@ -214,7 +214,7 @@
                         "rootPipelineName": "{% $states.context.Execution.Name %}",
                         "dataResourceId": "{% $dataResourceId %}",
                         "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
-                        "concurrencyLimit": 1,
+                        "concurrencyLimit": "{% $config.max_solr_concurrency %}",
                         "solrCollection": "{% $solrCollection %}",
                         "forceSolr": "{% $states.context.Execution.Input.forceSolr or false %}"
                       }

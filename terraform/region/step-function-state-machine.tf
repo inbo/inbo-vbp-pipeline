@@ -6,7 +6,7 @@ data "aws_emr_release_labels" "emr_release" {
 
 locals {
   statemachine_config = jsonencode({
-    base_domain                                  = var.base_domain
+    base_domain = var.base_domain
     # emr_release                                  = data.aws_emr_release_labels.emr_release.release_labels[0]
     emr_release                                  = "emr-7.10.0"
     iam_emr_service_role_arn                     = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipelines-emr-service-role"
@@ -34,7 +34,7 @@ locals {
     apikey_secret_value                          = aws_secretsmanager_secret_version.apikey_credentials.secret_string
     dataresource_size_threshold                  = 10000000
     pipelines_version                            = var.docker_version
-    master_ec2_instance_type                     = "m7g.2xlarge"
+    master_ec2_instance_type                     = "m7g.xlarge"
     worker_ec2_instance_type                     = "m7g.xlarge"
     worker_max_spot_price                        = 0.15
     min_number_of_cluster_workers                = 2
@@ -64,6 +64,8 @@ locals {
     concurrency_lock_timeout_ms       = 4 * 3600 * 1000
     emr_step_concurrency_limit        = 20
     sqs_lock_queues                   = {for name, queue in aws_sqs_queue.lock-queues : name => queue.url}
+    max_sample_concurrency            = 2
+    max_solr_concurrency              = 2
   })
 }
 
