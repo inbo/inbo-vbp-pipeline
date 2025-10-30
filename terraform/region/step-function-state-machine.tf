@@ -81,6 +81,10 @@ resource "aws_sfn_state_machine" "pipeline" {
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/pipeline.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
+
+  tracing_configuration {
+    enabled = true
+  }
 }
 
 resource "aws_sfn_state_machine" "step_wrapper" {
@@ -88,6 +92,10 @@ resource "aws_sfn_state_machine" "step_wrapper" {
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/step-wrapper.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
+
+  tracing_configuration {
+    enabled = true
+  }
 }
 
 resource "aws_sfn_state_machine" "lock" {
@@ -95,6 +103,10 @@ resource "aws_sfn_state_machine" "lock" {
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/lock.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
+
+  tracing_configuration {
+    enabled = true
+  }
 }
 
 resource "aws_sfn_state_machine" "download" {
@@ -102,6 +114,10 @@ resource "aws_sfn_state_machine" "download" {
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/download-data-resource.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
+
+  tracing_configuration {
+    enabled = true
+  }
 }
 
 resource "aws_sfn_state_machine" "index" {
@@ -109,6 +125,10 @@ resource "aws_sfn_state_machine" "index" {
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/index-data-resource.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
+
+  tracing_configuration {
+    enabled = true
+  }
 }
 
 resource "aws_sfn_state_machine" "sample" {
@@ -116,6 +136,10 @@ resource "aws_sfn_state_machine" "sample" {
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/sample-data-resource.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
+
+  tracing_configuration {
+    enabled = true
+  }
 }
 
 resource "aws_sfn_state_machine" "solr" {
@@ -123,6 +147,10 @@ resource "aws_sfn_state_machine" "solr" {
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/solr-data-resource.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
+
+  tracing_configuration {
+    enabled = true
+  }
 }
 
 resource "aws_sfn_state_machine" "get_or_create_emr_cluster" {
@@ -130,6 +158,10 @@ resource "aws_sfn_state_machine" "get_or_create_emr_cluster" {
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/get-or-create-emr-cluster.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
+
+  tracing_configuration {
+    enabled = true
+  }
 }
 
 resource "aws_sfn_state_machine" "cleanup_emr_cluster" {
@@ -137,6 +169,10 @@ resource "aws_sfn_state_machine" "cleanup_emr_cluster" {
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/cleanup-emr-cluster.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
+
+  tracing_configuration {
+    enabled = true
+  }
 }
 
 resource "aws_ec2_tag" "subnet_emr_managed_policy_tag" {
