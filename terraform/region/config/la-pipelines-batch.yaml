@@ -260,7 +260,7 @@ solr:
   includeClustering: false
   runner: SparkRunner
   zkHost: solr.vbp.internal:9983
-  numOfPartitions: 8
+  numOfPartitions: 12
 
 # class: au.org.ala.pipelines.beam.IndexRecordToSolrPipeline
 elastic:
