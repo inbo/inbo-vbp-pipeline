@@ -26,7 +26,7 @@ export const DataResourceList = (
     const [dataResourceFilter, setDataResourceFilter] = useState("");
 
     const [selectAllState, setSelectAllState] = useState<SelectAllState>(
-        preSelectedResources.length > 0 ? "some" : "none",
+        "none",
     );
     const [selectedResources, setSelectedResources] = useState<boolean[]>([]);
 
@@ -73,19 +73,6 @@ export const DataResourceList = (
                     );
                     break;
                 case "some":
-                    debugger;
-                    // Do nothing, handled through individual toggles unless on first load with preselected resources
-                    if (
-                        data?.dataResources &&
-                        preSelectedResources.length > 0 &&
-                        selectedResources.length === 0
-                    ) {
-                        setSelectedResources(() => {
-                            return data.dataResources.map((dr) => {
-                                return preSelectedResources.includes(dr.id);
-                            });
-                        });
-                    }
                     break;
                 default:
                     throw new Error(
@@ -95,6 +82,20 @@ export const DataResourceList = (
         },
         [selectAllState, data?.dataResources],
     );
+
+    useEffect(() => {
+        if (
+            data?.dataResources &&
+            preSelectedResources.length > 0 &&
+            selectedResources.length === 0
+        ) {
+            const newStates = data.dataResources.map((dr) => {
+                return preSelectedResources.includes(dr.id);
+            });
+            updateSelectAllState(newStates);
+            setSelectedResources(newStates);
+        }
+    }, [data?.dataResources !== undefined, selectedResources.length > 0]);
 
     const changeSelectAll = useCallback(() => {
         let newState = (SelectAllStates.indexOf(selectAllState) + 1) %
@@ -120,10 +121,7 @@ export const DataResourceList = (
     }, [selectAllState, data?.dataResources]);
 
     const updateSelectAllState = useCallback((newStates: boolean[]) => {
-        if (selectedResources.length === 0) {
-            return;
-        }
-
+        debugger;
         const isHidden = data?.dataResources.map((dr) => !matchesFilter(dr)) ||
             [];
         if (newStates.length === 0) {

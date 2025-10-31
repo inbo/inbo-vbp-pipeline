@@ -109,10 +109,11 @@ export function StartPipeline() {
                                     label="Index"
                                     labelId="start-pipeline-form-indices-select-label"
                                     className="start-pipeline-form-indices-select"
-                                    defaultValue={indicesData?.indices.find((
-                                        i,
-                                    ) => i.active)
-                                        ?.id}
+                                    defaultValue={searchParams.get("index") ||
+                                        indicesData?.indices.find((
+                                            i,
+                                        ) => i.active)
+                                            ?.id}
                                 >
                                     {indicesData?.indices.map((index) => (
                                         <MenuItem
@@ -130,7 +131,9 @@ export function StartPipeline() {
                         <Checkbox
                             id="reset-all-data"
                             name="reset-all-data"
-                            defaultChecked={false}
+                            defaultChecked={searchParams.get(
+                                "reset-all-data",
+                            ) === "true"}
                             onKeyDown={(e) => {
                                 e.key === "Enter" && e.preventDefault();
                             }}
@@ -143,7 +146,9 @@ export function StartPipeline() {
                         <Checkbox
                             id="force-download"
                             name="force-download"
-                            defaultChecked={false}
+                            defaultChecked={searchParams.get(
+                                "force-download",
+                            ) === "true"}
                             onKeyDown={(e) => {
                                 e.key === "Enter" && e.preventDefault();
                             }}
@@ -156,7 +161,9 @@ export function StartPipeline() {
                         <Checkbox
                             id="force-index"
                             name="force-index"
-                            defaultChecked={false}
+                            defaultChecked={searchParams.get(
+                                "force-index",
+                            ) === "true"}
                             onKeyDown={(e) => {
                                 e.key === "Enter" && e.preventDefault();
                             }}
@@ -169,7 +176,9 @@ export function StartPipeline() {
                         <Checkbox
                             id="force-sample"
                             name="force-sample"
-                            defaultChecked={false}
+                            defaultChecked={searchParams.get(
+                                "force-sample",
+                            ) === "true"}
                             onKeyDown={(e) => {
                                 e.key === "Enter" && e.preventDefault();
                             }}
@@ -182,7 +191,9 @@ export function StartPipeline() {
                         <Checkbox
                             id="force-solr"
                             name="force-solr"
-                            defaultChecked={false}
+                            defaultChecked={searchParams.get(
+                                "force-solr",
+                            ) === "true"}
                             onKeyDown={(e) => {
                                 e.key === "Enter" && e.preventDefault();
                             }}
@@ -193,7 +204,9 @@ export function StartPipeline() {
                         <Checkbox
                             id="switch-index"
                             name="switch-index"
-                            defaultChecked={true}
+                            defaultChecked={searchParams.get(
+                                "switch-index",
+                            ) === "true"}
                             onKeyDown={(e) => {
                                 e.key === "Enter" && e.preventDefault();
                             }}

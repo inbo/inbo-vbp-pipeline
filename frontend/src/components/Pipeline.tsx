@@ -3,9 +3,10 @@ import "../styles/Pipeline.css";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { CANCEL_PIPELINE, GET_PIPELINE_PROGRESS } from "../graphql/pipelines";
 import { useNavigate, useParams } from "react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
     PipelineStatus,
+    type StartPipelineInput,
 } from "../__generated__/biocache-index-management/graphql";
 
 import "../styles/PipelineProgress.css";
@@ -138,6 +139,71 @@ export const Pipeline = (
         ],
     );
 
+    const copyPipeline = useCallback((onlyFailed: boolean) => {
+        type PipelineInput = {
+            dataResources?: string[];
+            forceDownload?: boolean;
+            forceIndex?: boolean;
+            forceSample?: boolean;
+            forceSolr?: boolean;
+            resetAllData?: boolean;
+            solrCollection?: string;
+            switchIndex?: boolean;
+        };
+        type PipelineCause = {
+            dataResourceId: string;
+            state?: string;
+            Error?: string;
+            Cause?: string;
+        }[];
+        try {
+            const params = new URLSearchParams();
+
+            const input = JSON.parse(
+                data?.pipeline?.input || "{}",
+            ) as PipelineInput;
+
+            if (input.solrCollection) {
+                params.append("index", input.solrCollection);
+            }
+            if (input.resetAllData !== undefined) {
+                params.append("reset-all-data", String(input.resetAllData));
+            }
+            if (input.forceDownload !== undefined) {
+                params.append("force-download", String(input.forceDownload));
+            }
+            if (input.forceIndex !== undefined) {
+                params.append("force-index", String(input.forceIndex));
+            }
+            if (input.forceSample !== undefined) {
+                params.append("force-sample", String(input.forceSample));
+            }
+            if (input.forceSolr !== undefined) {
+                params.append("force-solr", String(input.forceSolr));
+            }
+            if (input.switchIndex !== undefined) {
+                params.append("switch-index", String(input.switchIndex));
+            }
+
+            if (onlyFailed) {
+                const cause = JSON.parse(
+                    data?.pipeline?.cause || "{}",
+                ) as PipelineCause;
+                cause
+                    .filter(({ Error }) => Error !== undefined)
+                    .map(({ dataResourceId }) => dataResourceId).forEach((id) =>
+                        params.append("dr", id)
+                    );
+            } else {
+                input.dataResources?.forEach((id) => params.append("dr", id));
+            }
+
+            navigate(`/start?${params.toString()}`);
+        } catch (e) {
+            console.error("Error copying pipeline:", e);
+        }
+    }, [navigate, data?.pipeline?.input, data?.pipeline?.output]);
+
     if (error) {
         return <p>Error: {error.message}</p>;
     }
@@ -154,26 +220,6 @@ export const Pipeline = (
 
     if (cancelPipelineError) {
         return <p>Error cancelling pipeline: {cancelPipelineError.message}</p>;
-    }
-
-    const inputDataResources: string[] =
-        JSON.parse(data.pipeline.input || "{}").dataResources || [];
-
-    let failedIds: string[] = [];
-
-    if (
-        data.pipeline.status === PipelineStatus.Failed &&
-        data.pipeline.error === "SomeDataResourceProcessingFailed"
-    ) {
-        debugger;
-        try {
-            failedIds = JSON.parse(data.pipeline.cause || "{}").map(
-                ({ dataResourceId }: { dataResourceId: string }) => {
-                    return dataResourceId;
-                },
-            );
-        } catch (ignored) {
-        }
     }
 
     return (
@@ -193,33 +239,23 @@ export const Pipeline = (
                             )
                             : (
                                 <Button
-                                    onClick={() =>
-                                        navigate(
-                                            `/start?${
-                                                inputDataResources.map((id) =>
-                                                    `dr=${id}`
-                                                ).join("&")
-                                            }`,
-                                        )}
+                                    onClick={() => copyPipeline(false)}
                                     disabled={loading}
                                 >
                                     <ContentCopyIcon />
                                 </Button>
                             )}
-                        {failedIds.length > 0 && (
-                            <Button
-                                onClick={() =>
-                                    navigate(
-                                        `/start?${
-                                            failedIds.map((id) => `dr=${id}`)
-                                                .join("&")
-                                        }`,
-                                    )}
-                                disabled={loading}
-                            >
-                                <DifferenceIcon />
-                            </Button>
-                        )}
+                        {data.pipeline.status === PipelineStatus.Failed &&
+                            data.pipeline.error ===
+                                "SomeDataResourceProcessingFailed" &&
+                            (
+                                <Button
+                                    onClick={() => copyPipeline(true)}
+                                    disabled={loading}
+                                >
+                                    <DifferenceIcon />
+                                </Button>
+                            )}
                     </div>
                 )}
                 <div className="pipeline-progress">
