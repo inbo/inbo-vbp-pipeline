@@ -232,6 +232,8 @@ jobs:
 
           export CACHE_TAG="cache-github"
           
+          pwd
+          ls -la
           cd docker
 
           docker buildx bake --push \
