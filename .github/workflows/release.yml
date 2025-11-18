@@ -158,6 +158,7 @@ jobs:
         with:
           aws-region: ${{ secrets.AWS_REGION }}
           role-to-assume: ${{ secrets.AWS_ROLE }}
+          role-skip-session-tagging: true
 
       - name: Docker login to Amazon ECR
         env:
