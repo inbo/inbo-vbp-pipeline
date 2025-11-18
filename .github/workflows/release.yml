@@ -231,6 +231,8 @@ jobs:
           export GIT_TAG="docker-${COMPONENT}-v${VERSION}"
 
           export CACHE_TAG="cache-github"
+          
+          cd docker
 
           docker buildx bake --push \
             ${COMPONENT} \
