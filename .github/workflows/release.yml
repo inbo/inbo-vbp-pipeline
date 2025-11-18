@@ -232,7 +232,7 @@ jobs:
 
           export CACHE_TAG="cache-github"
 
-          docker buildx build --push \
+          docker buildx bake --push \
             ${COMPONENT} \
             --set="*.args.BUILDPLATFORM=${BUILDPLATFORM}" \
             --set="${COMPONENT}.platform=linux/amd64,linux/arm64" \
