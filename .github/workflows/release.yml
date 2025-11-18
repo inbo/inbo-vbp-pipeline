@@ -155,14 +155,10 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-#      - name: Login to AWS
-#        uses: aws-actions/configure-aws-credentials@v4
-#        with:
-#          aws-access-key-id: ${{ secrets.AWS_PERSONAL_ACCESS_KEY }}
-#          aws-secret-access-key: ${{ secrets.AWS_PERSONAL_SECRET }}
-#          aws-region: ${{ secrets.AWS_REGION }}
-#          role-to-assume: ${{ secrets.DEV_DEPLOYMENT_ROLE_ARN }}
-#          role-skip-session-tagging: true
+      - name: Login to AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE }}
 
       - name: Docker login to Amazon ECR
         env:
