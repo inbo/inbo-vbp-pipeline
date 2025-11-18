@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.14.0
 ARG BUILDPLATFORM=linux/amd64
-FROM --platform=${BUILDPLATFORM} maven:3.9-amazoncorretto-8 AS custom-maven
+FROM --platform=${BUILDPLATFORM} maven:3.9-amazoncorretto-17 AS custom-maven-17
 
 RUN mkdir ~/.m2
 COPY settings.xml /root/.m2/settings.xml
@@ -8,11 +8,21 @@ COPY settings.xml /root/.m2/settings.xml
 RUN --mount=type=cache,target=/var/cache/yum,sharing=locked \
     yum -y install git unzip
 
-FROM --platform=${BUILDPLATFORM} custom-maven AS builder
+# Download and unzip aws x-ray agent for easy copy to runtime images
+RUN mkdir /opt/aws-xray-agent \
+    && curl -fL https://github.com/aws/aws-xray-java-agent/releases/latest/download/xray-agent.zip -o /opt/aws-xray-agent/xray-agent.zip \
+    && unzip /opt/aws-xray-agent/xray-agent.zip -d /opt/aws-xray-agent \
+    && rm /opt/aws-xray-agent/xray-agent.zip
 
-ARG VERSION=fix-layer-sampling-oom
-ARG COMMIT=7257c97578bcfc98af48becb0ac4962ad1f7024c
-ARG SOURCE=https://github.com/StefanVanDyck/pipelines.git
+# syntax=docker/dockerfile:1.14.0
+ARG BUILDPLATFORM=linux/amd64
+FROM --platform=${BUILDPLATFORM} custom-maven-17 AS builder
+
+ARG VERSION=dev
+ARG COMMIT=d9b134f738416ee34f41dc116b5c106795fc487f
+#ARG SOURCE=https://github.com/StefanVanDyck/pipelines.git
+ARG SOURCE=https://github.com/gbif/pipelines.git
+ARG SOURCE_DATE_EPOCH
 LABEL ala.version=inbo-${COMMIT}
 
 WORKDIR /app
@@ -20,10 +30,16 @@ RUN git clone --branch ${VERSION} ${SOURCE} . && git checkout ${COMMIT}
 
 RUN --mount=type=cache,target=/root/.m2/repository \
     mvn --batch-mode --no-transfer-progress \
-        clean install -DskipTests -DskipITs -T 10 -U \
+        clean install \
+        -Dspotless.check.skip=true -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true \
+        -Dproject.build.outputTimestamp=${SOURCE_DATE_EPOCH} \
+        -T 10 -U \
     && cd livingatlas \
     && mvn --batch-mode --no-transfer-progress \
-        clean package -P livingatlas-artifacts -DskipTests -DskipITs -T 10 -U
+        clean package -P livingatlas-artifacts \
+        -Dspotless.check.skip=true -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true \
+        -Dproject.build.outputTimestamp=${SOURCE_DATE_EPOCH} \
+        -T 10 -U
 
 # ARG VERSION=pipelines-parent-2.18.5
 # RUN git clone --branch ${VERSION} --depth 1 https://github.com/gbif/pipelines.git /app
@@ -35,9 +51,9 @@ RUN --mount=type=cache,target=/root/.m2/repository \
 # ARG test=2
 # RUN ls -la livingatlas/pipelines/target/pipelines-2.18.6-SNAPSHOT.jar
 #
-FROM amazoncorretto:8
+FROM amazoncorretto:17
 
-ARG COMMIT=7257c97578bcfc98af48becb0ac4962ad1f7024c
+ARG COMMIT=ae225576a61b4f8e35387b4e973e0dfb20dc2afa
 LABEL ala.version=inbo-${COMMIT}
 #
 # ARG VERSION=2.18.6-SNAPSHOT
@@ -77,5 +93,22 @@ USER 1000
 COPY --from=builder --chown=1000:1000 /app /app
 
 WORKDIR /app/livingatlas/scripts
+
+ENV LOG_CONFIG="/app/livingatlas/pipelines/src/main/resources/log4j-colorized.properties"
+ENV EXTRA_JVM_CLI_ARGS="--add-opens=java.base/java.lang=ALL-UNNAMED \
+--add-opens=java.base/java.lang.invoke=ALL-UNNAMED \
+--add-opens=java.base/java.lang.reflect=ALL-UNNAMED \
+--add-opens=java.base/java.io=ALL-UNNAMED \
+--add-opens=java.base/java.net=ALL-UNNAMED \
+--add-opens=java.base/java.nio=ALL-UNNAMED \
+--add-opens=java.base/java.util=ALL-UNNAMED \
+--add-opens=java.base/java.util.concurrent=ALL-UNNAMED \
+--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED \
+--add-opens=java.base/sun.nio.ch=ALL-UNNAMED \
+--add-opens=java.base/sun.nio.cs=ALL-UNNAMED \
+--add-opens=java.base/sun.security.action=ALL-UNNAMED \
+--add-opens=java.base/sun.util.calendar=ALL-UNNAMED \
+--add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED \
+-Dlog4j.configuration=file://${LOG_CONFIG} -Dlog4j.configurationFile=file://${LOG_CONFIG}"
 
 ENTRYPOINT ["bash", "-c"]
