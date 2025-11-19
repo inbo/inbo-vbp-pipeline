@@ -260,6 +260,8 @@ jobs:
     if: needs.get-versions.outputs.frontend_version != ''
     steps:
       - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v4
         with:
