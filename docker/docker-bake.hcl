@@ -11,7 +11,7 @@ variable "DOCKER_REPO" {
 }
 
 target "pipeline-batch-runner" {
-  context = "./pipelines"
+  context = "./pipeline-batch-runner"
   cache-from = ["${DOCKER_REPO}/inbo-vbp-pipelines:${CACHE_TAG}"]
   tags = ["${DOCKER_REPO}/inbo-vbp-pipelines:${TAG}"]
 }
