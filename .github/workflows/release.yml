@@ -243,16 +243,16 @@ jobs:
             --set="${COMPONENT}.labels.git_hash=${{ github.sha }}" \
             --set="${COMPONENT}.cache-to=type=registry,ref=${DOCKER_REPO}/inbo-vbp-${COMPONENT}:${CACHE_TAG},oci-mediatypes=true,image-manifest=true,mode=max"
 
-      - name: Create tags
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: `refs/tags/${{ matrix.docker.version }}-v${{ matrix.docker.version }}`,
-              sha: context.sha
-            })
+#      - name: Create tags
+#        uses: actions/github-script@v7
+#        with:
+#          script: |
+#            github.rest.git.createRef({
+#              owner: context.repo.owner,
+#              repo: context.repo.repo,
+#              ref: `refs/tags/${{ matrix.docker.version }}-v${{ matrix.docker.version }}`,
+#              sha: context.sha
+#            })
 
   build-and-release-frontend:
     runs-on: [ self-hosted ]
