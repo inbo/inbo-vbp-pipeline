@@ -10,8 +10,8 @@ variable "DOCKER_REPO" {
   default = "local"
 }
 
-target "pipeline-batch-runner" {
-  context = "./pipeline-batch-runner"
+target "pipelines" {
+  context = "./pipelines"
   cache-from = ["${DOCKER_REPO}/inbo-vbp-pipelines:${CACHE_TAG}"]
   tags = ["${DOCKER_REPO}/inbo-vbp-pipelines:${TAG}"]
 }
