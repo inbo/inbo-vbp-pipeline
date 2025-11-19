@@ -27,7 +27,7 @@ jobs:
         id: versions
         env:
           LAMBDA_COMPONENTS: "biocache-index-management"
-          DOCKER_COMPONENTS: "pipelines"
+          DOCKER_COMPONENTS: "pipeline-batch-runner"
         run: |
           ALL_VERSIONS='{}'
           # Terraform

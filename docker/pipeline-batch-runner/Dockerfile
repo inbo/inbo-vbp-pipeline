@@ -29,12 +29,7 @@ WORKDIR /app
 RUN git clone --branch ${VERSION} ${SOURCE} . && git checkout ${COMMIT}
 
 RUN --mount=type=cache,target=/root/.m2/repository \
-    mvn --batch-mode --no-transfer-progress \
-        clean install \
-        -Dspotless.check.skip=true -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true \
-        -Dproject.build.outputTimestamp=${SOURCE_DATE_EPOCH} \
-        -T 10 -U \
-    && cd livingatlas \
+    cd livingatlas \
     && mvn --batch-mode --no-transfer-progress \
         clean package -P livingatlas-artifacts \
         -Dspotless.check.skip=true -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true \
