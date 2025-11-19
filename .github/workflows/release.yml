@@ -144,10 +144,10 @@ jobs:
     runs-on: [ self-hosted ]
     needs: get-versions
     if: needs.get-versions.outputs.docker_build_matrix != '[]'
-    permissions:
-      contents: write
-      actions: write
-      id-token: write
+#    permissions:
+#      contents: write
+#      actions: write
+#      id-token: write
     strategy:
       fail-fast: false
       matrix:
