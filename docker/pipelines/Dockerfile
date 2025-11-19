@@ -18,10 +18,10 @@ RUN mkdir /opt/aws-xray-agent \
 ARG BUILDPLATFORM=linux/amd64
 FROM --platform=${BUILDPLATFORM} custom-maven-17 AS builder
 
-ARG VERSION=dev
-ARG COMMIT=d9b134f738416ee34f41dc116b5c106795fc487f
-#ARG SOURCE=https://github.com/StefanVanDyck/pipelines.git
-ARG SOURCE=https://github.com/gbif/pipelines.git
+ARG VERSION=develop-vbp
+ARG COMMIT=2ea7b990a228f7f8c44de50098881187d1c36c02
+ARG SOURCE=https://github.com/StefanVanDyck/pipelines.git
+#ARG SOURCE=https://github.com/gbif/pipelines.git
 ARG SOURCE_DATE_EPOCH
 LABEL ala.version=inbo-${COMMIT}
 
@@ -53,7 +53,7 @@ RUN --mount=type=cache,target=/root/.m2/repository \
 #
 FROM amazoncorretto:17
 
-ARG COMMIT=ae225576a61b4f8e35387b4e973e0dfb20dc2afa
+ARG COMMIT=2ea7b990a228f7f8c44de50098881187d1c36c02
 LABEL ala.version=inbo-${COMMIT}
 #
 # ARG VERSION=2.18.6-SNAPSHOT
