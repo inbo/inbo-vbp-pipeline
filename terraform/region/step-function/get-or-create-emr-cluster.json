@@ -159,7 +159,7 @@
             "Properties": {
               "spark.emr-serverless.driverEnv.JAVA_HOME" : "/usr/lib/jvm/java-17-amazon-corretto.aarch64/",
               "spark.executorEnv.JAVA_HOME": "/usr/lib/jvm/java-17-amazon-corretto.aarch64/",
-              "spark.yarn.maxAppAttempts": "1",
+              "spark.yarn.maxAppAttempts": "2",
               "spark.eventLog.overwrite": "true"
             }
           },
