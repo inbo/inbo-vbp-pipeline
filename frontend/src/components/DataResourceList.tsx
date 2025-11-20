@@ -121,7 +121,6 @@ export const DataResourceList = (
     }, [selectAllState, data?.dataResources]);
 
     const updateSelectAllState = useCallback((newStates: boolean[]) => {
-        debugger;
         const isHidden = data?.dataResources.map((dr) => !matchesFilter(dr)) ||
             [];
         if (newStates.length === 0) {

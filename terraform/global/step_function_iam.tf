@@ -190,9 +190,9 @@ data "aws_iam_policy_document" "pipeline" {
       "sqs:ReceiveMessage",
       "sqs:SendMessage"
     ]
+    #tfsec:ignore:aws-iam-no-policy-wildcards
     resources = [
-      "arn:aws:sqs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:${var.resource_prefix}pipeline-lock-sample",
-      "arn:aws:sqs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:${var.resource_prefix}pipeline-lock-solr"
+      "arn:aws:sqs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:${var.resource_prefix}pipeline-lock-*",
     ]
   }
 
