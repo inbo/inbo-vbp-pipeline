@@ -147,14 +147,6 @@
             }
           ]
         },
-        "AutoScalingRole": "{% $config.iam_emr_scaling_role %}",
-        "ManagedScalingPolicy": {
-          "ComputeLimits": {
-            "MinimumCapacityUnits": "{% $config.min_number_of_cluster_workers %}",
-            "MaximumCapacityUnits": "{% $config.max_number_of_cluster_workers %}",
-            "UnitType": "Instances"
-          }
-        },
         "Configurations": [
           {
             "Classification": "spark",
