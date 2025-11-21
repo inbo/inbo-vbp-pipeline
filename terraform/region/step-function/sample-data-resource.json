@@ -93,7 +93,7 @@
             "Args": [
               "spark-submit",
               "--deploy-mode",
-              "client",
+              "cluster",
               "--class",
               "au.org.ala.pipelines.beam.SamplingPipeline",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",

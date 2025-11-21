@@ -133,9 +133,7 @@
             "Args": [
               "spark-submit",
               "--deploy-mode",
-              "client",
-              "--conf",
-              "spark.yarn.executor.memoryOverheadFactor=0.5",
+              "cluster",
               "--class",
               "au.org.ala.pipelines.beam.IndexRecordToSolrPipeline",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
