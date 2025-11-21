@@ -6,7 +6,7 @@ data "aws_emr_release_labels" "emr_release" {
 
 locals {
   statemachine_config = jsonencode({
-    base_domain = var.base_domain
+    base_domain                                  = var.base_domain
     emr_release                                  = data.aws_emr_release_labels.emr_release.release_labels[0]
     iam_emr_service_role_arn                     = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipelines-emr-service-role"
     iam_emr_instance_profile_arn                 = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:instance-profile/${var.resource_prefix}pipelines-emr-instance-profile"
@@ -70,9 +70,9 @@ locals {
 }
 
 resource "aws_ssm_parameter" "statemachine_pipelines_config" {
-  name = "${var.resource_prefix}pipelines-config"
-  type = "String"
-  value = statemachine_config
+  name  = "${var.resource_prefix}pipelines-config"
+  type  = "String"
+  value = local.statemachine_config
 }
 
 resource "aws_s3_object" "statemachine_pipelines_config" {
