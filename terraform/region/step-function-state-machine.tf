@@ -69,6 +69,12 @@ locals {
   })
 }
 
+resource "aws_ssm_parameter" "statemachine_pipelines_config" {
+  name = "${var.resource_prefix}pipelines-config"
+  type = "String"
+  value = statemachine_config
+}
+
 resource "aws_s3_object" "statemachine_pipelines_config" {
   bucket  = aws_s3_bucket.pipelines.bucket
   key     = "config/state-machine.json"
