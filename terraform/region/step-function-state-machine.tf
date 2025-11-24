@@ -73,6 +73,7 @@ resource "aws_ssm_parameter" "statemachine_pipelines_config" {
   name  = "${var.resource_prefix}pipelines-config"
   type  = "String"
   value = local.statemachine_config
+  tier  = "Intelligent-Tiering"
 }
 
 resource "aws_s3_object" "statemachine_pipelines_config" {
