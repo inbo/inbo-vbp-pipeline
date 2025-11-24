@@ -19,7 +19,7 @@ ARG BUILDPLATFORM=linux/amd64
 FROM --platform=${BUILDPLATFORM} custom-maven-17 AS builder
 
 ARG VERSION=attempt-to-run-using-emrfs
-ARG COMMIT=f2680adf38474969ad2028edba161689b4b1890e
+ARG COMMIT=c7afb16c1ac353d3c6a4c7c525410cc1fdee01a9
 ARG SOURCE=https://github.com/StefanVanDyck/pipelines.git
 #ARG SOURCE=https://github.com/gbif/pipelines.git
 ARG SOURCE_DATE_EPOCH
@@ -48,7 +48,7 @@ RUN --mount=type=cache,target=/root/.m2/repository \
 #
 FROM amazoncorretto:17
 
-ARG COMMIT=f2680adf38474969ad2028edba161689b4b1890e
+ARG COMMIT=c7afb16c1ac353d3c6a4c7c525410cc1fdee01a9
 LABEL ala.version=inbo-${COMMIT}
 #
 # ARG VERSION=2.18.6-SNAPSHOT

@@ -187,6 +187,17 @@ data "aws_iam_policy_document" "pipeline" {
   statement {
     effect = "Allow"
     actions = [
+      "ssm:GetParameter",
+    ]
+    #tfsec:ignore:aws-iam-no-policy-wildcards
+    resources = [
+      "arn:aws:ssm:${var.aws_region}:${data.aws_caller_identity.current.account_id}:parameter/${var.resource_prefix}*"
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
       "sqs:ReceiveMessage",
       "sqs:SendMessage"
     ]
