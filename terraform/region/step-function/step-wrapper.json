@@ -5,14 +5,13 @@
     "Get State-machine Config": {
       "Type": "Task",
       "Arguments": {
-        "Bucket": "inbo-vbp-dev-pipelines",
-        "Key": "config/state-machine.json"
+        "Name": "inbo-vbp-pipelines-config"
       },
-      "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
+      "Resource": "arn:aws:states:::aws-sdk:ssm:getParameter",
       "Next": "Catch Errors",
       "Assign": {
+        "config": "{% $parse($states.result.Parameter.Value) %}",
         "dataResourceId": "{% $states.input.dataResourceId %}",
-        "config": "{% $parse($states.result.Body) %}",
         "rootPipelineName": "{% $exists($states.context.Execution.Input.rootPipelineName) ? $states.context.Execution.Input.rootPipelineName : $states.context.Execution.Name %}"
       }
     },

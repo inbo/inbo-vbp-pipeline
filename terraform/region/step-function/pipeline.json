@@ -5,12 +5,12 @@
     "Get State-machine Config": {
       "Type": "Task",
       "Arguments": {
-        "Name": "inbo-vbp-dev-pipelines-config"
+        "Name": "inbo-vbp-pipelines-config"
       },
       "Resource": "arn:aws:states:::aws-sdk:ssm:getParameter",
       "Next": "Parallel",
       "Assign": {
-        "config": "{% $parse($states.result.Body) %}",
+        "config": "{% $parse($states.result.Parameter.Value) %}",
         "solrCollection": "{% $states.input.solrCollection %}"
       }
     },
