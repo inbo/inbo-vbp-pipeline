@@ -61,23 +61,64 @@
           }
         }
       },
-      "Next": "ListObjectsV2"
+      "Next": "List Pipelines Data"
     },
-    "ListObjectsV2": {
+    "List Pipelines Data": {
       "Type": "Task",
       "Arguments": {
         "Bucket": "{% $config.s3_bucket_name_pipeline %}",
-        "prefix": "{% 'data/' & $dataResourceId & '/' %}"
+        "Prefix": "{% 'data/pipelines-data/' & $dataResourceId & '/' %}"
       },
       "Resource": "arn:aws:states:::aws-sdk:s3:listObjectsV2",
-      "Next": "Reset All Data"
+      "Next": "Pipelines Data Exists?"
     },
-    "Reset All Data": {
+    "Pipelines Data Exists?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "Delete Pipelines Data",
+          "Condition": "{% $exists($states.input.Contents ) %}",
+          "Output": "{% $states.input %}"
+        }
+      ],
+      "Default": "List All Pipelines Data"
+    },
+    "Delete Pipelines Data": {
       "Type": "Task",
       "Arguments": {
         "Bucket": "{% $config.s3_bucket_name_pipeline %}",
         "Delete": {
-          "Objects": "{% $states.input.Body.Objects.Key %}"
+          "Objects": "{% $states.input.Contents.[{'Key': Key }] %}"
+        }
+      },
+      "Resource": "arn:aws:states:::aws-sdk:s3:deleteObjects",
+      "Next": "List All Pipelines Data"
+    },
+    "List All Pipelines Data": {
+      "Type": "Task",
+      "Arguments": {
+        "Bucket": "{% $config.s3_bucket_name_pipeline %}",
+        "Prefix": "{% 'data/pipelines-all-data/' & $dataResourceId & '/' %}"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:s3:listObjectsV2",
+      "Next": "All Pipelines Data Exists?"
+    },
+    "All Pipelines Data Exists?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "Delete All Pipelines Data",
+          "Condition": "{% $exists($states.input.Contents ) %}"
+        }
+      ],
+      "Default": "Download Data Resource"
+    },
+    "Delete All Pipelines Data": {
+      "Type": "Task",
+      "Arguments": {
+        "Bucket": "{% $config.s3_bucket_name_pipeline %}",
+        "Delete": {
+          "Objects": "{% $states.input.Contents.[{'Key': Key }] %}"
         }
       },
       "Resource": "arn:aws:states:::aws-sdk:s3:deleteObjects",
@@ -125,7 +166,7 @@
             },
             {
               "Name": "S3_BUCKET_LOCATION",
-              "Value": "{% $config.s3_bucket_name_pipeline & '/data' %}"
+              "Value": "{% 's3://' & $config.s3_bucket_name_pipeline & '/data' %}"
             }
           ]
         }

@@ -33,12 +33,7 @@ resource "aws_batch_job_definition" "la_pipelines" {
         #!/usr/bin/env bash
         set -e -x -o pipefail
 
-        mkdir -p /data/dwca-imports
-        mkdir -p /data/dwca-tmp
-        mkdir -p /data/biocache-load/$${DATA_RESOURCE_ID}
-        mkdir -p /data/pipelines-data/$${DATA_RESOURCE_ID}
         mkdir -p /data/pipelines-shp
-        mkdir -p /data/pipelines-all-datasets
 
         aws s3 sync s3://${aws_s3_bucket.pipelines.bucket}/shp-layers/ /data/pipelines-shp
         aws s3 sync s3://${aws_s3_bucket.pipelines.bucket}/pipelines-vocabularies/ /data/pipelines-vocabularies
@@ -47,7 +42,6 @@ resource "aws_batch_job_definition" "la_pipelines" {
         aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_log_config.id} ../configs/log4j.properties
         sed -i "s\\\$${APIKEY}\\$${APIKEY}\\g" ../configs/la-pipelines.yaml
 
-        cp /data/dwca-export/$${DATA_RESOURCE_ID}/$${DATA_RESOURCE_ID}.zip /data/biocache-load/$${DATA_RESOURCE_ID}/$${DATA_RESOURCE_ID}.zip
 
         ./la-pipelines dwca-avro  $${DATA_RESOURCE_ID}
         ./la-pipelines interpret  --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID}
