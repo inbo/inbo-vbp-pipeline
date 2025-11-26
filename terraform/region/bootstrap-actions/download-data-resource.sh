@@ -7,7 +7,8 @@ DATA_RESOURCE_LAST_UPDATED=${DATA_RESOURCE_LAST_UPDATED:?DATA_RESOURCE_LAST_UPDA
 DOWNLOADED_EVENT_TIMESTAMP=${DOWNLOADED_EVENT_TIMESTAMP:?DOWNLOADED_EVENT_TIMESTAMP is required as env var}
 ROOT_PIPELINE_NAME=${ROOT_PIPELINE_NAME:?ROOT_PIPELINE_NAME is required as env var}
 EXECUTION_PIPELINE_ID=${EXECUTION_PIPELINE_ID:?EXECUTION_PIPELINE_ID is required as env var}
-APIKEY=${APIKEY:?AWS_SECRET_ID is required as env var}
+APIKEY=${APIKEY:?APIKEY is required as env var}
+S3_BUCKET_LOCATION=${S3_BUCKET_LOCATION:?S3_BUCKET_LOCATION is required as env var}
 
 # Optional env vars
 DYNAMODB_FILE_HISTORY_TABLE=${DYNAMODB_FILE_HISTORY_TABLE:-vbp_pipelines}
@@ -28,6 +29,10 @@ FILE_SIZE=$(stat --printf="%s" "${OUTPUT_LOCATION}")
 FILE_HASH=$(md5sum "${OUTPUT_LOCATION}" | cut -d ' ' -f 1)
 
 echo "Finished downloading ${DATA_RESOURCE_ID} with size of ${FILE_SIZE} and hash ${FILE_HASH}"
+
+aws s3 cp "${OUTPUT_LOCATION}" "${S3_BUCKET_LOCATION}/dwca/${DATA_RESOURCE_ID}.zip"
+
+echo "Finished uploading ${DATA_RESOURCE_ID} to S3"
 
 aws dynamodb put-item \
   --table-name "${DYNAMODB_FILE_HISTORY_TABLE}" \

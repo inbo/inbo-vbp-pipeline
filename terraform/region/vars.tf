@@ -72,10 +72,6 @@ variable "collectory_data_volume" {
   })
 }
 
-variable "efs_kms_key_arn" {
-  type = string
-}
-
 variable "secrets_kms_key_arn" {
   type = string
 }

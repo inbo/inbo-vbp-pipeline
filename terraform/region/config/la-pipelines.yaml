@@ -151,10 +151,9 @@ pipelineExcludeArgs: fsPath
 # class: au.org.ala.pipelines.beam.ALADwcaToVerbatimPipeline
 dwca-avro:
   runner: SparkRunner
-  # Path of the input file
-  inputPath: '/data/dwca-export/{datasetId}/{datasetId}.zip'
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/dwca/{datasetId}.zip'
   targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data/{datasetId}/0/verbatim'
-  tempLocation: '/data/dwca-export/{datasetId}/tmp/'
+  tempLocation: '/tmp/{datasetId}'
 
 # class: au.org.ala.pipelines.beam.ALAVerbatimToInterpretedPipeline
 interpret:

@@ -8,30 +8,24 @@ resource "aws_security_group" "batch" {
   }
 }
 
-resource "aws_security_group" "efs_volumes" {
-  name        = "${var.resource_prefix}sgr-${var.name}-efs-volumes"
-  description = "Securty Group for EFS"
-  vpc_id      = var.main_vpc_id
-}
-
 resource "aws_security_group_rule" "efs_volume_config_allow_efs_ingress_from_backend" {
   type                     = "ingress"
-  security_group_id        = aws_security_group.efs_volumes.id
+  security_group_id        = var.collectory_data_volume.security_group_id
   source_security_group_id = aws_security_group.batch.id
   from_port                = 2049
   to_port                  = 2049
   protocol                 = "tcp"
-  description              = "allow efs from ${var.application} backend to efs media filesystem"
+  description              = "allow efs from ${var.application} backend to collectory efs media filesystem"
 }
 
 resource "aws_security_group_rule" "backend_allow_efs_egress_to_efs_filesystem_config" {
   type                     = "egress"
   security_group_id        = aws_security_group.batch.id
-  source_security_group_id = aws_security_group.efs_volumes.id
+  source_security_group_id = var.collectory_data_volume.security_group_id
   from_port                = 2049
   to_port                  = 2049
   protocol                 = "tcp"
-  description              = "allow efs from ${var.application} backend to efs"
+  description              = "allow efs from ${var.application} backend to collectory efs"
 }
 
 resource "aws_security_group_rule" "backend_allow_https_egress_to_internet" {

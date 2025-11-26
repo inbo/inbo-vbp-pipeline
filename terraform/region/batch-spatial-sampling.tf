@@ -48,21 +48,21 @@ resource "aws_batch_job_definition" "spatial_sampling" {
 
     mountPoints = [
       {
-        sourceVolume  = "data"
-        containerPath = "/data"
+        sourceVolume  = "collectory"
+        containerPath = "/collectory"
         readOnly      = false
       }
     ]
 
     volumes = [
       {
-        name = "data"
+        name = "collectory"
         efsVolumeConfiguration = {
-          fileSystemId          = aws_efs_file_system.data_volume.id
+          fileSystemId          = var.collectory_data_volume.volume_id
           transitEncryption     = "ENABLED"
           transitEncryptionPort = 2049
           authorizationConfig = {
-            accessPointId = aws_efs_access_point.data_volume.id
+            accessPointId = var.collectory_data_volume.access_point_id
             iam           = "ENABLED"
           }
         }

@@ -198,9 +198,9 @@
             "Name": "mount-data",
             "ScriptBootstrapAction": {
               "Args": [
-                "{% $config.efs_data_volume_id %}",
-                "{% $config.efs_data_access_point_id %}",
-                "/data"
+                "{% $config.collectory_data_volume_id %}",
+                "{% $config.collectory_data_access_point_id %}",
+                "/collectory"
               ],
               "Path": "{% 's3://' & $config.s3_bucket_name_pipeline & '/bootstrap-actions/mount-efs.sh' %}"
             }
