@@ -5,21 +5,21 @@ run:
   platform: spark-cluster
   local:
     # jar: we get the jar from our dev or production environment
-    sparkTmp: /data/spark-tmp
+    sparkTmp: /tmp
     sparkMaster: "DONT_SET"
-    dwcaTmp: /data/dwca-tmp
+    dwcaTmp: /tmp
     dwcaImportDir: /data/biocache-load
   spark-embedded:
-    dwcaTmp: /data/dwca-tmp
+    dwcaTmp: /tmp
     dwcaImportDir: /data/biocache-load
-    sparkTmp: /data/spark-tmp
+    sparkTmp: /tmp
     sparkMaster: "DONT_SET"
   spark-cluster:
-    dwcaTmp: /data/dwca-tmp
+    dwcaTmp: /tmp
     dwcaImportDir: /data/dwca-export
     jar: s3://test-emr-pipelines/pipelines-3.2.14-SNAPSHOT-shaded.jar
     sparkSubmit: /usr/bin/spark-submit
-    sparkTmp: /data/spark-tmp
+    sparkTmp: /tmp
     # dont specify spark master for EMR
     sparkMaster: "DONT_SET"
 

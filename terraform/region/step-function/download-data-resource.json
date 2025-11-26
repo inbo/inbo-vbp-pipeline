@@ -61,24 +61,26 @@
           }
         }
       },
+      "Next": "ListObjectsV2"
+    },
+    "ListObjectsV2": {
+      "Type": "Task",
+      "Arguments": {
+        "Bucket": "{% $config.s3_bucket_name_pipeline %}",
+        "prefix": "{% 'data/' & $dataResourceId & '/' %}"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:s3:listObjectsV2",
       "Next": "Reset All Data"
     },
     "Reset All Data": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::batch:submitJob.sync",
       "Arguments": {
-        "JobDefinition": "{% $config.delete_data_resource_data_job_definition_arn %}",
-        "JobName": "{% 'download-data-' & $dataResourceId %}",
-        "JobQueue": "{% $config.job_queue_arn %}",
-        "ContainerOverrides": {
-          "Environment": [
-            {
-              "Name": "DATA_RESOURCE_ID",
-              "Value": "{% $dataResourceId %}"
-            }
-          ]
+        "Bucket": "{% $config.s3_bucket_name_pipeline %}",
+        "Delete": {
+          "Objects": "{% $states.input.Body.Objects.Key %}"
         }
       },
+      "Resource": "arn:aws:states:::aws-sdk:s3:deleteObjects",
       "Next": "Download Data Resource"
     },
     "Do Nothing": {
@@ -120,6 +122,10 @@
             {
               "Name": "EXECUTION_PIPELINE_ID",
               "Value": "{% $states.context.Execution.Id %}"
+            },
+            {
+              "Name": "S3_BUCKET_LOCATION",
+              "Value": "{% $config.s3_bucket_name_pipeline & '/data' %}"
             }
           ]
         }
