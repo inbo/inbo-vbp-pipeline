@@ -75,25 +75,6 @@
       "Assign": {
         "clusterId": "{% $states.result.Output.clusterId %}"
       },
-      "Next": "Sync EFS Data to HDFS"
-    },
-    "Sync EFS Data to HDFS": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
-      "Arguments": {
-        "ClusterId": "{% $clusterId %}",
-        "Step": {
-          "Name": "{% 'sync-efs-index-data-to-hdfs-' & $dataResourceId %}",
-          "ActionOnFailure": "CONTINUE",
-          "HadoopJarStep": {
-            "Jar": "s3://eu-west-1.elasticmapreduce/libs/script-runner/script-runner.jar",
-            "Args": [
-              "file:/opt/inbo/pipelines/bootstrap-actions/sync-verbatim-data-to-hdfs.sh",
-              "{% $dataResourceId %}"
-            ]
-          }
-        }
-      },
       "Next": "DWCA to Avro"
     },
     "DWCA to Avro": {
@@ -114,7 +95,8 @@
               "au.org.ala.pipelines.beam.ALADwcaToVerbatimPipeline",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
               "{% '--datasetId=' & $dataResourceId %}",
-              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
+              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
+              "--awsRegion=eu-west-1"
             ]
           }
         }
@@ -139,7 +121,8 @@
               "au.org.ala.pipelines.beam.ALAVerbatimToInterpretedPipeline",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
               "{% '--datasetId=' & $dataResourceId %}",
-              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
+              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
+              "--awsRegion=eu-west-1"
             ]
           }
         }
@@ -164,7 +147,8 @@
               "au.org.ala.pipelines.beam.ALAUUIDValidationPipeline",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
               "{% '--datasetId=' & $dataResourceId %}",
-              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
+              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
+              "--awsRegion=eu-west-1"
             ]
           }
         }
@@ -189,32 +173,8 @@
               "au.org.ala.pipelines.beam.ALAUUIDMintingPipeline",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
               "{% '--datasetId=' & $dataResourceId %}",
-              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
-            ]
-          }
-        }
-      },
-      "Next": "Sensitive"
-    },
-    "Sensitive": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
-      "Arguments": {
-        "ClusterId": "{% $clusterId %}",
-        "Step": {
-          "Name": "{% 'sensitive-' & $dataResourceId %}",
-          "ActionOnFailure": "CONTINUE",
-          "HadoopJarStep": {
-            "Jar": "command-runner.jar",
-            "Args": [
-              "spark-submit",
-              "--deploy-mode",
-              "cluster",
-              "--class",
-              "au.org.ala.pipelines.beam.ALAInterpretedToSensitivePipeline",
-              "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
-              "{% '--datasetId=' & $dataResourceId %}",
-              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
+              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
+              "--awsRegion=eu-west-1"
             ]
           }
         }
@@ -239,7 +199,8 @@
               "au.org.ala.pipelines.beam.ImageServiceSyncPipeline",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
               "{% '--datasetId=' & $dataResourceId %}",
-              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
+              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
+              "--awsRegion=eu-west-1"
             ]
           }
         }
@@ -264,7 +225,8 @@
               "au.org.ala.pipelines.beam.ImageServiceDiffLoadPipeline",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
               "{% '--datasetId=' & $dataResourceId %}",
-              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
+              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
+              "--awsRegion=eu-west-1"
             ]
           }
         }
@@ -297,26 +259,8 @@
               "au.org.ala.pipelines.beam.IndexRecordPipeline",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
               "{% '--datasetId=' & $dataResourceId %}",
-              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
-            ]
-          }
-        }
-      },
-      "Next": "EMR Sync to EFS volume"
-    },
-    "EMR Sync to EFS volume": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
-      "Arguments": {
-        "ClusterId": "{% $clusterId %}",
-        "Step": {
-          "Name": "{% 'sync-to-efs-' & $dataResourceId %}",
-          "ActionOnFailure": "CONTINUE",
-          "HadoopJarStep": {
-            "Jar": "s3://eu-west-1.elasticmapreduce/libs/script-runner/script-runner.jar",
-            "Args": [
-              "file:/opt/inbo/pipelines/bootstrap-actions/sync-to-efs.sh",
-              "{% $dataResourceId %}"
+              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
+              "--awsRegion=eu-west-1"
             ]
           }
         }

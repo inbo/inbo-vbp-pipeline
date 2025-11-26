@@ -28,8 +28,8 @@ resource "aws_ecs_task_definition" "deployment" {
 
       mountPoints = [
         {
-          sourceVolume  = "data"
-          containerPath = "/data"
+          sourceVolume  = "collectory"
+          containerPath = "/collectory"
           readOnly      = false
         }
       ]
@@ -37,13 +37,13 @@ resource "aws_ecs_task_definition" "deployment" {
   ])
 
   volume {
-    name = "data"
+    name = "collectory"
     efs_volume_configuration {
-      file_system_id          = aws_efs_file_system.data_volume.id
+      file_system_id          = var.collectory_data_volume.volume_id
       transit_encryption      = "ENABLED"
       transit_encryption_port = 2049
       authorization_config {
-        access_point_id = aws_efs_access_point.data_volume.id
+        access_point_id = var.collectory_data_volume.access_point_id
         iam             = "ENABLED"
       }
     }

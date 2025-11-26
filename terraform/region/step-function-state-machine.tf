@@ -48,8 +48,8 @@ locals {
       }) : { Key = key, Value = value }
     ]
     ebs_root_volume_size              = 40
-    efs_data_volume_id                = aws_efs_file_system.data_volume.id
-    efs_data_access_point_id          = aws_efs_access_point.data_volume.id
+    collectory_data_volume_id         = var.collectory_data_volume.id
+    collectory_data_access_point_id   = var.collectory_data_volume.access_point_id
     api_key_secret_arn                = aws_secretsmanager_secret.apikey_credentials.arn,
     s3_bucket_name_pipeline           = aws_s3_bucket.pipelines.bucket
     ec2_subnet_id                     = var.private_subnet_ids[0]

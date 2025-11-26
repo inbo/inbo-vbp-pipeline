@@ -48,40 +48,10 @@
       "Assign": {
         "clusterId": "{% $states.result.Output.clusterId %}"
       },
-      "Next": "Sync EFS Data to HDFS",
+      "Next": "Clear Old Records",
       "Output": {
         "skipSamplingSync": true
       }
-    },
-    "Sync EFS Data to HDFS": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
-      "Arguments": {
-        "ClusterId": "{% $clusterId %}",
-        "Step": {
-          "Name": "{% 'sync-efs-index-data-to-hdfs-' & $dataResourceId %}",
-          "ActionOnFailure": "CONTINUE",
-          "HadoopJarStep": {
-            "Jar": "s3://eu-west-1.elasticmapreduce/libs/script-runner/script-runner.jar",
-            "Args": [
-              "file:/opt/inbo/pipelines/bootstrap-actions/sync-index-data-to-hdfs.sh",
-              "{% $dataResourceId %}"
-            ]
-          }
-        }
-      },
-      "Next": "Clear Old Records",
-      "Retry": [
-        {
-          "ErrorEquals": [
-            "States.TaskFailed"
-          ],
-          "BackoffRate": 2,
-          "IntervalSeconds": 1,
-          "MaxAttempts": 3,
-          "Comment": "Fails sometimes waiting for file copy?"
-        }
-      ]
     },
     "Clear Old Records": {
       "Type": "Task",
@@ -138,7 +108,8 @@
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
               "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
-              "{% '--solrCollection=' & $states.context.Execution.Input.solrCollection %}"
+              "{% '--solrCollection=' & $states.context.Execution.Input.solrCollection %}",
+              "--awsRegion=eu-west-1"
             ]
           }
         }
