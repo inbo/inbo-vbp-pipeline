@@ -47,37 +47,7 @@
       "Assign": {
         "clusterId": "{% $states.result.Output.clusterId %}"
       },
-      "Next": "Sync EFS Data to HDFS"
-    },
-    "Sync EFS Data to HDFS": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
-      "Arguments": {
-        "ClusterId": "{% $clusterId %}",
-        "Step": {
-          "Name": "{% 'sync-efs-index-data-to-hdfs-' & $dataResourceId %}",
-          "ActionOnFailure": "CONTINUE",
-          "HadoopJarStep": {
-            "Jar": "s3://eu-west-1.elasticmapreduce/libs/script-runner/script-runner.jar",
-            "Args": [
-              "file:/opt/inbo/pipelines/bootstrap-actions/sync-index-data-to-hdfs.sh",
-              "{% $dataResourceId %}"
-            ]
-          }
-        }
-      },
-      "Next": "Sampling",
-      "Retry": [
-        {
-          "ErrorEquals": [
-            "States.TaskFailed"
-          ],
-          "BackoffRate": 2,
-          "IntervalSeconds": 1,
-          "MaxAttempts": 3,
-          "Comment": "Fails sometimes waiting for file copy?"
-        }
-      ]
+      "Next": "Sampling"
     },
     "Sampling": {
       "Type": "Task",
@@ -97,7 +67,8 @@
               "au.org.ala.pipelines.beam.SamplingPipeline",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
               "{% '--datasetId=' & $dataResourceId %}",
-              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml"
+              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
+              "--awsRegion=eu-west-1"
             ]
           }
         }
@@ -121,34 +92,15 @@
               "au.org.ala.sampling.LayerCrawler",
               "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
-              "--inputPath=hdfs:///."
+              "--awsRegion=eu-west-1"
             ]
           }
         }
       },
-      "Next": "Sync Indexed and Sampled EFS Data to HDFS",
+      "Next": "Update Sampled Timestamp",
       "Output": {
         "skipSamplingSync": false
       }
-    },
-    "Sync Indexed and Sampled EFS Data to HDFS": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
-      "Arguments": {
-        "ClusterId": "{% $clusterId %}",
-        "Step": {
-          "Name": "{% 'sync-hdfs-index-data-to-efs-' & $dataResourceId %}",
-          "ActionOnFailure": "CONTINUE",
-          "HadoopJarStep": {
-            "Jar": "s3://eu-west-1.elasticmapreduce/libs/script-runner/script-runner.jar",
-            "Args": [
-              "file:/opt/inbo/pipelines/bootstrap-actions/sync-to-efs.sh",
-              "{% $dataResourceId %}"
-            ]
-          }
-        }
-      },
-      "Next": "Update Sampled Timestamp"
     },
     "Update Sampled Timestamp": {
       "Type": "Task",

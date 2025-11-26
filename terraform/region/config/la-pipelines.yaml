@@ -153,6 +153,7 @@ dwca-avro:
   runner: SparkRunner
   # Path of the input file
   inputPath: '/data/dwca-export/{datasetId}/{datasetId}.zip'
+  targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data/{datasetId}/0/verbatim'
   tempLocation: '/data/dwca-export/{datasetId}/tmp/'
 
 # class: au.org.ala.pipelines.beam.ALAVerbatimToInterpretedPipeline
@@ -160,7 +161,8 @@ interpret:
   appName: Interpretation for {datasetId}
   interpretationTypes: ALL
   defaultDateFormat: DMYT,DMY
-  inputPath: 'hdfs:///{datasetId}/0/verbatim/*.avro'
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data/{datasetId}/0/verbatim/*.avro'
+  targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
   # Skips GBIF id generation and copies ids from ExtendedRecord ids
   useExtendedRecordId: true
   runner: SparkRunner
@@ -172,7 +174,8 @@ uuid:
   numberOfBackupsToKeep: 10
   percentageChangeAllowed: 50
   throwErrorOnValidationFail: false
-  inputPath: 'hdfs:///'
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
+  targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 images:
   appName: Image syncing for {datasetId}
@@ -180,11 +183,12 @@ images:
   tempLocation: /tmp
   # pipe separated list (note: YAML list not coming through correctly)
   recognisedPaths: "https://natuurdata.dev.inbo.be/images"
-  inputPath: 'hdfs:///.'
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
+  targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 speciesLists:
   runner: SparkRunner
-  speciesAggregatesPath: 'hdfs:///pipelines-species'
+  speciesAggregatesPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-species'
   tempLocation: /tmp
   maxDownloadAgeInMinutes: 1440
   includeConservationStatus: true
@@ -193,9 +197,9 @@ speciesLists:
 # Sampling specific configuration
 sampling:
   appName: Sample for {datasetId}
-  allDatasetsInputPath: 'hdfs:///pipelines-all-datasets'
+  allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
   runner: SparkRunner
-  inputPath: 'hdfs:///'
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 # Calculate distance to the expert distribution layers
 # class:au.org.ala.pipelines.beam.DistributionOutlierPipeline
@@ -208,15 +212,15 @@ outlier:
 
 annotation:
   runner: SparkRunner
-  inputPath: /data/pipelines-annotations
-  targetPath: /data/pipelines-annotations
+  inputPath: s3://inbo-vbp-dev-pipelines/data/pipelines-annotations
+  targetPath: s3://inbo-vbp-dev-pipelines/data/pipelines-annotations
   tempLocation: /tmp/
 
 # class: au.org.ala.pipelines.beam.ALAInterpretedToSensitivePipeline
 sensitive:
   appName: Sensitive Data Processing for {datasetId}
   runner: SparkRunner
-  inputPath: 'hdfs:///.'
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 # class: au.org.ala.pipelines.java.IndexRecordPipeline
 index:
@@ -227,8 +231,8 @@ index:
   includeSensitiveDataChecks: true
   runner: SparkRunner
   allDatasetsInputPath: 'hdfs:///pipelines-all-datasets'
-  inputPath: 'hdfs://///'
-  targetPath: 'hdfs://///'
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data/'
+  targetPath: s3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 
 # class: au.org.ala.pipelines.beam.IndexRecordToSolrPipeline

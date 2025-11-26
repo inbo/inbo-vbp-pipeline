@@ -175,12 +175,30 @@ data "aws_iam_policy_document" "pipeline" {
   statement {
     effect = "Allow"
     actions = [
+      "s3:GetObject",
       "s3:ListBucket",
-      "s3:GetObject"
     ]
+    #tfsec:ignore:aws-iam-no-policy-wildcards
     resources = [
       "arn:aws:s3:::${var.resource_prefix}${var.aws_env}-pipelines",
       "arn:aws:s3:::${var.resource_prefix}${var.aws_env}-pipelines/*"
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "s3:PutObject",
+      "s3:DeleteObject",
+      "s3:AbortMultipartUpload",
+      "s3:GetObject",
+      "s3:GetObjectTagging",
+      "s3:GetObjectVersion",
+      "s3:GetObjectVersionTagging",
+    ]
+    #tfsec:ignore:aws-iam-no-policy-wildcards
+    resources = [
+      "arn:aws:s3:::${var.resource_prefix}${var.aws_env}-pipelines/data/*"
     ]
   }
 

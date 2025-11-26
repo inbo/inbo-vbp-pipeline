@@ -22,7 +22,12 @@ run:
     sparkTmp: /data/spark-tmp
     sparkMaster: spark://localhost:7077
 
-# which filesystem to use: local or hdfs
+# Common PipelineOptions
+general:
+  attempt: 0
+  hdfsSiteConfig: ""
+  coreSiteConfig: ""
+
 fs:
   platform: local
   local:
@@ -149,22 +154,12 @@ alaNameMatchConfig:
 # fs.platform or '/data' if 'local' is selected.
 pipelineExcludeArgs: fsPath
 
-# Common PipelineOptions
-general:
-  # Target path where the outputs of the pipeline will be written to
-  targetPath: '{fsPath}/pipelines-data'
-  # Attempt of the dataset used to name the target file in file system
-  attempt: 0
-  # The absolute path to a hdfs-site.xml with default.FS configuration
-  hdfsSiteConfig: ""
-  # Path to core-site-config.xml
-  coreSiteConfig: ""
-
 # class: au.org.ala.pipelines.beam.ALADwcaToVerbatimPipeline
 dwca-avro:
   runner: SparkRunner
   # Path of the input file
   inputPath: /data/biocache-load/{datasetId}/{datasetId}.zip
+  targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data/{datasetId}/0/verbatim'
   tempLocation: /data/biocache-load/{datasetId}/tmp/
 
 # class: au.org.ala.pipelines.beam.ALAVerbatimToInterpretedPipeline
@@ -172,7 +167,8 @@ interpret:
   appName: Interpretation for {datasetId}
   interpretationTypes: ALL
   defaultDateFormat: DMYT,DMY
-  inputPath: '{fsPath}/pipelines-data/{datasetId}/0/verbatim/*.avro'
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data/{datasetId}/0/verbatim/*.avro'
+  targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
   # Skips GBIF id generation and copies ids from ExtendedRecord ids
   useExtendedRecordId: true
   runner: SparkRunner
@@ -181,24 +177,24 @@ interpret:
 uuid:
   appName: UUID minting for {datasetId}
   runner: SparkRunner
-  inputPath: '{fsPath}/pipelines-data'
   numberOfBackupsToKeep: 10
   percentageChangeAllowed: 50
   throwErrorOnValidationFail: false
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
+  targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 images:
   appName: Image syncing for {datasetId}
   runner: SparkRunner
-  inputPath: '{fsPath}/pipelines-data'
   tempLocation: /tmp
   # pipe separated list (note: YAML list not coming through correctly)
   recognisedPaths: "https://natuurdata.dev.inbo.be/images"
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
+  targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 speciesLists:
   runner: SparkRunner
-  inputPath: '{fsPath}/pipelines-data'
-  targetPath: '{fsPath}/pipelines-data'
-  speciesAggregatesPath: '{fsPath}/pipelines-species'
+  speciesAggregatesPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-species'
   tempLocation: /tmp
   maxDownloadAgeInMinutes: 1440
   includeConservationStatus: true
@@ -207,53 +203,51 @@ speciesLists:
 # Sampling specific configuration
 sampling:
   appName: Sample for {datasetId}
-  inputPath: '{fsPath}/pipelines-data'
-  allDatasetsInputPath: '{fsPath}/pipelines-all-datasets'
+  allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
   runner: SparkRunner
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 # Calculate distance to the expert distribution layers
 # class:au.org.ala.pipelines.beam.DistributionOutlierPipeline
 outlier:
   appName: Expert distribution outliers for {datasetId}
   baseUrl: https://spatial-service.vbp.internal:8080/spatial-service/
-  targetPath: '{fsPath}/pipelines-outlier'
-  allDatasetsInputPath: '{fsPath}/pipelines-all-datasets'
+  targetPath: 'hdfs:///pipelines-outlier'
+  allDatasetsInputPath: 'hdfs:///pipelines-all-datasets'
   runner: SparkRunner
 
 annotation:
   runner: SparkRunner
-  inputPath: /data/pipelines-annotations
-  targetPath: /data/pipelines-annotations
+  inputPath: s3://inbo-vbp-dev-pipelines/data/pipelines-annotations
+  targetPath: s3://inbo-vbp-dev-pipelines/data/pipelines-annotations
   tempLocation: /tmp/
 
 # class: au.org.ala.pipelines.beam.ALAInterpretedToSensitivePipeline
 sensitive:
   appName: Sensitive Data Processing for {datasetId}
-  inputPath: '{fsPath}/pipelines-data'
   runner: SparkRunner
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 # class: au.org.ala.pipelines.java.IndexRecordPipeline
 index:
   appName: IndexRecord generation for {datasetId}
-  inputPath: '{fsPath}/pipelines-data'
-  targetPath: '{fsPath}/pipelines-data'
   includeImages: true
   includeSpeciesLists: true
-  # set this to false to avoid SDS requirement
-  includeSensitiveDataChecks: true
+  includeSensitiveDataChecks: false
   runner: SparkRunner
-  allDatasetsInputPath: '{fsPath}/pipelines-all-datasets'
+  allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data/'
+  targetPath: s3://inbo-vbp-dev-pipelines/data/pipelines-data'
+
 
 # class: au.org.ala.pipelines.beam.IndexRecordToSolrPipeline
 solr:
   appName: SOLR indexing for {datasetId}
-  inputPath: '{fsPath}/pipelines-data'
-  targetPath: '{fsPath}/pipelines-data'
-  allDatasetsInputPath: '{fsPath}/pipelines-all-datasets'
-  jackKnifePath: "{fsPath}/pipelines-jackknife"
-  clusteringPath: "{fsPath}/pipelines-clustering"
-  outlierPath: '{fsPath}/pipelines-outlier'
-  annotationsPath: '{fsPath}/pipelines-annotations'
+  allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
+  jackKnifePath: "s3://inbo-vbp-dev-pipelines/pipelines-jackknife"
+  clusteringPath: "s3://inbo-vbp-dev-pipelines/pipelines-clustering"
+  outlierPath: 's3://inbo-vbp-dev-pipelines/pipelines-outlier'
+  annotationsPath: 's3://inbo-vbp-dev-pipelines/pipelines-annotations'
   solrCollection: biocache
   includeSampling: true
   includeJackKnife: false
@@ -265,16 +259,16 @@ solr:
 # class: au.org.ala.pipelines.beam.IndexRecordToSolrPipeline
 elastic:
   appName: Elastic indexing for {datasetId}
-  inputPath: '{fsPath}/pipelines-data'
-  targetPath: '{fsPath}/pipelines-data'
   runner: SparkRunner
   esHosts: http://elasticsearch.vbp.internal:9200
   esAlias: event
   esIndexName: 'event_{datasetId}'
-  indexNumberShards: 1
+  indexNumberShards: 12
   indexNumberReplicas: 0
   metaFileName: elastic.yml
   esDocumentId: internalId
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/'
+
 
 export:
   appName: DwCA export for {datasetId}
