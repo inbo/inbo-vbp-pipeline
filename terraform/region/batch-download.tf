@@ -29,7 +29,10 @@ resource "aws_batch_job_definition" "download_data_resource" {
       }
     ],
     command = [
-      file("${path.module}/bootstrap-actions/download-data-resource.sh")
+      <<EOF
+aws cp s3://inbo-vbp-dev-pipelines/bootstrap-actions/download-data-resource.sh download-data-resource.sh
+bash download-data-resource.sh
+EOF
     ]
     image      = "${var.ecr_repo}/${var.resource_prefix}pipelines:${var.docker_version}"
     jobRoleArn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipelines-batch-role"
