@@ -12,7 +12,6 @@ S3_BUCKET_LOCATION=${S3_BUCKET_LOCATION:?S3_BUCKET_LOCATION is required as env v
 
 # Optional env vars
 DYNAMODB_FILE_HISTORY_TABLE=${DYNAMODB_FILE_HISTORY_TABLE:-vbp_pipelines}
-INPUT_FOLDER=${INPUT_FOLDER:-/data/dwca}
 OUTPUT_FOLDER=${OUTPUT_FOLDER:-/data/dwca}
 
 # Get actual locations
@@ -28,13 +27,13 @@ mkdir -p "${OUTPUT_FOLDER}"
 # extract path starting with /collectory if present in the URL
 extract_collectory_path() {
   # if URL contains /collectory/... return that part
-  echo "${DATA_RESOURCE_URL}" | sed -n 's@.*\(/collectory/.*\)@\1@p'
+  echo "${DATA_RESOURCE_URL}" | sed -n 's@.*/\(collectory/.*\)@\1@p'
 }
 
 # Main decision
 if echo "${DATA_RESOURCE_URL}" | grep -q "/collectory/upload"; then
   # URL references the collectory upload area -> symlink to local path
-  SRC_PATH=$(extract_collectory_path)
+  SRC_PATH="/data/$(extract_collectory_path)"
   if [ -z "${SRC_PATH}" ]; then
     # fallback: if it's a file:// URL strip prefix
     if [[ "${DATA_RESOURCE_URL}" == file://* ]]; then
