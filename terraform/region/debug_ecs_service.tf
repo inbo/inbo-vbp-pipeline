@@ -29,7 +29,7 @@ resource "aws_ecs_task_definition" "deployment" {
       mountPoints = [
         {
           sourceVolume  = "collectory"
-          containerPath = "/collectory"
+          containerPath = "/data"
           readOnly      = false
         }
       ]

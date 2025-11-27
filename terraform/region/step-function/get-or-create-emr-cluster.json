@@ -200,7 +200,7 @@
               "Args": [
                 "{% $config.collectory_data_volume_id %}",
                 "{% $config.collectory_data_access_point_id %}",
-                "/collectory"
+                "/data"
               ],
               "Path": "{% 's3://' & $config.s3_bucket_name_pipeline & '/bootstrap-actions/mount-efs.sh' %}"
             }

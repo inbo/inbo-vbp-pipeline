@@ -49,7 +49,7 @@ resource "aws_batch_job_definition" "delete_data_resource_data" {
     mountPoints = [
       {
         sourceVolume  = "collectory"
-        containerPath = "/collectory"
+        containerPath = "/data"
         readOnly      = false
       }
     ]

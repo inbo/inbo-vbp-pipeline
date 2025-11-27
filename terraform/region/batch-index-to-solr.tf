@@ -50,7 +50,7 @@ resource "aws_batch_job_definition" "index_to_solr" {
     mountPoints = [
       {
         sourceVolume  = "collectory"
-        containerPath = "/collectory"
+        containerPath = "/data"
         readOnly      = false
       }
     ]

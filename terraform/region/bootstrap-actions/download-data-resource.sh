@@ -12,8 +12,8 @@ S3_BUCKET_LOCATION=${S3_BUCKET_LOCATION:?S3_BUCKET_LOCATION is required as env v
 
 # Optional env vars
 DYNAMODB_FILE_HISTORY_TABLE=${DYNAMODB_FILE_HISTORY_TABLE:-vbp_pipelines}
-INPUT_FOLDER=${INPUT_FOLDER:-/collectory/dwca}
-OUTPUT_FOLDER=${OUTPUT_FOLDER:-/collectory/dwca}
+INPUT_FOLDER=${INPUT_FOLDER:-/data/dwca}
+OUTPUT_FOLDER=${OUTPUT_FOLDER:-/data/dwca}
 
 # Get actual locations
 OUTPUT_LOCATION="${OUTPUT_FOLDER}/${DATA_RESOURCE_ID}.zip"
@@ -24,16 +24,6 @@ mkdir -p "${OUTPUT_FOLDER}"
 # - If the URL contains "/collectory/upload" -> treat as a local path and create a symlink to the source file at OUTPUT_LOCATION
 # - file:// or absolute local path -> create a symlink
 # - otherwise -> download over http(s) to OUTPUT_LOCATION (use conditional GET if file exists)
-
-# Helper to replace /data root with /collectory for local paths
-_replace_data_root() {
-  local p="$1"
-  if [[ "${p}" == /data* ]]; then
-    echo "/collectory${p#/data}"
-  else
-    echo "${p}"
-  fi
-}
 
 # extract path starting with /collectory if present in the URL
 extract_collectory_path() {
@@ -54,18 +44,16 @@ if echo "${DATA_RESOURCE_URL}" | grep -q "/collectory/upload"; then
       SRC_PATH="${DATA_RESOURCE_URL}"
     fi
   fi
-  SRC_PATH="$(_replace_data_root "${SRC_PATH}")"
   echo "Linking ${DATA_RESOURCE_ID} from collectory path ${SRC_PATH} to ${OUTPUT_LOCATION}"
   ln -sf "${SRC_PATH}" "${OUTPUT_LOCATION}"
 elif [[ "${DATA_RESOURCE_URL}" == file://* ]]; then
   # file:// explicit local path
   SRC_PATH="${DATA_RESOURCE_URL#file://}"
-  SRC_PATH="$(_replace_data_root "${SRC_PATH}")"
   echo "Linking ${DATA_RESOURCE_ID} from local file ${SRC_PATH} to ${OUTPUT_LOCATION}"
   ln -sf "${SRC_PATH}" "${OUTPUT_LOCATION}"
 elif [[ "${DATA_RESOURCE_URL}" == /* ]]; then
   # absolute path without scheme -> local
-  SRC_PATH="$(_replace_data_root "${DATA_RESOURCE_URL}")"
+  SRC_PATH="${DATA_RESOURCE_URL}"
   echo "Linking ${DATA_RESOURCE_ID} from local path ${SRC_PATH} to ${OUTPUT_LOCATION}"
   ln -sf "${SRC_PATH}" "${OUTPUT_LOCATION}"
 else

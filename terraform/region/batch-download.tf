@@ -60,7 +60,7 @@ EOF
     mountPoints = [
       {
         sourceVolume  = "collectory"
-        containerPath = "/collectory"
+        containerPath = "/data"
         readOnly      = false
       }
     ]

@@ -79,7 +79,7 @@ resource "aws_batch_job_definition" "la_pipelines" {
     mountPoints = [
       {
         sourceVolume  = "collectory"
-        containerPath = "/collectory"
+        containerPath = "/data"
         readOnly      = false
       }
     ]

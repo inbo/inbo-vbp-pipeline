@@ -49,7 +49,7 @@ resource "aws_batch_job_definition" "spatial_sampling" {
     mountPoints = [
       {
         sourceVolume  = "collectory"
-        containerPath = "/collectory"
+        containerPath = "/data"
         readOnly      = false
       }
     ]
