@@ -43,14 +43,14 @@ resource "aws_batch_job_definition" "la_pipelines" {
         sed -i "s\\\$${APIKEY}\\$${APIKEY}\\g" ../configs/la-pipelines.yaml
 
 
-        ./la-pipelines dwca-avro  $${DATA_RESOURCE_ID}
-        ./la-pipelines interpret  --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID}
-        ./la-pipelines validate   --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID}
-        ./la-pipelines uuid       --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID}
-        ./la-pipelines sds        --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID}
-        ./la-pipelines image-sync --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID}
-        ./la-pipelines image-load --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID}
-        ./la-pipelines index      --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID}
+        ./la-pipelines dwca-avro  $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml
+        ./la-pipelines interpret  --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml
+        ./la-pipelines validate   --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml
+        ./la-pipelines uuid       --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml
+        ./la-pipelines sds        --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml
+        ./la-pipelines image-sync --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml
+        ./la-pipelines image-load --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml
+        ./la-pipelines index      --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml
  EOT
     ]
     image      = "${var.ecr_repo}/${var.resource_prefix}pipelines:${var.docker_version}"
