@@ -44,7 +44,7 @@ resource "aws_batch_job_definition" "la_pipelines" {
         sed -i "s\\\$${APIKEY}\\$${APIKEY}\\g" ../configs/la-pipelines.yaml
 
 
-        ./la-pipelines dwca-avro  $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --awsRegion eu-west-1
+        ./la-pipelines dwca-avro                            $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --awsRegion eu-west-1
         ./la-pipelines interpret  --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --awsRegion eu-west-1
         ./la-pipelines validate   --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --awsRegion eu-west-1
         ./la-pipelines uuid       --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --awsRegion eu-west-1
