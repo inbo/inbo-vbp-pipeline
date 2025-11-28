@@ -18,8 +18,8 @@ RUN mkdir /opt/aws-xray-agent \
 ARG BUILDPLATFORM=linux/amd64
 FROM --platform=${BUILDPLATFORM} custom-maven-17 AS builder
 
-ARG VERSION=attempt-to-run-using-emrfs
-ARG COMMIT=35a168f883e03ea52297f66da2fefafb4cac7d5a
+ARG VERSION=beam-update-s3
+ARG COMMIT=f251539b4bbd38828df80af5f32b4b67a3abbeea
 ARG SOURCE=https://github.com/StefanVanDyck/pipelines.git
 #ARG SOURCE=https://github.com/gbif/pipelines.git
 ARG SOURCE_DATE_EPOCH
@@ -48,7 +48,7 @@ RUN --mount=type=cache,target=/root/.m2/repository \
 #
 FROM amazoncorretto:17
 
-ARG COMMIT=35a168f883e03ea52297f66da2fefafb4cac7d5a
+ARG COMMIT=f251539b4bbd38828df80af5f32b4b67a3abbeea
 LABEL ala.version=inbo-${COMMIT}
 #
 # ARG VERSION=2.18.6-SNAPSHOT
