@@ -20,3 +20,5 @@ sudo chmod +x "/opt/inbo/pipelines/pipelines-${PIPELINE_VERSION}.jar"
 
 APIKEY=$(aws secretsmanager get-secret-value --secret-id "${APIKEY_SECRET_ARN}" --output text --query 'SecretString')
 sudo sed -i "s@\${APIKEY}@${APIKEY}@g" /opt/inbo/pipelines/config/la-pipelines.yaml
+
+mkdir -p /tmp/pipelines && chmod 777 /tmp/pipelines

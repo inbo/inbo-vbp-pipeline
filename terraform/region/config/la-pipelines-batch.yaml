@@ -28,6 +28,7 @@ general:
   attempt: 0
   hdfsSiteConfig: ""
   coreSiteConfig: ""
+  tempLocation: '/tmp/pipelines'
 
 fs:
   platform: local
@@ -160,7 +161,6 @@ dwca-avro:
   runner: SparkRunner
   inputPath: '/data/dwca/{datasetId}.zip'
   targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data/{datasetId}/0/verbatim'
-  tempLocation: '/tmp'
 
 # class: au.org.ala.pipelines.beam.ALAVerbatimToInterpretedPipeline
 interpret:
