@@ -48,17 +48,6 @@ resource "aws_security_group_rule" "backend_allow_https_egress_to_meise" {
   description       = "allow https from ${var.application} backend to internet meise ipt https port"
 }
 
-# needed for S3
-resource "aws_security_group_rule" "backend_allow_https_egress_to_https" {
-  type              = "egress"
-  security_group_id = aws_security_group.batch.id
-  cidr_blocks       = ["0.0.0.0/0"] #tfsec:ignore:aws-ec2-no-public-egress-sgr
-  from_port         = 443
-  to_port           = 443
-  protocol          = "tcp"
-  description       = "allow https from ${var.application} backend to internet meise ipt https port"
-}
-
 # # TODO remove once we have certificates
 # resource "aws_security_group_rule" "backend_allow_http_egress_to_internet" {
 #   type              = "egress"
