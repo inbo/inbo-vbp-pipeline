@@ -186,7 +186,6 @@ uuid:
 images:
   appName: Image syncing for {datasetId}
   runner: SparkRunner
-  tempLocation: /tmp
   # pipe separated list (note: YAML list not coming through correctly)
   recognisedPaths: "https://natuurdata.dev.inbo.be/images"
   inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
@@ -195,7 +194,6 @@ images:
 speciesLists:
   runner: SparkRunner
   speciesAggregatesPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-species'
-  tempLocation: /tmp
   maxDownloadAgeInMinutes: 1440
   includeConservationStatus: true
   includeInvasiveStatus: true
@@ -219,8 +217,7 @@ outlier:
 annotation:
   runner: SparkRunner
   inputPath: s3://inbo-vbp-dev-pipelines/data/pipelines-annotations
-  targetPath: s3://inbo-vbp-dev-pipelines/data/pipelines-annotations
-  tempLocation: /tmp/
+  targetPath: s3://inbo-vbp-dev-pipelines/data/pipelines-annotations/
 
 # class: au.org.ala.pipelines.beam.ALAInterpretedToSensitivePipeline
 sensitive:
