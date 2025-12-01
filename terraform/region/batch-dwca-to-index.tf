@@ -43,6 +43,7 @@ resource "aws_batch_job_definition" "la_pipelines" {
         aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_log_config.id} ../configs/log4j.properties
         sed -i "s\\\$${APIKEY}\\$${APIKEY}\\g" ../configs/la-pipelines.yaml
 
+        export LOG_CONFIG="/app/livingatlas/pipelines/src/main/resources/log4j.properties"
 
         ./la-pipelines dwca-avro                            $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
         ./la-pipelines interpret  --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
