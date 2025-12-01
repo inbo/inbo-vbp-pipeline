@@ -45,6 +45,8 @@ resource "aws_batch_job_definition" "la_pipelines" {
 
         export LOG_CONFIG="/app/livingatlas/pipelines/src/main/resources/log4j.properties"
 
+        $(aws sts get-session-token | yq -r '"export AWS_ACCESS_KEY_ID=" + .Credentials.AccessKeyId + "\nexport AWS_SECRET_ACCESS_KEY="  + .Credentials.SecretAccessKey + "\nexport AWS_SESSION_TOKEN=" + .Credentials.SessionToken')
+
         ./la-pipelines dwca-avro                            $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
         ./la-pipelines interpret  --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
         ./la-pipelines validate   --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
