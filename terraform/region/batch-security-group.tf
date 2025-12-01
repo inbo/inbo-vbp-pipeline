@@ -38,14 +38,23 @@ resource "aws_security_group_rule" "backend_allow_https_egress_to_internet" {
   description       = "allow https from ${var.application} backend to internet for secrets manager"
 }
 
-
-
 resource "aws_security_group_rule" "backend_allow_https_egress_to_meise" {
   type              = "egress"
   security_group_id = aws_security_group.batch.id
   cidr_blocks       = ["0.0.0.0/0"] #tfsec:ignore:aws-ec2-no-public-egress-sgr
   from_port         = 8443
   to_port           = 8443
+  protocol          = "tcp"
+  description       = "allow https from ${var.application} backend to internet meise ipt https port"
+}
+
+# needed for S3
+resource "aws_security_group_rule" "backend_allow_https_egress_to_https" {
+  type              = "egress"
+  security_group_id = aws_security_group.batch.id
+  cidr_blocks       = ["0.0.0.0/0"] #tfsec:ignore:aws-ec2-no-public-egress-sgr
+  from_port         = 443
+  to_port           = 443
   protocol          = "tcp"
   description       = "allow https from ${var.application} backend to internet meise ipt https port"
 }
