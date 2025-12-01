@@ -44,14 +44,14 @@ resource "aws_batch_job_definition" "la_pipelines" {
         sed -i "s\\\$${APIKEY}\\$${APIKEY}\\g" ../configs/la-pipelines.yaml
 
 
-        ./la-pipelines --awsRegion eu-west-1 dwca-avro                            $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml
-        ./la-pipelines --awsRegion eu-west-1 interpret  --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml
-        ./la-pipelines --awsRegion eu-west-1 validate   --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml
-        ./la-pipelines --awsRegion eu-west-1 uuid       --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml
-        ./la-pipelines --awsRegion eu-west-1 sds        --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml
-        ./la-pipelines --awsRegion eu-west-1 image-sync --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml
-        ./la-pipelines --awsRegion eu-west-1 image-load --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml
-        ./la-pipelines --awsRegion eu-west-1 index      --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml
+        ./la-pipelines --awsRegion eu-west-1 --config ../configs/la-pipelines.yaml dwca-avro                            $${DATA_RESOURCE_ID}
+        ./la-pipelines --awsRegion eu-west-1 --config ../configs/la-pipelines.yaml interpret  --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID}
+        ./la-pipelines --awsRegion eu-west-1 --config ../configs/la-pipelines.yaml validate   --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID}
+        ./la-pipelines --awsRegion eu-west-1 --config ../configs/la-pipelines.yaml uuid       --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID}
+        ./la-pipelines --awsRegion eu-west-1 --config ../configs/la-pipelines.yaml sds        --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID}
+        ./la-pipelines --awsRegion eu-west-1 --config ../configs/la-pipelines.yaml image-sync --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID}
+        ./la-pipelines --awsRegion eu-west-1 --config ../configs/la-pipelines.yaml image-load --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID}
+        ./la-pipelines --awsRegion eu-west-1 --config ../configs/la-pipelines.yaml index      --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID}
  EOT
     ]
     image      = "${var.ecr_repo}/${var.resource_prefix}pipelines:${var.docker_version}"
