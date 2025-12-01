@@ -19,7 +19,7 @@ ARG BUILDPLATFORM=linux/amd64
 FROM --platform=${BUILDPLATFORM} custom-maven-17 AS builder
 
 ARG VERSION=attempt-pipeline-update
-ARG COMMIT=b32fea45565eee1e6f3bd53db3f2d7d93feff87b
+ARG COMMIT=73283a1dd23fcb827633886140169b7e8ae83b02
 ARG SOURCE=https://github.com/StefanVanDyck/pipelines.git
 #ARG SOURCE=https://github.com/gbif/pipelines.git
 ARG SOURCE_DATE_EPOCH
@@ -29,7 +29,12 @@ WORKDIR /app
 RUN git clone --branch ${VERSION} ${SOURCE} . && git checkout ${COMMIT}
 
 RUN --mount=type=cache,target=/root/.m2/repository \
-    cd livingatlas \
+    mvn --batch-mode --no-transfer-progress \
+        clean install \
+        -Dspotless.check.skip=true -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true \
+        -Dproject.build.outputTimestamp=${SOURCE_DATE_EPOCH} \
+        -T 10 -U \
+    && cd livingatlas \
     && mvn --batch-mode --no-transfer-progress \
         clean package -P livingatlas-artifacts \
         -Dspotless.check.skip=true -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true \
@@ -48,7 +53,7 @@ RUN --mount=type=cache,target=/root/.m2/repository \
 #
 FROM amazoncorretto:17
 
-ARG COMMIT=b32fea45565eee1e6f3bd53db3f2d7d93feff87b
+ARG COMMIT=73283a1dd23fcb827633886140169b7e8ae83b02
 LABEL ala.version=inbo-${COMMIT}
 #
 # ARG VERSION=2.18.6-SNAPSHOT
