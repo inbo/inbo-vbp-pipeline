@@ -18,7 +18,7 @@ RUN mkdir /opt/aws-xray-agent \
 ARG BUILDPLATFORM=linux/amd64
 FROM --platform=${BUILDPLATFORM} custom-maven-17 AS builder
 
-ARG VERSION=attempt-pipeline-update
+ARG VERSION=attempt-to-run-using-emrfs
 ARG COMMIT=077c3e945a002e35d634287028da1283d900260b
 ARG SOURCE=https://github.com/StefanVanDyck/pipelines.git
 #ARG SOURCE=https://github.com/gbif/pipelines.git
