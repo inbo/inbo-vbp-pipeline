@@ -19,7 +19,7 @@ ARG BUILDPLATFORM=linux/amd64
 FROM --platform=${BUILDPLATFORM} custom-maven-17 AS builder
 
 ARG VERSION=attempt-pipeline-update
-ARG COMMIT=73283a1dd23fcb827633886140169b7e8ae83b02
+ARG COMMIT=a6560f4c0e9fb2e46da8a38e54b951adb3ad674a
 ARG SOURCE=https://github.com/StefanVanDyck/pipelines.git
 #ARG SOURCE=https://github.com/gbif/pipelines.git
 ARG SOURCE_DATE_EPOCH
@@ -53,7 +53,7 @@ RUN --mount=type=cache,target=/root/.m2/repository \
 #
 FROM amazoncorretto:17
 
-ARG COMMIT=73283a1dd23fcb827633886140169b7e8ae83b02
+ARG COMMIT=a6560f4c0e9fb2e46da8a38e54b951adb3ad674a
 LABEL ala.version=inbo-${COMMIT}
 #
 # ARG VERSION=2.18.6-SNAPSHOT
