@@ -45,10 +45,7 @@ resource "aws_batch_job_definition" "la_pipelines" {
 
         export LOG_CONFIG="/app/livingatlas/pipelines/src/main/resources/log4j.properties"
 
-        export
-        aws configure --debug export-credentials
-        curl -v http://169.254.170.2/$${AWS_CONTAINER_CREDENTIALS_RELATIVE_URI}
-
+        $(aws configure --debug export-credentials | yq -r '"export AWS_ACCESS_KEY_ID=" + .AccessKeyId + "\nexport AWS_SECRET_ACCESS_KEY="  + .SecretAccessKey + "\nexport AWS_SESSION_TOKEN=" + .SessionToken')
 
         ./la-pipelines dwca-avro                            $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
         ./la-pipelines interpret  --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
