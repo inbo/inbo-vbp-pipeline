@@ -167,7 +167,7 @@ interpret:
   appName: Interpretation for {datasetId}
   interpretationTypes: ALL
   defaultDateFormat: DMYT,DMY
-  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data/{datasetId}/{attempt}/verbatim/*.avro'
   targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
   # Skips GBIF id generation and copies ids from ExtendedRecord ids
   useExtendedRecordId: true
