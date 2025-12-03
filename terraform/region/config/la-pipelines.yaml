@@ -1,36 +1,9 @@
-### run options:
-
-run:
-  # where to run: local, spark-embedded or spark-cluster
-  platform: spark-cluster
-  local:
-    # jar: we get the jar from our dev or production environment
-    sparkTmp: /tmp
-    sparkMaster: "DONT_SET"
-    dwcaTmp: /tmp
-    dwcaImportDir: /data/biocache-load
-  spark-embedded:
-    dwcaTmp: /tmp
-    dwcaImportDir: /data/biocache-load
-    sparkTmp: /tmp
-    sparkMaster: "DONT_SET"
-  spark-cluster:
-    dwcaTmp: /tmp
-    dwcaImportDir: /data/dwca-export
-    jar: s3://test-emr-pipelines/pipelines-3.2.14-SNAPSHOT-shaded.jar
-    sparkSubmit: /usr/bin/spark-submit
-    sparkTmp: /tmp
-    # dont specify spark master for EMR
-    sparkMaster: "DONT_SET"
-
 general:
   attempt: 0
   hdfsSiteConfig: /etc/hadoop/conf/hdfs-site.xml
   coreSiteConfig: /etc/hadoop/conf/core-site.xml
   tempLocation: '/tmp/pipelines'
-  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
   targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
-  allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
 
 fs:
   platform: hdfs
@@ -39,22 +12,12 @@ fs:
   hdfs:
     fsPath: hdfs:///
 
-dataset-validated-dump:
-
-
-copy:
-  copyPath: "/data/dwca-export"
-recordedByConfig:
-  cacheSizeMb: 64
 alaNameMatch:
   wsUrl: http://namematching-service.vbp.internal:9179
   timeoutSec: 30
   retryConfig:
     maxAttempts: 5
     initialIntervalMillis: 5000
-sds:
-  wsUrl: http://sensitive-data-service.vbp.internal:9189
-  timeoutSec: 30
 collectory:
   wsUrl: http://collectory.vbp.internal:8080/collectory/ws/
   timeoutSec: 30
@@ -174,11 +137,13 @@ uuid:
   numberOfBackupsToKeep: 10
   percentageChangeAllowed: 50
   throwErrorOnValidationFail: false
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 images:
   appName: Image syncing for {datasetId}
   runner: SparkRunner  # pipe separated list (note: YAML list not coming through correctly)
   recognisedPaths: "https://natuurdata.dev.inbo.be/images"
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 speciesLists:
   runner: SparkRunner
@@ -186,11 +151,14 @@ speciesLists:
   maxDownloadAgeInMinutes: 1440
   includeConservationStatus: true
   includeInvasiveStatus: true
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 # Sampling specific configuration
 sampling:
   appName: Sample for {datasetId}
   runner: SparkRunner
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
+  allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
 
 # Calculate distance to the expert distribution layers
 # class:au.org.ala.pipelines.beam.DistributionOutlierPipeline
@@ -199,6 +167,7 @@ outlier:
   baseUrl: https://spatial-service.vbp.internal:8080/spatial-service/
   targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-outlier'
   runner: SparkRunner
+  allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
 
 annotation:
   runner: SparkRunner
@@ -209,19 +178,22 @@ annotation:
 sensitive:
   appName: Sensitive Data Processing for {datasetId}
   runner: SparkRunner
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 # class: au.org.ala.pipelines.java.IndexRecordPipeline
 index:
   appName: IndexRecord generation for {datasetId}
   includeImages: true
   includeSpeciesLists: true
-  # set this to false to avoid SDS requirement
-  includeSensitiveDataChecks: true
+  includeSensitiveDataChecks: false
   runner: SparkRunner
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
+  allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
 
 # class: au.org.ala.pipelines.beam.IndexRecordToSolrPipeline
 solr:
   appName: SOLR indexing for {datasetId}
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
   allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
   jackKnifePath: 's3://inbo-vbp-dev-pipelines/data/pipelines-jackknife'
   clusteringPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-clustering'
@@ -229,7 +201,7 @@ solr:
   annotationsPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-annotations'
   solrCollection: biocache
   includeSampling: true
-  includeJackKnife: true
+  includeJackKnife: false
   includeClustering: false
   runner: SparkRunner
   zkHost: solr.vbp.internal:9983
@@ -242,10 +214,12 @@ elastic:
   esHosts: http://elasticsearch.vbp.internal:9200
   esAlias: event
   esIndexName: 'event_{datasetId}'
-  indexNumberShards: 1
+  indexNumberShards: 12
   indexNumberReplicas: 0
   metaFileName: elastic.yml
   esDocumentId: internalId
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
+  targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 
 export:

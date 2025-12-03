@@ -29,9 +29,7 @@ general:
   hdfsSiteConfig: ""
   coreSiteConfig: ""
   tempLocation: '/tmp/pipelines'
-  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
   targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
-  allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
 
 fs:
   platform: local
@@ -181,12 +179,14 @@ uuid:
   numberOfBackupsToKeep: 10
   percentageChangeAllowed: 50
   throwErrorOnValidationFail: false
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 images:
   appName: Image syncing for {datasetId}
   runner: SparkRunner
   # pipe separated list (note: YAML list not coming through correctly)
   recognisedPaths: "https://natuurdata.dev.inbo.be/images"
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 speciesLists:
   runner: SparkRunner
@@ -194,11 +194,14 @@ speciesLists:
   maxDownloadAgeInMinutes: 1440
   includeConservationStatus: true
   includeInvasiveStatus: true
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 # Sampling specific configuration
 sampling:
   appName: Sample for {datasetId}
   runner: SparkRunner
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
+  allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
 
 # Calculate distance to the expert distribution layers
 # class:au.org.ala.pipelines.beam.DistributionOutlierPipeline
@@ -207,6 +210,7 @@ outlier:
   baseUrl: https://spatial-service.vbp.internal:8080/spatial-service/
   targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-outlier'
   runner: SparkRunner
+  allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
 
 annotation:
   runner: SparkRunner
@@ -217,6 +221,7 @@ annotation:
 sensitive:
   appName: Sensitive Data Processing for {datasetId}
   runner: SparkRunner
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 # class: au.org.ala.pipelines.java.IndexRecordPipeline
 index:
@@ -225,10 +230,14 @@ index:
   includeSpeciesLists: true
   includeSensitiveDataChecks: false
   runner: SparkRunner
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
+  allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
 
 # class: au.org.ala.pipelines.beam.IndexRecordToSolrPipeline
 solr:
   appName: SOLR indexing for {datasetId}
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
+  allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
   jackKnifePath: 's3://inbo-vbp-dev-pipelines/data/pipelines-jackknife'
   clusteringPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-clustering'
   outlierPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-outlier'
@@ -252,6 +261,8 @@ elastic:
   indexNumberReplicas: 0
   metaFileName: elastic.yml
   esDocumentId: internalId
+  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
+  targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 
 export:
