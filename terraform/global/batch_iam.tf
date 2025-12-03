@@ -123,8 +123,7 @@ data "aws_iam_policy_document" "batch" {
       "s3:GetObjectVersionTagging",
       "s3:ListMultipartUploadParts",
       "s3:PutObject",
-      "s3:DeleteObject",
-      "s3:ListBucket",
+      "s3:DeleteObject"
     ]
     #tfsec:ignore:aws-iam-no-policy-wildcards
     resources = [

@@ -30,7 +30,7 @@ resource "aws_batch_job_definition" "download_data_resource" {
     ],
     command = [
       <<EOF
-aws s3 cp s3://inbo-vbp-dev-pipelines/bootstrap-actions/download-data-resource.sh download-data-resource.sh
+aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/bootstrap-actions/download-data-resource.sh download-data-resource.sh
 bash download-data-resource.sh
 EOF
     ]
