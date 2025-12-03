@@ -23,6 +23,12 @@ run:
     # dont specify spark master for EMR
     sparkMaster: "DONT_SET"
 
+# which filesystem to use: local or hdfs
+fs:
+  platform: local
+  local:
+    fsPath: /tmp
+
 # Common PipelineOptions
 general:
   attempt: 0
