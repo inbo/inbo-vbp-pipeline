@@ -53,7 +53,7 @@ resource "aws_batch_job_definition" "la_pipelines" {
       ./la-pipelines validate   --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
       ./la-pipelines uuid       --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
 
-      MULTI_MEDIA_RECORDS=$(aws s3 cp s3://inbo-vbp-dev-pipelines/data/pipelines-data/dr45/0/interpretation-metrics.yml - | grep multimediaRecordsCountAttempted | awk '{ print $2}' || echo '0')
+      MULTI_MEDIA_RECORDS=$(aws s3 cp s3://inbo-vbp-dev-pipelines/data/pipelines-data/$${DATA_RESOURCE_ID}/0/interpretation-metrics.yml - | grep multimediaRecordsCountAttempted | awk '{ print $2}' || echo '0')
       if [ $${MULTI_MEDIA_RECORDS} -gt 0 ]; then
         echo "Detected Multimedia Records $${MULTI_MEDIA_RECORDS}"
         ./la-pipelines image-sync --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1

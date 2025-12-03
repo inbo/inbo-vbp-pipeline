@@ -183,9 +183,9 @@
           }
         }
       },
-      "Next": "Get Interpretation Results"
+      "Next": "Get Multimedia Records"
     },
-    "Get Interpretation Results": {
+    "Get Multimedia Records": {
       "Type": "Task",
       "Arguments": {
         "Bucket": "{% $config.s3_bucket_name_pipeline %}",
@@ -193,14 +193,14 @@
       },
       "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
       "Next": "Has Multimedia Records?",
-      "Output": "{% $states.result.Body %}"
+      "Output": "{% $match($states.result.Body, /multimediaRecordsCountAttempted: (\\d+)/).groups[0] or 0 %}"
     },
     "Has Multimedia Records?": {
       "Type": "Choice",
       "Choices": [
         {
           "Next": "Image sync",
-          "Condition": "{% $states.input.multimediaRecords or 0 > 0%}"
+          "Condition": "{% $states.input > 0 %}"
         }
       ],
       "Default": "Index"
