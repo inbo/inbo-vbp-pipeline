@@ -109,8 +109,11 @@ ENV EXTRA_JVM_CLI_ARGS="--add-opens=java.base/java.lang=ALL-UNNAMED \
 --add-opens=java.base/sun.security.action=ALL-UNNAMED \
 --add-opens=java.base/sun.util.calendar=ALL-UNNAMED \
 --add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED \
--Dlog4j.configuration=file://${LOG_CONFIG} -Dlog4j.configurationFile=file://${LOG_CONFIG} \
--Dfs.s3.impl=org.apache.hadoop.fs.s3a.S3AFileSystem"
+--add-exports=java.desktop/sun.awt=ALL-UNNAMED \
+--add-exports=java.desktop/com.sun.imageio.spi=ALL-UNNAMED \
+--add-exports=java.desktop/sun.swing=ALL-UNNAMED \
+--add-opens=java.desktop/javax.imageio.spi=ALL-UNNAMED \
+-Dlog4j.configuration=file://${LOG_CONFIG} -Dlog4j.configurationFile=file://${LOG_CONFIG}"
 
 ENTRYPOINT ["bash", "-c"]
 
