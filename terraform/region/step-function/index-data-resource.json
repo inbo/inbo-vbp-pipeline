@@ -183,7 +183,27 @@
           }
         }
       },
-      "Next": "Image sync"
+      "Next": "Get Interpretation Results"
+    },
+    "Get Interpretation Results": {
+      "Type": "Task",
+      "Arguments": {
+        "Bucket": "{% $config.s3_bucket_name_pipeline %}",
+        "Key": "{% 'data/pipelines-data/' & $dataResourceId & '/0/interpretation-metrics.yml' %}"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
+      "Next": "Has Multimedia Records?",
+      "Output": "{% $states.result.Body %}"
+    },
+    "Has Multimedia Records?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "Image sync",
+          "Condition": "{% $states.input.multimediaRecords or 0 > 0%}"
+        }
+      ],
+      "Default": "Index"
     },
     "Image sync": {
       "Type": "Task",
