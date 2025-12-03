@@ -164,7 +164,7 @@ interpret:
   # Skips GBIF id generation and copies ids from ExtendedRecord ids
   useExtendedRecordId: true
   runner: SparkRunner
-  eventsEnabled: false
+  eventsEnabled: true
 
 # class: au.org.ala.pipelines.beam.ALAUUIDMintingPipeline
 uuid:
