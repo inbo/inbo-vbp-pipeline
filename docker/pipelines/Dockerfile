@@ -94,8 +94,8 @@ COPY --from=builder --chown=1000:1000 /app /app
 
 WORKDIR /app/livingatlas/scripts
 
-COPY log4j.properties /app/livingatlas/config/log4j.properties
-ENV LOG_CONFIG="/app/livingatlas/config/log4j.properties"
+COPY log4j.properties /app/livingatlas/configs/log4j.properties
+ENV LOG_CONFIG="/app/livingatlas/configs/log4j.properties"
 ENV EXTRA_JVM_CLI_ARGS="--add-opens=java.base/java.lang=ALL-UNNAMED \
 --add-opens=java.base/java.lang.invoke=ALL-UNNAMED \
 --add-opens=java.base/java.lang.reflect=ALL-UNNAMED \
