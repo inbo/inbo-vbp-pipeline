@@ -196,6 +196,7 @@ sampling:
   allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
   runner: SparkRunner
   inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
+  targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 # Calculate distance to the expert distribution layers
 # class:au.org.ala.pipelines.beam.DistributionOutlierPipeline
@@ -203,7 +204,7 @@ outlier:
   appName: Expert distribution outliers for {datasetId}
   baseUrl: https://spatial-service.vbp.internal:8080/spatial-service/
   targetPath: 'hdfs:///pipelines-outlier'
-  allDatasetsInputPath: 'hdfs:///pipelines-all-datasets'
+  allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
   runner: SparkRunner
 
 annotation:
@@ -225,7 +226,7 @@ index:
   # set this to false to avoid SDS requirement
   includeSensitiveDataChecks: true
   runner: SparkRunner
-  allDatasetsInputPath: 'hdfs:///pipelines-all-datasets'
+  allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
   inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data/'
   targetPath: s3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
