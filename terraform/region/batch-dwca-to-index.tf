@@ -44,6 +44,8 @@ resource "aws_batch_job_definition" "la_pipelines" {
       sed -i "s\\\$${APIKEY}\\$${APIKEY}\\g" ../configs/la-pipelines.yaml
       sed -i "s\\inbo-vbp-dev-pipelines\\${aws_s3_bucket.pipelines.bucket}\\g" ../configs/la-pipelines.yaml
 
+      export LOG_CONFIG="$(pwd)/../configs/log4j.properties"
+
       $(aws configure --debug export-credentials | yq -r '"export AWS_ACCESS_KEY_ID=" + .AccessKeyId + "\nexport AWS_SECRET_ACCESS_KEY="  + .SecretAccessKey + "\nexport AWS_SESSION_TOKEN=" + .SessionToken')
 
       ./la-pipelines dwca-avro                            $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
