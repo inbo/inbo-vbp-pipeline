@@ -181,9 +181,15 @@
           },
           {
             "Classification": "spark-log4j2",
-                "Properties": {
-                  "appender.console.layout.pattern": "%d{DEFAULT} [%level] %logger{1.}: %m%n%ex"
-                }
+            "Properties": {
+              "appender.console.layout.pattern": "%d{DEFAULT} [%level] %logger{1.}: %m%n%ex"
+            }
+          },
+          {
+            "Classification": "core-site",
+            "Properties": {
+              "fs.s3.impl": "org.apache.hadoop.fs.s3a.S3AFileSystem"
+            }
           }
         ],
         "BootstrapActions": [
