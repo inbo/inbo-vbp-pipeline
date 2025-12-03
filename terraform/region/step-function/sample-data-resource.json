@@ -68,7 +68,8 @@
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
               "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
-              "--awsRegion=eu-west-1"
+              "--awsRegion=eu-west-1",
+              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline & '/data' %}"
             ]
           }
         }
@@ -92,7 +93,8 @@
               "au.org.ala.sampling.LayerCrawler",
               "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
-              "--awsRegion=eu-west-1"
+              "--awsRegion=eu-west-1",
+              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline & '/data' %}"
             ]
           }
         }

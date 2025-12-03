@@ -29,14 +29,7 @@ general:
   hdfsSiteConfig: ""
   coreSiteConfig: ""
   tempLocation: '/tmp/pipelines'
-  targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
-
-fs:
-  platform: local
-  local:
-    fsPath: /data
-  hdfs:
-    fsPath: hdfs://localhost:8020
+  targetPath: '{fsPath}/pipelines-data'
 
 copy:
   copyPath: "/data/dwca-export"
@@ -167,7 +160,7 @@ interpret:
   appName: Interpretation for {datasetId}
   interpretationTypes: ALL
   defaultDateFormat: DMYT,DMY
-  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data/{datasetId}/0/verbatim/*.avro'
+  inputPath: '{fsPath}/pipelines-data/{datasetId}/0/verbatim/*.avro'
   # Skips GBIF id generation and copies ids from ExtendedRecord ids
   useExtendedRecordId: true
   runner: SparkRunner
@@ -179,49 +172,49 @@ uuid:
   numberOfBackupsToKeep: 10
   percentageChangeAllowed: 50
   throwErrorOnValidationFail: false
-  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
+  inputPath: '{fsPath}/pipelines-data'
 
 images:
   appName: Image syncing for {datasetId}
   runner: SparkRunner
   # pipe separated list (note: YAML list not coming through correctly)
   recognisedPaths: "https://natuurdata.dev.inbo.be/images"
-  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
+  inputPath: '{fsPath}/pipelines-data'
 
 speciesLists:
   runner: SparkRunner
-  speciesAggregatesPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-species'
+  speciesAggregatesPath: '{fsPath}/pipelines-species'
   maxDownloadAgeInMinutes: 1440
   includeConservationStatus: true
   includeInvasiveStatus: true
-  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
+  inputPath: '{fsPath}/pipelines-data'
 
 # Sampling specific configuration
 sampling:
   appName: Sample for {datasetId}
   runner: SparkRunner
-  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
-  allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
+  inputPath: '{fsPath}/pipelines-data'
+  allDatasetsInputPath: '{fsPath}/pipelines-all-datasets'
 
 # Calculate distance to the expert distribution layers
 # class:au.org.ala.pipelines.beam.DistributionOutlierPipeline
 outlier:
   appName: Expert distribution outliers for {datasetId}
   baseUrl: https://spatial-service.vbp.internal:8080/spatial-service/
-  targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-outlier'
+  targetPath: '{fsPath}/pipelines-outlier'
   runner: SparkRunner
-  allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
+  allDatasetsInputPath: '{fsPath}/pipelines-all-datasets'
 
 annotation:
   runner: SparkRunner
-  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-annotations'
-  targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-annotations'
+  inputPath: '{fsPath}/pipelines-annotations'
+  targetPath: '{fsPath}/pipelines-annotations'
 
 # class: au.org.ala.pipelines.beam.ALAInterpretedToSensitivePipeline
 sensitive:
   appName: Sensitive Data Processing for {datasetId}
   runner: SparkRunner
-  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
+  inputPath: '{fsPath}/pipelines-data'
 
 # class: au.org.ala.pipelines.java.IndexRecordPipeline
 index:
@@ -230,18 +223,18 @@ index:
   includeSpeciesLists: true
   includeSensitiveDataChecks: false
   runner: SparkRunner
-  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
-  allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
+  inputPath: '{fsPath}/pipelines-data'
+  allDatasetsInputPath: '{fsPath}/pipelines-all-datasets'
 
 # class: au.org.ala.pipelines.beam.IndexRecordToSolrPipeline
 solr:
   appName: SOLR indexing for {datasetId}
-  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
-  allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
-  jackKnifePath: 's3://inbo-vbp-dev-pipelines/data/pipelines-jackknife'
-  clusteringPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-clustering'
-  outlierPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-outlier'
-  annotationsPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-annotations'
+  inputPath: '{fsPath}/pipelines-data'
+  allDatasetsInputPath: '{fsPath}/pipelines-all-datasets'
+  jackKnifePath: '{fsPath}/pipelines-jackknife'
+  clusteringPath: '{fsPath}/pipelines-clustering'
+  outlierPath: '{fsPath}/pipelines-outlier'
+  annotationsPath: '{fsPath}/pipelines-annotations'
   solrCollection: biocache
   includeSampling: true
   includeJackKnife: false
@@ -261,8 +254,8 @@ elastic:
   indexNumberReplicas: 0
   metaFileName: elastic.yml
   esDocumentId: internalId
-  inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
-  targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
+  inputPath: '{fsPath}/pipelines-data'
+  targetPath: '{fsPath}/pipelines-data'
 
 
 export:
@@ -273,7 +266,7 @@ export:
   predicateExportEnabled: true
 
 predicate-export:
-  targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-export'
+  targetPath: '{fsPath}/pipelines-export'
   localExportPath: /tmp/pipelines-export
   skipEventExportFields:
     - "id"
@@ -300,25 +293,25 @@ solrSchema:
 # class: au.org.ala.pipelines.beam.ALAReverseJackKnifePipeline
 jackKnife:
   appName: Jack knife outlier detection
-  jackKnifePath: 's3://inbo-vbp-dev-pipelines/data/pipelines-jackknife'
+  jackKnifePath: '{fsPath}/pipelines-jackknife'
   layers: cl10001,cl10000,cl10002
   minSampleThreshold: 80
   runner: SparkRunner
 
 clustering:
   appName: Occurrence clustering
-  clusteringPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-clustering'
+  clusteringPath: '{fsPath}/pipelines-clustering'
   runner: SparkRunner
 
 # class: DumpArchiveList
 dataset-archive-list:
-  inputPath: 's3://inbo-vbp-dev-pipelines/data/dwca-imports'
+  inputPath: '{fsPath}/dwca-imports'
   targetPath: /tmp/dataset-archive-list.csv
 
 # class: au.org.ala.utils.DumpDatasetSize
 dataset-count-dump:
   targetPath: /tmp/dataset-counts.csv
-  dwcaImportPath: 's3://inbo-vbp-dev-pipelines/data/dwca-imports'
+  dwcaImportPath: '{fsPath}/dwca-imports'
 
 validation-report:
   targetPath: /tmp/dataset-validation-list.csv
