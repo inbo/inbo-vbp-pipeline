@@ -228,7 +228,7 @@ index:
   runner: SparkRunner
   allDatasetsInputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-all-datasets'
   inputPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data/'
-  targetPath: s3://inbo-vbp-dev-pipelines/data/pipelines-data'
+  targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 
 # class: au.org.ala.pipelines.beam.IndexRecordToSolrPipeline
