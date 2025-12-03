@@ -52,13 +52,15 @@ resource "aws_batch_job_definition" "la_pipelines" {
       ./la-pipelines uuid       --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
 
       MULTI_MEDIA_RECORDS=$(aws s3 cp s3://inbo-vbp-dev-pipelines/data/pipelines-data/$${DATA_RESOURCE_ID}/0/interpretation-metrics.yml - | grep multimediaRecordsCountAttempted | awk '{ print $2}' || echo '0')
+      INDEX_ARGS="includeImages=false"
       if [ $${MULTI_MEDIA_RECORDS} -gt 0 ]; then
         echo "Detected Multimedia Records $${MULTI_MEDIA_RECORDS}"
         ./la-pipelines image-sync --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
         ./la-pipelines image-load --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
+        INDEX_ARGS="includeImages=true"
       fi
 
-      ./la-pipelines index      --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
+      ./la-pipelines index      --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1,$${INDEX_ARGS}
  EOT
     ]
     image      = "${var.ecr_repo}/${var.resource_prefix}pipelines:${var.docker_version}"
