@@ -4,6 +4,33 @@
     "debug": false,
     "run_as_user": "cwagent"
   },
+  "metrics": {
+    "namespace": "Inbo/VBP  ",
+    "append_dimensions": {
+      "InstanceId": "${aws:InstanceId}",
+      "EMRClusterId": "${aws:Tag_emrClusterId}"
+    },
+    "metrics_collected": {
+      "cpu": {
+        "measurement": [
+          "cpu_usage_idle",
+          "cpu_usage_user",
+          "cpu_usage_system",
+          "cpu_usage_iowait"
+        ],
+        "metrics_collection_interval": 60,
+        "totalcpu": true
+      },
+      "mem": {
+        "measurement": [
+          "mem_used_percent",
+          "mem_used",
+          "mem_available"
+        ],
+        "metrics_collection_interval": 60
+      }
+    }
+  },
   "logs": {
     "logs_collected": {
       "files": {
