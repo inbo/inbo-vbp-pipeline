@@ -182,7 +182,15 @@
           {
             "Classification": "spark-log4j2",
             "Properties": {
-              "appender.console.layout.pattern": "%d{DEFAULT} [%level] [%X{step}] [%X{datasetId}] %logger{1.}: %m%n%ex"
+              "rootLogger.level": "info",
+              "appender.console.layout.pattern": "%d{DEFAULT} [%level] %logger{1.}: %m%n%ex"
+            }
+          },
+          {
+            "Classification": "spark-driver-log4j2",
+            "Properties": {
+              "rootLogger.level": "info",
+              "appender.console.layout.pattern": "%d{DEFAULT} [%level] %logger{1.}: %m%n%ex"
             }
           }
         ],
