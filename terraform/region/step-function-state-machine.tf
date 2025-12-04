@@ -36,7 +36,7 @@ locals {
     master_ec2_instance_type                     = "m7g.xlarge"
     worker_ec2_instance_type                     = "m7g.xlarge"
     worker_max_spot_price                        = 0.15
-    min_number_of_cluster_workers                = 2
+    min_number_of_cluster_workers                = 1
     max_number_of_cluster_workers                = 4
     max_on_demand_number_of_cluster_workers      = 2
     idle_timout_termination_seconds              = 8 * 30 * 60
