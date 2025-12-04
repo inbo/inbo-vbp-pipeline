@@ -11,10 +11,8 @@ locals {
     iam_emr_service_role_arn                     = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipelines-emr-service-role"
     iam_emr_instance_profile_arn                 = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:instance-profile/${var.resource_prefix}pipelines-emr-instance-profile"
     iam_emr_scaling_role                         = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipelines-emr-scaling-role"
-    emr_managed_master_security_group            = aws_security_group.emr_cluster_instances.id
-    emr_managed_slave_security_group             = aws_security_group.emr_cluster_instances.id
-    batch_security_group                         = aws_security_group.batch.id
-    service_access_security_group                = aws_security_group.emr_service_access.id
+    emr_execution_role = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipelines-emr-exec-role"
+    security_group_ids = [aws_security_group.emr_cluster_instances.id]
     portal_authenticated_connection_arn          = aws_cloudwatch_event_connection.portal_authenticated_connection_oauth.arn
     biocache_service_base_url                    = "https://${var.base_domain}/biocache-service"
     collectory_base_url                          = "https://${var.base_domain}/collectory"
@@ -52,7 +50,7 @@ locals {
     collectory_data_access_point_id   = var.collectory_data_volume.access_point_id
     api_key_secret_arn                = aws_secretsmanager_secret.apikey_credentials.arn,
     s3_bucket_name_pipeline           = aws_s3_bucket.pipelines.bucket
-    ec2_subnet_id                     = var.private_subnet_ids[0]
+    subnet_ids                        = var.private_subnet_ids
     state_machine_step_wrapper_arn    = aws_sfn_state_machine.step_wrapper.arn
     state_machine_lock_arn            = aws_sfn_state_machine.lock.arn
     state_machine_download_arn        = aws_sfn_state_machine.download.arn
@@ -66,6 +64,7 @@ locals {
     max_index_concurrency             = 6
     max_sample_concurrency            = 2
     max_solr_concurrency              = 2
+    cloudwatch_log_group_name         = var.log_group_name
   })
 }
 

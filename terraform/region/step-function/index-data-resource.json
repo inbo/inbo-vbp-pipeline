@@ -73,16 +73,17 @@
         }
       },
       "Assign": {
-        "clusterId": "{% $states.result.Output.clusterId %}"
+        "applicationId": "{% $states.result.Output.applicationId %}"
       },
       "Next": "DWCA to Avro"
     },
     "DWCA to Avro": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Resource": "arn:aws:states:::emr-serverless:startJobRun.sync",
       "Arguments": {
-        "ClusterId": "{% $clusterId %}",
-        "Step": {
+        "ApplicationId": "{% $applicationId %}",
+        "ExecutionRoleArn": "{% $config.emr_execution_role %}",
+        "JobDriver": {
           "Name": "{% 'dwca-to-avro-' & $dataResourceId %}",
           "ActionOnFailure": "CONTINUE",
           "HadoopJarStep": {
@@ -106,10 +107,11 @@
     },
     "Interpret": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Resource": "arn:aws:states:::emr-serverless:startJobRun.sync",
       "Arguments": {
-        "ClusterId": "{% $clusterId %}",
-        "Step": {
+        "ApplicationId": "{% $applicationId %}",
+        "ExecutionRoleArn": "{% $config.emr_execution_role %}",
+        "JobDriver": {
           "Name": "{% 'interpret-' & $dataResourceId %}",
           "ActionOnFailure": "CONTINUE",
           "HadoopJarStep": {
@@ -133,10 +135,11 @@
     },
     "Validate": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Resource": "arn:aws:states:::emr-serverless:startJobRun.sync",
       "Arguments": {
-        "ClusterId": "{% $clusterId %}",
-        "Step": {
+        "ApplicationId": "{% $applicationId %}",
+        "ExecutionRoleArn": "{% $config.emr_execution_role %}",
+        "JobDriver": {
           "Name": "{% 'validate-' & $dataResourceId %}",
           "ActionOnFailure": "CONTINUE",
           "HadoopJarStep": {
@@ -160,10 +163,11 @@
     },
     "UUID": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Resource": "arn:aws:states:::emr-serverless:startJobRun.sync",
       "Arguments": {
-        "ClusterId": "{% $clusterId %}",
-        "Step": {
+        "ApplicationId": "{% $applicationId %}",
+        "ExecutionRoleArn": "{% $config.emr_execution_role %}",
+        "JobDriver": {
           "Name": "{% 'uuid-' & $dataResourceId %}",
           "ActionOnFailure": "CONTINUE",
           "HadoopJarStep": {
@@ -207,10 +211,11 @@
     },
     "Image sync": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Resource": "arn:aws:states:::emr-serverless:startJobRun.sync",
       "Arguments": {
-        "ClusterId": "{% $clusterId %}",
-        "Step": {
+        "ApplicationId": "{% $applicationId %}",
+        "ExecutionRoleArn": "{% $config.emr_execution_role %}",
+        "JobDriver": {
           "Name": "{% 'image-sync-' & $dataResourceId %}",
           "ActionOnFailure": "CONTINUE",
           "HadoopJarStep": {
@@ -234,10 +239,11 @@
     },
     "Image load": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Resource": "arn:aws:states:::emr-serverless:startJobRun.sync",
       "Arguments": {
-        "ClusterId": "{% $clusterId %}",
-        "Step": {
+        "ApplicationId": "{% $applicationId %}",
+        "ExecutionRoleArn": "{% $config.emr_execution_role %}",
+        "JobDriver": {
           "Name": "{% 'image-load-' & $dataResourceId %}",
           "ActionOnFailure": "CONTINUE",
           "HadoopJarStep": {
@@ -269,10 +275,11 @@
     },
     "Index": {
       "Type": "Task",
-      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Resource": "arn:aws:states:::emr-serverless:startJobRun.sync",
       "Arguments": {
-        "ClusterId": "{% $clusterId %}",
-        "Step": {
+        "ApplicationId": "{% $applicationId %}",
+        "ExecutionRoleArn": "{% $config.emr_execution_role %}",
+        "JobDriver": {
           "Name": "{% 'index-' & $dataResourceId %}",
           "ActionOnFailure": "CONTINUE",
           "HadoopJarStep": {
