@@ -8,7 +8,9 @@
     "namespace": "Inbo/VBP  ",
     "append_dimensions": {
       "InstanceId": "$${aws:InstanceId}",
-      "EMRClusterId": "$${aws:Tag_emrClusterId}"
+      "Application": "$${aws:Tag_Application}",
+      "EMRJobFlowId": "$${aws:Tag_aws:elasticmapreduce:job-flow-id}",
+      "EMRInstanceGroupRole": "$${aws:Tag_aws:elasticmapreduce:instance-group-role}"
     },
     "metrics_collected": {
       "cpu": {
