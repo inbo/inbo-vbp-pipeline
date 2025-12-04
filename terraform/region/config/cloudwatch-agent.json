@@ -7,8 +7,8 @@
   "metrics": {
     "namespace": "Inbo/VBP  ",
     "append_dimensions": {
-      "InstanceId": "${aws:InstanceId}",
-      "EMRClusterId": "${aws:Tag_emrClusterId}"
+      "InstanceId": "$${aws:InstanceId}",
+      "EMRClusterId": "$${aws:Tag_emrClusterId}"
     },
     "metrics_collected": {
       "cpu": {
