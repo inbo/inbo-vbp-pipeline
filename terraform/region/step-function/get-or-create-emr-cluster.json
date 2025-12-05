@@ -185,13 +185,6 @@
               "rootLogger.level": "info",
               "appender.console.layout.pattern": "%d{DEFAULT} [%level] %logger{1.}: %m%n%ex"
             }
-          },
-          {
-            "Classification": "spark-driver-log4j2",
-            "Properties": {
-              "rootLogger.level": "info",
-              "appender.console.layout.pattern": "%d{DEFAULT} [%level] %logger{1.}: %m%n%ex"
-            }
           }
         ],
         "BootstrapActions": [
