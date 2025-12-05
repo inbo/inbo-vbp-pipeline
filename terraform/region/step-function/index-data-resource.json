@@ -171,7 +171,7 @@
             "Args": [
               "spark-submit",
               "--deploy-mode",
-              "cluster",
+              "client",
               "--class",
               "au.org.ala.pipelines.beam.ALAUUIDMintingPipeline",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
