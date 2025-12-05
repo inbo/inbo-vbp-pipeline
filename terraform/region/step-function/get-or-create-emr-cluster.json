@@ -141,7 +141,13 @@
             {
               "InstanceRole": "CORE",
               "Name": "Core",
-              "InstanceCount": "{% $config.min_number_of_cluster_workers %}",
+              "InstanceCount": "{% $config.min_number_of_core_workers %}",
+              "InstanceType": "{% $config.worker_ec2_instance_type %}"
+            },
+            {
+              "InstanceRole": "TASK",
+              "Name": "Task",
+              "InstanceCount": "{% $config.min_number_of_task_workers %}",
               "InstanceType": "{% $config.worker_ec2_instance_type %}"
             }
           ]
@@ -149,8 +155,10 @@
         "AutoScalingRole": "{% $config.iam_emr_scaling_role %}",
         "ManagedScalingPolicy": {
           "ComputeLimits": {
-            "MinimumCapacityUnits": "{% $config.min_number_of_cluster_workers %}",
-            "MaximumCapacityUnits": "{% $config.max_number_of_cluster_workers %}",
+            "MinimumCapacityUnits": "{% $config.min_number_of_core_workers + $config.min_number_of_task_workers %}",
+            "MaximumCapacityUnits": "{% $config.max_number_of_core_workers + $config.max_number_of_task_workers %}",
+            "MaximumCoreCapacityUnits": "{% $config.max_number_of_core_workers %}",
+            "MaximumOnDemandCapacityUnits": "{% $config.max_on_demand_number_of_cluster_workers %}",
             "UnitType": "Instances"
           }
         },

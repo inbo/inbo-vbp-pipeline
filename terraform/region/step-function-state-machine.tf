@@ -36,11 +36,13 @@ locals {
     master_ec2_instance_type                     = "m7g.xlarge"
     worker_ec2_instance_type                     = "m7g.2xlarge"
     worker_max_spot_price                        = 0.15
-    min_number_of_cluster_workers                = 1
-    max_number_of_cluster_workers                = 4
+    min_number_of_core_workers                   = 1
+    max_number_of_core_workers                   = 1
+    min_number_of_task_workers                   = 0
+    max_number_of_core_workers                   = 4
     max_on_demand_number_of_cluster_workers      = 2
-    idle_timout_termination_seconds              = 8 * 30 * 60
-    emr_tags                                     = [
+    idle_timout_termination_seconds              = 4 * 60 * 60
+    emr_tags = [
       for key, value in merge(data.aws_default_tags.current.tags, {
         for-use-with-amazon-emr-managed-policies = "true"
         Backup                                   = "false"
@@ -62,7 +64,7 @@ locals {
     concurrency_lock_check_interval_s = 8
     concurrency_lock_timeout_ms       = 4 * 3600 * 1000
     emr_step_concurrency_limit        = 10
-    sqs_lock_queues                   = {for name, queue in aws_sqs_queue.lock-queues : name => queue.url}
+    sqs_lock_queues                   = { for name, queue in aws_sqs_queue.lock-queues : name => queue.url }
     max_index_concurrency             = 6
     max_sample_concurrency            = 2
     max_solr_concurrency              = 2
@@ -80,7 +82,7 @@ resource "aws_s3_object" "statemachine_pipelines_config" {
   bucket  = aws_s3_bucket.pipelines.bucket
   key     = "config/state-machine.json"
   content = local.statemachine_config
-  etag = md5(local.statemachine_config)
+  etag    = md5(local.statemachine_config)
 }
 
 resource "aws_sfn_state_machine" "pipeline" {
@@ -183,7 +185,7 @@ resource "aws_sfn_state_machine" "cleanup_emr_cluster" {
 }
 
 resource "aws_ec2_tag" "subnet_emr_managed_policy_tag" {
-  for_each = toset(var.private_subnet_ids)
+  for_each    = toset(var.private_subnet_ids)
   resource_id = each.value
   key         = "for-use-with-amazon-emr-managed-policies"
   value       = "true"
