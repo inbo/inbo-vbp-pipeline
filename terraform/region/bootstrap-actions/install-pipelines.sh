@@ -11,7 +11,6 @@ sudo aws s3 sync --delete \
   "s3://${PIPELINE_BUCKET_NAME}" /opt/inbo/pipelines
 
 sudo chown -R hadoop:yarn /opt/inbo/pipelines
-sudo chmod +x -R /opt/inbo/pipelines/bootstrap-actions
 sudo chmod +x "/opt/inbo/pipelines/pipelines-${PIPELINE_VERSION}.jar"
 
 APIKEY=$(aws secretsmanager get-secret-value --secret-id "${APIKEY_SECRET_ARN}" --output text --query 'SecretString')
