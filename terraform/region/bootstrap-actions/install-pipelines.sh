@@ -9,6 +9,8 @@ sudo aws s3 sync --delete \
   --exclude "*" \
   --include "pipelines-${PIPELINE_VERSION}.jar" \
   --include "config/*" \
+  --include "shp-layers/*" \
+  --include "pipelines-vocabularies/*" \
   --include "bootstrap-actions/*" \
   "s3://${PIPELINE_BUCKET_NAME}" /opt/inbo/pipelines
 
