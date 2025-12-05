@@ -97,7 +97,7 @@
               "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
               "--awsRegion=eu-west-1",
-              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline & '/data' %}"
+              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline %}"
             ]
           }
         }
@@ -124,7 +124,7 @@
               "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
               "--awsRegion=eu-west-1",
-              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline & '/data' %}"
+              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline %}"
             ]
           }
         }
@@ -151,7 +151,7 @@
               "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
               "--awsRegion=eu-west-1",
-              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline & '/data' %}"
+              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline %}"
             ]
           }
         }
@@ -178,7 +178,7 @@
               "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
               "--awsRegion=eu-west-1",
-              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline & '/data' %}"
+              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline %}"
             ]
           }
         }
@@ -225,7 +225,7 @@
               "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
               "--awsRegion=eu-west-1",
-              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline & '/data' %}"
+              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline %}"
             ]
           }
         }
@@ -252,7 +252,7 @@
               "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
               "--awsRegion=eu-west-1",
-              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline & '/data' %}"
+              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline %}"
             ]
           }
         }
@@ -287,7 +287,7 @@
               "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
               "--awsRegion=eu-west-1",
-              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline & '/data' %}"
+              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline %}"
             ]
           }
         }

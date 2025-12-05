@@ -3,7 +3,7 @@ general:
   hdfsSiteConfig: /etc/hadoop/conf/hdfs-site.xml
   coreSiteConfig: /etc/hadoop/conf/core-site.xml
   tempLocation: '/tmp/pipelines'
-  targetPath: '{fsPath}/pipelines-data'
+  targetPath: '{fsPath}/data/pipelines-data'
 
 alaNameMatch:
   wsUrl: http://namematching-service.vbp.internal:9179
@@ -45,7 +45,7 @@ samplingService:
     initialIntervalMillis: 1000
 geocodeConfig:
   country:
-    path: /opt/inbo/pipelines/shp-layers/political
+    path: "{fsPath}/shp-layers/political"
     field: ISO_A2
     intersectBuffer: 0.135
     intersectMapping:
@@ -54,15 +54,15 @@ geocodeConfig:
       HM: AU
       NF: AU
   eez:
-    path: /opt/inbo/pipelines/shp-layers/eez
+    path: "{fsPath}/shp-layers/eez"
     field: ISO2
     intersectBuffer: 0.135
   stateProvince:
-    path: /opt/inbo/pipelines/shp-layers/cw_state_poly
+    path: "{fsPath}/shp-layers/cw_state_poly"
     field: FEATURE
     intersectBuffer: 0
   biome:
-    path: /opt/inbo/pipelines/shp-layers/gadm0
+    path: "{fsPath}/shp-layers/gadm0"
     field: FEATURE
 
 gbifConfig:
@@ -93,7 +93,7 @@ gbifConfig:
     - http://rs.gbif.org/terms/1.0/DNADerivedData
     - http://ala.org.au/terms/seedbank/0.1/SeedbankRecord
   vocabularyConfig:
-    vocabulariesPath: /opt/inbo/pipelines/pipelines-vocabularies/
+    vocabulariesPath: "{fsPath}/pipelines-vocabularies/"
     vocabulariesNames:
       http://rs.tdwg.org/dwc/terms/degreeOfEstablishment: DegreeOfEstablishment
       http://rs.tdwg.org/dwc/terms/lifeStage: LifeStage
@@ -118,7 +118,7 @@ interpret:
   appName: Interpretation for {datasetId}
   interpretationTypes: ALL
   defaultDateFormat: DMYT,DMY
-  inputPath: '{fsPath}/pipelines-data/{datasetId}/0/verbatim/*.avro'
+  inputPath: '{fsPath}/data/pipelines-data/{datasetId}/0/verbatim/*.avro'
   # Skips GBIF id generation and copies ids from ExtendedRecord ids
   useExtendedRecordId: true
   runner: SparkRunner
@@ -131,48 +131,48 @@ uuid:
   numberOfBackupsToKeep: 10
   percentageChangeAllowed: 50
   throwErrorOnValidationFail: false
-  inputPath: '{fsPath}/pipelines-data'
+  inputPath: '{fsPath}/data/pipelines-data'
 
 images:
   appName: Image syncing for {datasetId}
   runner: SparkRunner  # pipe separated list (note: YAML list not coming through correctly)
   recognisedPaths: "https://natuurdata.dev.inbo.be/images"
-  inputPath: '{fsPath}/pipelines-data'
+  inputPath: '{fsPath}/data/pipelines-data'
 
 speciesLists:
   runner: SparkRunner
-  speciesAggregatesPath: '{fsPath}/pipelines-species'
+  speciesAggregatesPath: '{fsPath}/data/pipelines-species'
   maxDownloadAgeInMinutes: 1440
   includeConservationStatus: true
   includeInvasiveStatus: true
-  inputPath: '{fsPath}/pipelines-data'
+  inputPath: '{fsPath}/data/pipelines-data'
 
 # Sampling specific configuration
 sampling:
   appName: Sample for {datasetId}
   runner: SparkRunner
-  inputPath: '{fsPath}/pipelines-data'
-  allDatasetsInputPath: '{fsPath}/pipelines-all-datasets'
+  inputPath: '{fsPath}/data/pipelines-data'
+  allDatasetsInputPath: '{fsPath}/data/pipelines-all-datasets'
 
 # Calculate distance to the expert distribution layers
 # class:au.org.ala.pipelines.beam.DistributionOutlierPipeline
 outlier:
   appName: Expert distribution outliers for {datasetId}
   baseUrl: https://spatial-service.vbp.internal:8080/spatial-service/
-  targetPath: '{fsPath}/pipelines-outlier'
+  targetPath: '{fsPath}/data/pipelines-outlier'
   runner: SparkRunner
-  allDatasetsInputPath: '{fsPath}/pipelines-all-datasets'
+  allDatasetsInputPath: '{fsPath}/data/pipelines-all-datasets'
 
 annotation:
   runner: SparkRunner
-  inputPath: '{fsPath}/pipelines-annotations'
-  targetPath: '{fsPath}/pipelines-annotations'
+  inputPath: '{fsPath}/data/pipelines-annotations'
+  targetPath: '{fsPath}/data/pipelines-annotations'
 
 # class: au.org.ala.pipelines.beam.ALAInterpretedToSensitivePipeline
 sensitive:
   appName: Sensitive Data Processing for {datasetId}
   runner: SparkRunner
-  inputPath: '{fsPath}/pipelines-data'
+  inputPath: '{fsPath}/data/pipelines-data'
 
 # class: au.org.ala.pipelines.java.IndexRecordPipeline
 index:
@@ -181,18 +181,18 @@ index:
   includeSpeciesLists: true
   includeSensitiveDataChecks: false
   runner: SparkRunner
-  inputPath: '{fsPath}/pipelines-data'
-  allDatasetsInputPath: '{fsPath}/pipelines-all-datasets'
+  inputPath: '{fsPath}/data/pipelines-data'
+  allDatasetsInputPath: '{fsPath}/data/pipelines-all-datasets'
 
 # class: au.org.ala.pipelines.beam.IndexRecordToSolrPipeline
 solr:
   appName: SOLR indexing for {datasetId}
-  inputPath: '{fsPath}/pipelines-data'
-  allDatasetsInputPath: '{fsPath}/pipelines-all-datasets'
-  jackKnifePath: '{fsPath}/pipelines-jackknife'
-  clusteringPath: '{fsPath}/pipelines-clustering'
-  outlierPath: '{fsPath}/pipelines-outlier'
-  annotationsPath: '{fsPath}/pipelines-annotations'
+  inputPath: '{fsPath}/data/pipelines-data'
+  allDatasetsInputPath: '{fsPath}/data/pipelines-all-datasets'
+  jackKnifePath: '{fsPath}/data/pipelines-jackknife'
+  clusteringPath: '{fsPath}/data/pipelines-clustering'
+  outlierPath: '{fsPath}/data/pipelines-outlier'
+  annotationsPath: '{fsPath}/data/pipelines-annotations'
   solrCollection: biocache
   includeSampling: true
   includeJackKnife: false
@@ -212,8 +212,8 @@ elastic:
   indexNumberReplicas: 0
   metaFileName: elastic.yml
   esDocumentId: internalId
-  inputPath: '{fsPath}/pipelines-data'
-  targetPath: '{fsPath}/pipelines-data'
+  inputPath: '{fsPath}/data/pipelines-data'
+  targetPath: '{fsPath}/data/pipelines-data'
 
 
 export:
@@ -224,7 +224,7 @@ export:
   predicateExportEnabled: true
 
 predicate-export:
-  targetPath: '{fsPath}/pipelines-export'
+  targetPath: '{fsPath}/data/pipelines-export'
   localExportPath: /tmp/pipelines-export
   skipEventExportFields:
     - "id"
@@ -251,25 +251,25 @@ solrSchema:
 # class: au.org.ala.pipelines.beam.ALAReverseJackKnifePipeline
 jackKnife:
   appName: Jack knife outlier detection
-  jackKnifePath: '{fsPath}/pipelines-jackknife'
+  jackKnifePath: '{fsPath}/data/pipelines-jackknife'
   layers: cl10001,cl10000,cl10002
   minSampleThreshold: 80
   runner: SparkRunner
 
 clustering:
   appName: Occurrence clustering
-  clusteringPath: '{fsPath}/pipelines-clustering'
+  clusteringPath: '{fsPath}/data/pipelines-clustering'
   runner: SparkRunner
 
 # class: DumpArchiveList
 dataset-archive-list:
-  inputPath: '{fsPath}/dwca-imports'
+  inputPath: '{fsPath}/data/dwca-imports'
   targetPath: /tmp/dataset-archive-list.csv
 
 # class: au.org.ala.utils.DumpDatasetSize
 dataset-count-dump:
   targetPath: /tmp/dataset-counts.csv
-  dwcaImportPath: '{fsPath}/dwca-imports'
+  dwcaImportPath: '{fsPath}/data/dwca-imports'
 
 validation-report:
   targetPath: /tmp/dataset-validation-list.csv
