@@ -110,7 +110,7 @@
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
               "{% '--solrCollection=' & $states.context.Execution.Input.solrCollection %}",
               "--awsRegion=eu-west-1",
-              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline & '/data/'%}"
+              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline & '/data'%}"
             ]
           }
         }
