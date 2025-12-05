@@ -5,7 +5,7 @@
     "run_as_user": "cwagent"
   },
   "metrics": {
-    "namespace": "Inbo/VBP  ",
+    "namespace": "Inbo/VBP",
     "append_dimensions": {
       "InstanceId": "$${aws:InstanceId}",
       "Application": "$${aws:Tag_Application}",
