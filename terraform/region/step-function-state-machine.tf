@@ -39,7 +39,7 @@ locals {
     min_number_of_core_workers                   = 1
     max_number_of_core_workers                   = 1
     min_number_of_task_workers                   = 0
-    max_number_of_core_workers                   = 4
+    max_number_of_task_workers                   = 4
     max_on_demand_number_of_cluster_workers      = 2
     idle_timout_termination_seconds              = 4 * 60 * 60
     emr_tags = [
