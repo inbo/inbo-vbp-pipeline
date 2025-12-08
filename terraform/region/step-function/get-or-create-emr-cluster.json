@@ -185,7 +185,6 @@
             "Classification": "spark-log4j2",
             "Properties": {
               "rootLogger.level": "info",
-              "logger.org.apache.spark.level": "info",
               "appender.console.layout.pattern": "%d{DEFAULT} [%level] %logger{1.}: %m%n%ex"
             }
           }
