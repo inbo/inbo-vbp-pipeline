@@ -143,6 +143,12 @@
               "Name": "Core",
               "InstanceCount": "{% $config.min_number_of_core_workers %}",
               "InstanceType": "{% $config.worker_ec2_instance_type %}"
+            },
+            {
+              "InstanceRole": "TASK",
+              "Name": "Task",
+              "InstanceCount": "{% $config.min_number_of_task_workers %}",
+              "InstanceType": "{% $config.worker_ec2_instance_type %}"
             }
           ]
         },
