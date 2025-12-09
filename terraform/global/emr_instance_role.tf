@@ -154,6 +154,20 @@ data "aws_iam_policy_document" "iam_emr_instance_profile_policy" {
   statement {
     effect = "Allow"
     actions = [
+      "cloudwatch:GetMetricStatistics",
+      "cloudwatch:ListMetrics",
+      "cloudwatch:PutMetricData",
+      "ec2:DescribeTags"
+    ]
+    #tfsec:ignore:aws-iam-no-policy-wildcards
+    resources = [
+      "*"
+    ]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
       "secretsmanager:GetSecretValue",
     ]
     #tfsec:ignore:aws-iam-no-policy-wildcards
