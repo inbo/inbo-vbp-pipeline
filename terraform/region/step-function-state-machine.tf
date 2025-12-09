@@ -34,10 +34,10 @@ locals {
     dataresource_size_threshold                  = 10000000
     pipelines_version                            = var.docker_version
     master_ec2_instance_type                     = "m7g.2xlarge"
-    worker_ec2_instance_type                     = "m7g.xlarge"
+    worker_ec2_instance_type                     = "m7g.2xlarge"
     worker_max_spot_price                        = 0.15
     min_number_of_core_workers                   = 2
-    max_number_of_core_workers                   = 6
+    max_number_of_core_workers                   = 2
     min_number_of_task_workers                   = 0
     max_number_of_task_workers                   = 0
     max_on_demand_number_of_cluster_workers      = 6
