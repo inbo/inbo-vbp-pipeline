@@ -61,9 +61,9 @@ locals {
     state_machine_index_arn           = aws_sfn_state_machine.index.arn
     state_machine_sample_arn          = aws_sfn_state_machine.sample.arn
     state_machine_solr_arn            = aws_sfn_state_machine.solr.arn
-    concurrency_lock_check_interval_s = 6
-    concurrency_lock_timeout_ms       = 4 * 3600 * 1000
-    emr_step_concurrency_limit        = 10
+    concurrency_lock_check_interval_s = 10
+    concurrency_lock_timeout_ms       = 8 * 3600 * 1000
+    emr_step_concurrency_limit        = 8
     sqs_lock_queues                   = { for name, queue in aws_sqs_queue.lock-queues : name => queue.url }
     max_index_concurrency             = 6
     max_sample_concurrency            = 2
