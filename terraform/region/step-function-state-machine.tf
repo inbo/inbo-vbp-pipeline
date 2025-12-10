@@ -31,7 +31,7 @@ locals {
     job_queue_arn                                = aws_batch_job_queue.pipelines_queue.arn
     dynamodb_table_name                          = aws_dynamodb_table.biodiversiteitsportaal_pipelines.name
     apikey_secret_value                          = aws_secretsmanager_secret_version.apikey_credentials.secret_string
-    dataresource_size_threshold                  = 10000000
+    dataresource_size_threshold                  = 100000000
     pipelines_version                            = var.docker_version
     master_ec2_instance_type                     = "m7g.2xlarge"
     worker_ec2_instance_type                     = "m7g.2xlarge"
