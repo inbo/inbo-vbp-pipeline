@@ -19,17 +19,17 @@
       "Next": "Process Data Resources",
       "Branches": [
         {
-          "StartAt": "Check if list of dataresources are specified",
+          "StartAt": "Need to process all dataresources?",
           "States": {
-            "Check if list of dataresources are specified": {
+            "Need to process all dataresources?": {
               "Type": "Choice",
               "Choices": [
                 {
-                  "Next": "Use Provided List of Data Resources",
-                  "Condition": "{% $exists($states.context.Execution.Input.dataResources)  %}"
+                  "Next": "Get list of all dataresources",
+                  "Condition": "{% $not($exists($states.context.Execution.Input.dataResources)) or $states.context.Execution.Input.dataResources = \"all\"  %}"
                 }
               ],
-              "Default": "Get list of all dataresources"
+              "Default": "Use Provided List of Data Resources"
             },
             "Use Provided List of Data Resources": {
               "Type": "Pass",
@@ -48,9 +48,7 @@
               },
               "Retry": [
                 {
-                  "ErrorEquals": [
-                    "States.ALL"
-                  ],
+                  "ErrorEquals": ["States.ALL"],
                   "BackoffRate": 2,
                   "IntervalSeconds": 1,
                   "MaxAttempts": 3,
@@ -81,9 +79,7 @@
               },
               "Retry": [
                 {
-                  "ErrorEquals": [
-                    "States.ALL"
-                  ],
+                  "ErrorEquals": ["States.ALL"],
                   "BackoffRate": 2,
                   "IntervalSeconds": 1,
                   "MaxAttempts": 3,
@@ -109,9 +105,7 @@
               },
               "Retry": [
                 {
-                  "ErrorEquals": [
-                    "States.ALL"
-                  ],
+                  "ErrorEquals": ["States.ALL"],
                   "BackoffRate": 2,
                   "IntervalSeconds": 1,
                   "MaxAttempts": 3,
@@ -181,7 +175,21 @@
                         "forceIndex": "{% $states.context.Execution.Input.forceIndex or false %}"
                       }
                     },
-                    "Next": "Sample Spatial Layers"
+                    "Next": "Process Data Resources Individually?"
+                  },
+                  "Process Data Resources Individually?": {
+                    "Type": "Choice",
+                    "Choices": [
+                      {
+                        "Next": "Do Nothing 2",
+                        "Condition": "{% $not($exists($states.context.Execution.Input.dataResources)) or $states.context.Execution.Input.dataResources = \"all\"  %}"
+                      }
+                    ],
+                    "Default": "Sample Spatial Layers"
+                  },
+                  "Do Nothing 2": {
+                    "Type": "Pass",
+                    "End": true
                   },
                   "Sample Spatial Layers": {
                     "Type": "Task",
@@ -226,9 +234,7 @@
             ],
             "Catch": [
               {
-                "ErrorEquals": [
-                  "States.ALL"
-                ],
+                "ErrorEquals": ["States.ALL"],
                 "Next": "Ignore Error",
                 "Output": {
                   "dataResourceId": "{% $states.input %}",
@@ -245,17 +251,82 @@
           }
         }
       },
-      "Next": "Cleanup EMR Cluster",
+      "Next": "Choice",
       "Items": "{% $dataResources %}",
       "Catch": [
         {
-          "ErrorEquals": [
-            "States.ALL"
-          ],
+          "ErrorEquals": ["States.ALL"],
           "Next": "Cleanup EMR Cluster"
         }
       ],
       "Output": "{% $states.result %}"
+    },
+    "Choice": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "Catch Failures Processing All",
+          "Condition": "{% $not($exists($states.context.Execution.Input.dataResources)) or $states.context.Execution.Input.dataResources = \"all\"  %}"
+        }
+      ],
+      "Default": "Cleanup EMR Cluster"
+    },
+    "Catch Failures Processing All": {
+      "Type": "Parallel",
+      "Next": "Cleanup EMR Cluster",
+      "Branches": [
+        {
+          "StartAt": "Sample Spatial Layers All",
+          "States": {
+            "Sample Spatial Layers All": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::states:startExecution.sync:2",
+              "Arguments": {
+                "StateMachineArn": "{% $config.state_machine_step_wrapper_arn %}",
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
+                  "stepArn": "{% $config.state_machine_sample_arn %}",
+                  "stepName": "Sample",
+                  "rootPipelineName": "{% $states.context.Execution.Name %}",
+                  "dataResourceId": "all",
+                  "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
+                  "spatialFields": "{% $spatialFields %}",
+                  "forceSample": "{% $states.context.Execution.Input.forceSample or false %}"
+                }
+              },
+              "Next": "Upload to Solr All"
+            },
+            "Upload to Solr All": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::states:startExecution.sync:2",
+              "Arguments": {
+                "StateMachineArn": "{% $config.state_machine_step_wrapper_arn %}",
+                "Input": {
+                  "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
+                  "stepArn": "{% $config.state_machine_solr_arn %}",
+                  "stepName": "Solr",
+                  "rootPipelineName": "{% $states.context.Execution.Name %}",
+                  "dataResourceId": "all",
+                  "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
+                  "solrCollection": "{% $solrCollection %}",
+                  "forceSolr": "{% $states.context.Execution.Input.forceSolr or false %}"
+                }
+              },
+              "End": true
+            }
+          }
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "Cleanup EMR Cluster",
+          "Output": {
+            "dataResourceId": "all",
+            "Error": "{% $states.errorOutput.Error %}"
+          }
+        }
+      ]
     },
     "Cleanup EMR Cluster": {
       "Type": "Task",
@@ -337,9 +408,7 @@
       },
       "Retry": [
         {
-          "ErrorEquals": [
-            "States.ALL"
-          ],
+          "ErrorEquals": ["States.ALL"],
           "BackoffRate": 2,
           "IntervalSeconds": 1,
           "MaxAttempts": 3,
@@ -349,9 +418,7 @@
       "End": true,
       "Catch": [
         {
-          "ErrorEquals": [
-            "States.Http.StatusCode.416"
-          ],
+          "ErrorEquals": ["States.Http.StatusCode.416"],
           "Next": "Do Nothing",
           "Comment": "Ignore stupid 416 error",
           "Output": "{% $states.input %}"

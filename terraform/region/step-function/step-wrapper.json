@@ -95,9 +95,7 @@
               "Next": "Acquire Concurrency Lock",
               "Retry": [
                 {
-                  "ErrorEquals": [
-                    "DynamoDb.TransactionCanceledException"
-                  ],
+                  "ErrorEquals": ["DynamoDb.TransactionCanceledException"],
                   "BackoffRate": 2,
                   "IntervalSeconds": 1,
                   "MaxAttempts": 3,
@@ -214,9 +212,7 @@
                       },
                       "ExpressionAttributeValues": {
                         ":executionId": {
-                          "Ss": [
-                            "{% $states.context.Execution.Id %}"
-                          ]
+                          "Ss": ["{% $states.context.Execution.Id %}"]
                         },
                         ":lockLimit": {
                           "N": "1"
@@ -227,18 +223,30 @@
                 ]
               },
               "Resource": "arn:aws:states:::aws-sdk:dynamodb:transactWriteItems",
-              "Next": "Get Data Resource Details",
+              "Next": "Is individual DataResource?",
               "Retry": [
                 {
-                  "ErrorEquals": [
-                    "DynamoDb.TransactionCanceledException"
-                  ],
+                  "ErrorEquals": ["DynamoDb.TransactionCanceledException"],
                   "BackoffRate": 2,
                   "IntervalSeconds": 1,
                   "MaxAttempts": 3,
                   "JitterStrategy": "FULL"
                 }
               ]
+            },
+            "Is individual DataResource?": {
+              "Type": "Choice",
+              "Choices": [
+                {
+                  "Next": "Get Data Resource Details",
+                  "Condition": "{% $dataResourceId != 'all' %}"
+                }
+              ],
+              "Default": "Get Data Resource Processing State",
+              "Output": {
+                "uid": "all",
+                "lastUpdated": "{% $now() %}"
+              }
             },
             "Get Data Resource Details": {
               "Type": "Task",
@@ -252,9 +260,7 @@
               },
               "Retry": [
                 {
-                  "ErrorEquals": [
-                    "States.ALL"
-                  ],
+                  "ErrorEquals": ["States.ALL"],
                   "BackoffRate": 2,
                   "IntervalSeconds": 1,
                   "MaxAttempts": 3,
@@ -298,9 +304,7 @@
       ],
       "Catch": [
         {
-          "ErrorEquals": [
-            "States.ALL"
-          ],
+          "ErrorEquals": ["States.ALL"],
           "Next": "Update State and Cleanup Locks",
           "Assign": {
             "newState": "Failed"
@@ -401,9 +405,7 @@
               },
               "ExpressionAttributeValues": {
                 ":executionId": {
-                  "Ss": [
-                    "{% $states.context.Execution.Id %}"
-                  ]
+                  "Ss": ["{% $states.context.Execution.Id %}"]
                 }
               }
             }
@@ -425,9 +427,7 @@
               },
               "ExpressionAttributeValues": {
                 ":executionId": {
-                  "Ss": [
-                    "{% $states.context.Execution.Id %}"
-                  ]
+                  "Ss": ["{% $states.context.Execution.Id %}"]
                 }
               }
             }
@@ -439,9 +439,7 @@
       "Output": "{% $states.input %}",
       "Retry": [
         {
-          "ErrorEquals": [
-            "DynamoDb.TransactionCanceledException"
-          ],
+          "ErrorEquals": ["DynamoDb.TransactionCanceledException"],
           "BackoffRate": 2,
           "IntervalSeconds": 1,
           "MaxAttempts": 3,

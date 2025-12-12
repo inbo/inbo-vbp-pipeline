@@ -40,9 +40,7 @@
       "Next": "Pass",
       "Catch": [
         {
-          "ErrorEquals": [
-            "DynamoDb.TransactionCanceledException"
-          ],
+          "ErrorEquals": ["DynamoDb.TransactionCanceledException"],
           "Next": "Has reached timeout?"
         }
       ]
@@ -65,7 +63,15 @@
         "MaxNumberOfMessages": 1
       },
       "Resource": "arn:aws:states:::aws-sdk:sqs:receiveMessage",
-      "Next": "Has received a message?"
+      "Next": "Has received a message?",
+      "Retry": [
+        {
+          "ErrorEquals": ["Sqs.SdkClientException"],
+          "BackoffRate": 2,
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3
+        }
+      ]
     },
     "Has received a message?": {
       "Type": "Choice",
