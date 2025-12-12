@@ -43,9 +43,7 @@
       "Next": "EMR CreateCluster",
       "Catch": [
         {
-          "ErrorEquals": [
-            "DynamoDb.TransactionCanceledException"
-          ],
+          "ErrorEquals": ["DynamoDb.TransactionCanceledException"],
           "Next": "Store start wait timestamp"
         }
       ]
@@ -158,6 +156,12 @@
             "Properties": {
               "spark.yarn.maxAppAttempts": "2",
               "spark.eventLog.overwrite": "true"
+            }
+          },
+          {
+            "Classification": "hdfs-site",
+            "Properties": {
+              "fs.s3a.connection.maximum": 100
             }
           },
           {
