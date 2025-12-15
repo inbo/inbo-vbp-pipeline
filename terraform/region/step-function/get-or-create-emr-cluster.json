@@ -146,15 +146,8 @@
         },
         "Configurations": [
           {
-            "Classification": "spark",
-            "Properties": {
-              "maximizeResourceAllocation": "true"
-            }
-          },
-          {
             "Classification": "spark-defaults",
             "Properties": {
-              "spark.dynamicAllocation.enabled": "true",
               "spark.eventLog.overwrite": "true"
             }
           },
