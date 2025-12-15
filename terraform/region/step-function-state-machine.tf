@@ -68,6 +68,7 @@ locals {
     max_index_concurrency             = 6
     max_sample_concurrency            = 2
     max_solr_concurrency              = 2
+    spark_log_level                   = "INFO"
     spark_default_parallelism         = 160
     spark_driver_memory               = "6G"
     spark_driver_memory_overhead      = "2G"

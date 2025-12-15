@@ -191,7 +191,7 @@
           {
             "Classification": "spark-log4j2",
             "Properties": {
-              "rootLogger.level": "DEBUG",
+              "rootLogger.level": "{% $string($config.spark_log_level )%}",
               "appender.console.layout.pattern": "%d{DEFAULT} [%level] %logger{1.}: %m%n%ex"
             }
           }
