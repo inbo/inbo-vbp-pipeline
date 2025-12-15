@@ -150,8 +150,8 @@
             "Properties": {
               "spark.eventLog.overwrite": "true",
               "spark.default.parallelism": "144",
-              "spark.driver.memory": "2G",
-              "spark.executor.memory": "14G",
+              "spark.driver.memory": "1G",
+              "spark.executor.memory": "10G",
               "spark.executor.cores": "8",
               "spark.executor.instances": "2"
             }
