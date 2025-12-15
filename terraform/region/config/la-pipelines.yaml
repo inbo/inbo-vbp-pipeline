@@ -112,6 +112,7 @@ pipelineExcludeArgs: fsPath
 dwca-avro:
   runner: SparkRunner
   inputPath: '/data/dwca/{datasetId}.zip'
+  tempLocation: /tmp/pipelines/{datasetId}/tmp/
 
 # class: au.org.ala.pipelines.beam.ALAVerbatimToInterpretedPipeline
 interpret:

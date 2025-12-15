@@ -178,7 +178,7 @@
           {
             "Classification": "spark-log4j2",
             "Properties": {
-              "rootLogger.level": "INFO",
+              "rootLogger.level": "DEBUG",
               "appender.console.layout.pattern": "%d{DEFAULT} [%level] %logger{1.}: %m%n%ex"
             }
           }
