@@ -7,22 +7,22 @@ general:
 
 alaNameMatch:
   wsUrl: http://namematching-service.vbp.internal:9179
-  timeoutSec: 30
+  timeoutSec: 5
   retryConfig:
     maxAttempts: 5
-    initialIntervalMillis: 5000
+    initialIntervalMillis: 1000
 collectory:
   wsUrl: http://collectory.vbp.internal:8080/collectory/ws/
-  timeoutSec: 30
+  timeoutSec: 5
   retryConfig:
-    maxAttempts: 10
-    initialIntervalMillis: 10000
+    maxAttempts: 5
+    initialIntervalMillis: 1000
   httpHeaders:
     Authorization: ${APIKEY}
     apiKey: ${APIKEY}
 imageService:
   wsUrl: http://image-service.vbp.internal:8080/image-service/
-  timeoutSec: 30
+  timeoutSec: 5
   httpHeaders:
     apiKey: ${APIKEY}
   retryConfig:
@@ -30,18 +30,18 @@ imageService:
     initialIntervalMillis: 1000
 speciesListService:
   wsUrl: http://species-list.vbp.internal:8080/species-list/
-  timeoutSec: 90
+  timeoutSec: 5
   retryConfig:
     maxAttempts: 5
     initialIntervalMillis: 1000
 samplingService:
   wsUrl: http://spatial-service.vbp.internal:8080/spatial-service/
-  timeoutSec: 1200
-  batchSize: 25000
+  timeoutSec: 10
+  batchSize: 10000
   batchStatusSleepTime: 1000
   downloadRetries: 5
   retryConfig:
-    maxAttempts: 10
+    maxAttempts: 5
     initialIntervalMillis: 1000
 geocodeConfig:
   country:
