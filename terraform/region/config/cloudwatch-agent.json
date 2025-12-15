@@ -30,6 +30,17 @@
           "mem_available"
         ],
         "metrics_collection_interval": 60
+      },
+      "disk": {
+        "measurement": [
+          "disk_used",
+          "disk_free",
+          "disk_used_percent",
+          "diskio_read_bytes",
+          "diskio_write_bytes",
+          "diskio_io_time"
+        ],
+        "metrics_collection_interval": 60
       }
     }
   },

@@ -49,7 +49,7 @@ locals {
         Application                              = var.application
       }) : { Key = key, Value = value }
     ]
-    ebs_root_volume_size              = 40
+    ebs_root_volume_size              = 100
     collectory_data_volume_id         = var.collectory_data_volume.volume_id
     collectory_data_access_point_id   = var.collectory_data_volume.access_point_id
     api_key_secret_arn                = aws_secretsmanager_secret.apikey_credentials.arn,
