@@ -150,12 +150,25 @@
             "Properties": {
               "spark.eventLog.overwrite": "true",
               "spark.default.parallelism": "{% $string($config.spark_default_parallelism )%}",
+              "spark.sql.shuffle.partitions": "{% $string($config.spark_default_parallelism )%}",
               "spark.driver.memory": "{% $string($config.spark_driver_memory )%}",
               "spark.driver.memoryOverhead": "{% $string($config.spark_driver_memory_overhead )%}",
               "spark.executor.memory": "{% $string($config.spark_executor_memory )%}",
               "spark.executor.memoryOverhead": "{% $string($config.spark_executor_memory_overhead )%}",
               "spark.executor.cores": "{% $string($config.spark_executor_cores )%}",
-              "spark.executor.instances": "{% $string($config.spark_executor_instances) %}"
+              "spark.executor.instances": "{% $string($config.spark_executor_instances) %}",
+              "spark.serializer": "org.apache.spark.serializer.KryoSerializer",
+              "spark.kryoserializer.buffer.max": "512m",
+              "spark.executor.extraJavaOptions": "-XX:+UseG1GC -XX:InitiatingHeapOccupancyPercent=35",
+              "spark.driver.extraJavaOptions": "-XX:+UseG1GC"
+            }
+          },
+          {
+            "Classification": "yarn-site",
+            "Properties": {
+              "yarn.nodemanager.resource.memory-mb": "27648",
+              "yarn.scheduler.maximum-allocation-mb": "27648",
+              "yarn.scheduler.minimum-allocation-mb": "1024"
             }
           },
           {
