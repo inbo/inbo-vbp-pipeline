@@ -33,8 +33,8 @@ locals {
     apikey_secret_value                          = aws_secretsmanager_secret_version.apikey_credentials.secret_string
     dataresource_size_threshold                  = 20000000
     pipelines_version                            = var.docker_version
-    master_ec2_instance_type                     = "m7g.4xlarge"
-    worker_ec2_instance_type                     = "m7g.4xlarge"
+    master_ec2_instance_type                     = "m7g.xlarge"
+    worker_ec2_instance_type                     = "m7g.xlarge"
     worker_max_spot_price                        = 0.15
     min_number_of_core_workers                   = 2
     max_number_of_core_workers                   = 2
