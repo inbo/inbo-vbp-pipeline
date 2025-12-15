@@ -97,7 +97,11 @@
               "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
               "--awsRegion=eu-west-1",
-              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline & '/data'%}"
+              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline & '/data'%}",
+              "--conf", "spark.executor.cores=2",
+              "--conf", "spark.executor.memory=8g",
+              "--conf", "spark.executor.memoryOverhead=4g",
+              "--conf", "spark.sql.files.maxPartitionBytes=64m"
             ]
           }
         }

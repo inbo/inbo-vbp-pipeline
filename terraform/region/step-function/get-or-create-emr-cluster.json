@@ -157,7 +157,7 @@
               "spark.eventLog.overwrite": "true",
               "spark.default.parallelism": "{% $string($config.spark_default_parallelism )%}",
               "spark.sql.shuffle.partitions": "{% $string($config.spark_default_parallelism )%}",
-              "spark.local.dir": "/mnt/spark,/mnt1/spark,/mnt2/spark,/mnt3/spark"
+              "spark.local.dir": "{% '/mnt/spark,/mnt1/spark' & $config.worker_ec2_number_of_instance_cores >=4 ? ',/mnt2/spark,/mnt3/spark' : '' %}"
             }
           },
           {
