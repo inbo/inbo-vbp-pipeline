@@ -74,7 +74,7 @@ locals {
     spark_executor_memory             = "12G"
     spark_executor_memory_overhead    = "1G"
     spark_executor_cores              = 8
-    spark_executor_instance           = 2
+    spark_executor_instances          = 2
   })
 }
 
