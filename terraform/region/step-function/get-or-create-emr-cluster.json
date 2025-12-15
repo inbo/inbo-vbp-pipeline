@@ -152,6 +152,8 @@
               "spark.default.parallelism": "144",
               "spark.driver.memory": "1G",
               "spark.executor.memory": "10G",
+              "spark.executor.memoryOverhead": "0.15",
+              "spark.driver.memoryOverhead": "0.1",
               "spark.executor.cores": "8",
               "spark.executor.instances": "2"
             }
