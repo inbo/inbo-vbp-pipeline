@@ -148,7 +148,12 @@
           {
             "Classification": "spark-defaults",
             "Properties": {
-              "spark.eventLog.overwrite": "true"
+              "spark.eventLog.overwrite": "true",
+              "spark.default.parallelism": "144",
+              "spark.driver.memory": "2G",
+              "spark.executor.memory": "14G",
+              "spark.executor.cores": "8",
+              "spark.executor.instances": "2"
             }
           },
           {
