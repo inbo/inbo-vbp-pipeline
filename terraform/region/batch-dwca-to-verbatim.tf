@@ -17,6 +17,7 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
 
   container_properties = jsonencode({
     name = var.name
+    user = "root"
     environment = [
       { name : "COMPUTE_ENVIRONMENT", value : "embedded" },
       { name : "DATA_RESOURCE_ID", value : "Ref::DATA_RESOURCE_ID" },
@@ -33,8 +34,6 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
       #!/usr/bin/env bash
       set -e -x -o pipefail
 
-      ls -la /tmp
-      chmod 777 /tmp
       mkdir -p /tmp/pipelines
 
       aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_config.id} ../configs/la-pipelines.yaml
