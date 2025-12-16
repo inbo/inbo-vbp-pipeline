@@ -71,6 +71,10 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
       }
     ]
 
+    ephemeralStorage = {
+      sizeInGiB = 200
+    }
+
     mountPoints = [
       {
         sourceVolume  = "collectory"
