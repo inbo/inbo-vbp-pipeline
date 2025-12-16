@@ -122,6 +122,7 @@ data "aws_iam_policy_document" "pipeline" {
       "arn:aws:batch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:job-definition/dwca-to-index:*",
       "arn:aws:batch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:job-definition/index-to-solr:*",
       "arn:aws:batch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:job-definition/spatial-sampling:*",
+      "arn:aws:batch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:job-definition/dwca-to-verbatim:*",
       "arn:aws:batch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:job-queue/${var.resource_prefix}pipelines"
     ]
   }
