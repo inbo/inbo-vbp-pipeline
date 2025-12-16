@@ -76,6 +76,11 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
         sourceVolume  = "collectory"
         containerPath = "/data"
         readOnly      = false
+      },
+      {
+        sourceVolume  = "temp"
+        containerPath = "/tmp"
+        readOnly      = false
       }
     ]
 
@@ -90,7 +95,10 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
             accessPointId = var.collectory_data_volume.access_point_id
             iam           = "ENABLED"
           }
-        }
+        },
+      },
+      {
+        name = "temp"
       }
     ]
 
