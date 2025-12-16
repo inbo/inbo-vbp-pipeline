@@ -31,6 +31,7 @@ locals {
     delete_data_resource_data_job_definition_arn = aws_batch_job_definition.delete_data_resource_data.arn
     get_or_create_emr_cluster_state_machine_arn  = aws_sfn_state_machine.get_or_create_emr_cluster.arn
     cleanup_emr_cluster_state_machine_arn        = aws_sfn_state_machine.cleanup_emr_cluster.arn
+    dwca_to_verbatim_job_definition_arn          = aws_batch_job_definition.dwca_to_verbatim.arn
     lambda_biocache_index_management_arn         = aws_lambda_function.biocache_index_management_lambda.qualified_arn
     job_queue_arn                                = aws_batch_job_queue.pipelines_queue.arn
     dynamodb_table_name                          = aws_dynamodb_table.biodiversiteitsportaal_pipelines.name
