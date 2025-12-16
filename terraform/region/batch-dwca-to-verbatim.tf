@@ -17,7 +17,6 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
 
   container_properties = jsonencode({
     name = var.name
-    user = "root"
     environment = [
       { name : "COMPUTE_ENVIRONMENT", value : "embedded" },
       { name : "DATA_RESOURCE_ID", value : "Ref::DATA_RESOURCE_ID" },
