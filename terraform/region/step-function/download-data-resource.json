@@ -67,7 +67,8 @@
       "Type": "Task",
       "Arguments": {
         "Bucket": "{% $config.s3_bucket_name_pipeline %}",
-        "Prefix": "{% 'data/pipelines-data/' & $dataResourceId & '/' %}"
+        "Prefix": "{% 'data/pipelines-data/' & $dataResourceId & '/' %}",
+        "MaxKeys": 100
       },
       "Resource": "arn:aws:states:::aws-sdk:s3:listObjectsV2",
       "Next": "Pipelines Data Exists?"
@@ -92,7 +93,17 @@
         }
       },
       "Resource": "arn:aws:states:::aws-sdk:s3:deleteObjects",
-      "Next": "List All Pipelines Data"
+      "Next": "Has more items to delete?"
+    },
+    "Has more items to delete?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "List Pipelines Data",
+          "Condition": "{% $count($states.input.Keys) >= 100 %}"
+        }
+      ],
+      "Default": "List All Pipelines Data"
     },
     "List All Pipelines Data": {
       "Type": "Task",
@@ -122,7 +133,17 @@
         }
       },
       "Resource": "arn:aws:states:::aws-sdk:s3:deleteObjects",
-      "Next": "Download Data Resource"
+      "Next": "Has more items to delete 2"
+    },
+    "Has more items to delete 2": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "List All Pipelines Data",
+          "Condition": "{% $count($states.input.Keys) >= 100 %}"
+        }
+      ],
+      "Default": "Download Data Resource"
     },
     "Do Nothing": {
       "Type": "Pass",
@@ -204,8 +225,50 @@
           "Condition": "{% ($exists($states.context.Execution.Input.FileHash.S) and ($states.context.Execution.Input.FileHash.S) = ($states.input.FileHash.S)) %}"
         }
       ],
-      "Default": "Update Downloaded Timestamp",
+      "Default": "DWCA to Verbatim",
       "Output": "{% $fileSize %}"
+    },
+    "DWCA to Verbatim": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::batch:submitJob.sync",
+      "Arguments": {
+        "JobDefinition": "{% $config.dwca_to_verbatim_job_definition_arn %}",
+        "JobName": "{% 'dwca-to-verbatim-' & $dataResourceId %}",
+        "JobQueue": "{% $config.job_queue_arn %}",
+        "ContainerOverrides": {
+          "Environment": [
+            {
+              "Name": "DATA_RESOURCE_ID",
+              "Value": "{% $dataResourceId %}"
+            },
+            {
+              "Name": "DATA_RESOURCE_URL",
+              "Value": "{% $dataResourceUrl %}"
+            },
+            {
+              "Name": "DATA_RESOURCE_LAST_UPDATED",
+              "Value": "{% $lastUpdated %}"
+            },
+            {
+              "Name": "DOWNLOADED_EVENT_TIMESTAMP",
+              "Value": "{% $now() %}"
+            },
+            {
+              "Name": "ROOT_PIPELINE_NAME",
+              "Value": "{% $rootPipelineName %}"
+            },
+            {
+              "Name": "EXECUTION_PIPELINE_ID",
+              "Value": "{% $states.context.Execution.Id %}"
+            },
+            {
+              "Name": "S3_BUCKET_LOCATION",
+              "Value": "{% 's3://' & $config.s3_bucket_name_pipeline & '/data' %}"
+            }
+          ]
+        }
+      },
+      "Next": "Update Downloaded Timestamp"
     },
     "Update Downloaded Timestamp": {
       "Type": "Task",

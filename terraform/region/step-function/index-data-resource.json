@@ -75,37 +75,6 @@
       "Assign": {
         "clusterId": "{% $states.result.Output.clusterId %}"
       },
-      "Next": "DWCA to Avro"
-    },
-    "DWCA to Avro": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
-      "Arguments": {
-        "ClusterId": "{% $clusterId %}",
-        "Step": {
-          "Name": "{% 'dwca-to-avro-' & $dataResourceId %}",
-          "ActionOnFailure": "CONTINUE",
-          "HadoopJarStep": {
-            "Jar": "command-runner.jar",
-            "Args": [
-              "spark-submit",
-              "--conf", "spark.executor.cores=2",
-              "--conf", "spark.executor.memory=8g",
-              "--conf", "spark.executor.memoryOverhead=4g",
-              "--conf", "spark.sql.files.maxPartitionBytes=64m",
-              "--deploy-mode",
-              "client",
-              "--class",
-              "au.org.ala.pipelines.beam.ALADwcaToVerbatimPipeline",
-              "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
-              "{% '--datasetId=' & $dataResourceId %}",
-              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
-              "--awsRegion=eu-west-1",
-              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline & '/data'%}"
-            ]
-          }
-        }
-      },
       "Next": "Interpret"
     },
     "Interpret": {

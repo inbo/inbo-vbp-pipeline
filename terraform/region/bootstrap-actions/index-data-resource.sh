@@ -16,7 +16,6 @@ export LOG_CONFIG="/app/livingatlas/pipelines/src/main/resources/log4j.propertie
 
 $(aws configure --debug export-credentials | yq -r '"export AWS_ACCESS_KEY_ID=" + .AccessKeyId + "\nexport AWS_SECRET_ACCESS_KEY="  + .SecretAccessKey + "\nexport AWS_SESSION_TOKEN=" + .SessionToken')
 
-./la-pipelines dwca-avro                            $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
 ./la-pipelines interpret  --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
 ./la-pipelines validate   --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
 ./la-pipelines uuid       --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
