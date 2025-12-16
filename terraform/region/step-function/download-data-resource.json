@@ -89,7 +89,7 @@
       "Arguments": {
         "Bucket": "{% $config.s3_bucket_name_pipeline %}",
         "Delete": {
-          "Objects": "{% $states.input.Contents.{'Key': Key } %}"
+          "Objects": "{% [$states.input.Contents.{'Key': Key }] %}"
         }
       },
       "Resource": "arn:aws:states:::aws-sdk:s3:deleteObjects",
@@ -130,7 +130,7 @@
       "Arguments": {
         "Bucket": "{% $config.s3_bucket_name_pipeline %}",
         "Delete": {
-          "Objects": "{% $states.input.Contents.{'Key': Key } %}"
+          "Objects": "{% [$states.input.Contents.{'Key': Key }] %}"
         }
       },
       "Resource": "arn:aws:states:::aws-sdk:s3:deleteObjects",
