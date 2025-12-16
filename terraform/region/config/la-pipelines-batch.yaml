@@ -512,4 +512,4 @@ elastic-sh-args:
     driver-memory: 6G
 
 jvm:
-  extra-opts: -Dspark.default.parallelism=160
+  extra_opts: -Dspark.default.parallelism=160
