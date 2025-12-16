@@ -100,7 +100,7 @@
       "Choices": [
         {
           "Next": "List Pipelines Data",
-          "Condition": "{% $count($states.input.Keys) >= 100 %}"
+          "Condition": "{% $count($states.input.Deleted) >= 100 %}"
         }
       ],
       "Default": "List All Pipelines Data"
@@ -109,7 +109,8 @@
       "Type": "Task",
       "Arguments": {
         "Bucket": "{% $config.s3_bucket_name_pipeline %}",
-        "Prefix": "{% 'data/pipelines-all-data/' & $dataResourceId & '/' %}"
+        "Prefix": "{% 'data/pipelines-all-data/' & $dataResourceId & '/' %}",
+        "MaxKeys": 100
       },
       "Resource": "arn:aws:states:::aws-sdk:s3:listObjectsV2",
       "Next": "All Pipelines Data Exists?"
@@ -140,7 +141,7 @@
       "Choices": [
         {
           "Next": "List All Pipelines Data",
-          "Condition": "{% $count($states.input.Keys) >= 100 %}"
+          "Condition": "{% $count($states.input.Deleted) >= 100 %}"
         }
       ],
       "Default": "Download Data Resource"

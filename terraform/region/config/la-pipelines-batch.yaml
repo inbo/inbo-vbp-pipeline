@@ -511,3 +511,5 @@ elastic-sh-args:
     executor-memory: 22G
     driver-memory: 6G
 
+jvm:
+  extra-opts: -Dspark.default.parallelism=160
