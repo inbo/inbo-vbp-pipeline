@@ -79,12 +79,7 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
         sourceVolume  = "collectory"
         containerPath = "/data"
         readOnly      = false
-      },
-      # {
-      #   sourceVolume  = "temp"
-      #   containerPath = "/tmp"
-      #   readOnly      = false
-      # }
+      }
     ]
 
     volumes = [
@@ -99,10 +94,7 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
             iam           = "ENABLED"
           }
         },
-      },
-      # {
-      #   name = "temp"
-      # }
+      }
     ]
 
     executionRoleArn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipelines-batch-exec-role"

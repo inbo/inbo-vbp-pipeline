@@ -5,21 +5,21 @@ run:
   platform: local
   local:
     # jar: we get the jar from our dev or production environment
-    sparkTmp: /tmp/pipelines
+    sparkTmp: /tmp
     sparkMaster: "DONT_SET"
-    dwcaTmp: /tmp/pipelines
+    dwcaTmp: /tmp
     dwcaImportDir: /data/biocache-load
   spark-embedded:
-    dwcaTmp: /tmp/pipelines
+    dwcaTmp: /tmp
     dwcaImportDir: /data/biocache-load
-    sparkTmp: /tmp/pipelines
+    sparkTmp: /tmp
     sparkMaster: "DONT_SET"
   spark-cluster:
-    dwcaTmp: /tmp/pipelines
+    dwcaTmp: /tmp
     dwcaImportDir: /data/dwca-export
     jar: s3://test-emr-pipelines/pipelines-3.2.14-SNAPSHOT-shaded.jar
     sparkSubmit: /usr/bin/spark-submit
-    sparkTmp: /tmp/pipelines
+    sparkTmp: /tmp
     # dont specify spark master for EMR
     sparkMaster: "DONT_SET"
 
@@ -34,7 +34,7 @@ general:
   attempt: 0
   hdfsSiteConfig: ""
   coreSiteConfig: ""
-  tempLocation: '/tmp/pipelines'
+  tempLocation: '/tmp'
   targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 copy:
