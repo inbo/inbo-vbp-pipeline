@@ -33,7 +33,9 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
       #!/usr/bin/env bash
       set -e -x -o pipefail
 
-      mkdir -p /tmp/pipelines && chmod 777 -Rv /tmp
+      ls -la /tmp
+      chmod 777 /tmp
+      mkdir -p /tmp/pipelines
 
       aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_config.id} ../configs/la-pipelines.yaml
       aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_log_config.id} ../configs/log4j.properties
@@ -80,11 +82,11 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
         containerPath = "/data"
         readOnly      = false
       },
-      {
-        sourceVolume  = "temp"
-        containerPath = "/tmp"
-        readOnly      = false
-      }
+      # {
+      #   sourceVolume  = "temp"
+      #   containerPath = "/tmp"
+      #   readOnly      = false
+      # }
     ]
 
     volumes = [
@@ -100,9 +102,9 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
           }
         },
       },
-      {
-        name = "temp"
-      }
+      # {
+      #   name = "temp"
+      # }
     ]
 
     executionRoleArn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipelines-batch-exec-role"
