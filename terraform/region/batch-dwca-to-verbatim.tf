@@ -33,8 +33,7 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
       #!/usr/bin/env bash
       set -e -x -o pipefail
 
-      mkdir -p /tmp/pipelines && chmod 777 /tmp/pipelines
-
+      mkdir -p /tmp/pipelines && chmod 777 -Rv /tmp
 
       aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_config.id} ../configs/la-pipelines.yaml
       aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_log_config.id} ../configs/log4j.properties
