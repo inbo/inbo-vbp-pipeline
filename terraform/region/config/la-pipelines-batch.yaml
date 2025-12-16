@@ -512,4 +512,4 @@ elastic-sh-args:
     driver-memory: 6G
 
 jvm:
-  extra_opts: -Dspark.default.parallelism=160
+  extra_opts: -Dspark.default.parallelism=160 -Dlog4j.configuration=file://../configs/log4j.properties -Dlog4j.configurationFile=file://../configs/log4j.properties"
