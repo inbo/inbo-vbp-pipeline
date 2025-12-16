@@ -62,11 +62,11 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
     resourceRequirements = [
       {
         type  = "VCPU"
-        value = "4"
+        value = "1"
       },
       {
         type = "MEMORY"
-        value = tostring(30 * 1024)
+        value = tostring(2 * 1024)
       }
     ]
 
