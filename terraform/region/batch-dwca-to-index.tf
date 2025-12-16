@@ -34,7 +34,8 @@ resource "aws_batch_job_definition" "la_pipelines" {
       set -e -x -o pipefail
 
       mkdir -p /data/pipelines-shp
-      mkdir -p /tmp/pipelines && chmod 777 /tmp/pipelines
+      mkdir -p /tmp/spark && chmod 777 /tmp/spark
+      mkdir -p /tmp/dwca && chmod 777 /tmp/dwca
 
       aws s3 sync s3://${aws_s3_bucket.pipelines.bucket}/shp-layers/ /data/pipelines-shp
       aws s3 sync s3://${aws_s3_bucket.pipelines.bucket}/pipelines-vocabularies/ /data/pipelines-vocabularies
