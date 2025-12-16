@@ -62,9 +62,8 @@ export class SolrClient implements IndexService {
                         idx: number,
                     ) => {
                         if (idx % 2 === 0) {
-                            acc[val] =
-                                data.facet_counts.facet_fields
-                                    .dataResourceUid[idx + 1];
+                            acc[val] = data.facet_counts.facet_fields
+                                .dataResourceUid[idx + 1];
                         }
                         return acc;
                     },
@@ -148,6 +147,7 @@ export class SolrClient implements IndexService {
                 `Failed to delete data resource ${dataResourceId} occurrences from index ${indexId}: ${response.statusText}\n${errorBody}`,
             );
         }
+        console.info("Delete data resource occurrences response:", response);
     }
 
     async getConfigs(): Promise<string[]> {
