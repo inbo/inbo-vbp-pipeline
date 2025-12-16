@@ -35,6 +35,9 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
 
       mkdir -p /tmp/pipelines
 
+      ls -la /tmp
+      df -h
+
       aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_config.id} ../configs/la-pipelines.yaml
       aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_log_config.id} ../configs/log4j.properties
       sed -i "s\\\$${APIKEY}\\$${APIKEY}\\g" ../configs/la-pipelines.yaml
@@ -79,6 +82,11 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
         sourceVolume  = "collectory"
         containerPath = "/data"
         readOnly      = false
+      },
+      {
+        sourceVolume  = "temp"
+        containerPath = "/tmp"
+        readOnly      = false
       }
     ]
 
@@ -94,6 +102,9 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
             iam           = "ENABLED"
           }
         },
+      },
+      {
+        name = "temp"
       }
     ]
 
