@@ -69,7 +69,7 @@ RUN --mount=type=cache,target=/var/cache/yum,sharing=locked \
 
 RUN mkdir /data && chown 1000:1000 /data
 VOLUME /data
-RUN mkdir /tmp && chown 1000:1000 /tmp
+RUN chmod 777 /tmp
 VOLUME /tmp
 
 ARG TARGETARCH
