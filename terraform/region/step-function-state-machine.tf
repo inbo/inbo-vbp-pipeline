@@ -73,7 +73,7 @@ locals {
     sqs_lock_queues                   = { for name, queue in aws_sqs_queue.lock-queues : name => queue.url }
     max_index_concurrency             = 6
     max_sample_concurrency            = 2
-    max_solr_concurrency              = 2
+    max_solr_concurrency              = 1
     spark_log_level                   = "INFO"
     spark_default_parallelism         = 160
   })
