@@ -163,7 +163,7 @@
           {
             "Classification": "hdfs-site",
             "Properties": {
-              "fs.s3a.connection.maximum": "100"
+              "fs.s3a.connection.maximum": "200"
             }
           },
           {
