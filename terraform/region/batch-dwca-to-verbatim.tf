@@ -33,7 +33,6 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
       #!/usr/bin/env bash
       set -e -x -o pipefail
 
-      mkdir -p /tmp/spark && chmod 777 /tmp/spark
       mkdir -p /tmp/dwca && chmod 777 /tmp/dwca
 
       ls -la /tmp
