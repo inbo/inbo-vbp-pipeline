@@ -74,7 +74,7 @@ locals {
     max_index_concurrency             = 6
     max_sample_concurrency            = 2
     max_solr_concurrency              = 1
-    spark_log_level                   = "INFO"
+    spark_log_level                   = "info"
     spark_default_parallelism         = 160
   })
 }
