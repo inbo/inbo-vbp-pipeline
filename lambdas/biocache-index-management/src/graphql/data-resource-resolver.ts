@@ -23,7 +23,7 @@ export const Query: QueryResolvers = {
 
     dataResource: async (_, { id }) => {
         const dataResource = await dataResourceService.getDataResource(id);
-        return {
+        return dataResource && {
             id: dataResource.id,
             name: dataResource.name,
             url: dataResource.url,
@@ -39,6 +39,12 @@ export const Query: QueryResolvers = {
 
 export const DataResourceProgress: DataResourceProgressResolvers = {
     dataResource: async (parent) => {
+        if (parent!.dataResource!.id === "all") {
+            return {
+                id: "all",
+                name: "All Data Resources",
+            };
+        }
         return dataResourceService.getDataResource(parent!.dataResource!.id);
     },
 };

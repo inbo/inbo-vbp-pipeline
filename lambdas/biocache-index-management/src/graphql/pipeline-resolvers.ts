@@ -26,15 +26,12 @@ export const Query: QueryResolvers = {
         return result && maptoGraphql(result);
     },
     pipelines: async (_, { status }) => {
-        return (await pipelineService.getPipelines(
-            status as PipelineStatus | undefined,
-        ))
-            .map(maptoGraphql);
+        return (
+            await pipelineService.getPipelines(status as PipelineStatus | undefined)
+        ).map(maptoGraphql);
     },
     dataResourceHistory: async (_, { input: { dataResourceId } }) => {
-        const events = await pipelineService.getDataResourceHistory(
-            dataResourceId,
-        );
+        const events = await pipelineService.getDataResourceHistory(dataResourceId);
         return {
             events: events.map((event) => {
                 return {
@@ -67,7 +64,7 @@ export const Mutation: MutationResolvers = {
         },
     ) => {
         const pipeline = await pipelineService.startPipeline(
-            dataResourceIds,
+            dataResourceIds ?? undefined,
             solrCollection ?? undefined,
             resetAllData ?? undefined,
             forceDownload ?? undefined,
@@ -92,9 +89,7 @@ export const Mutation: MutationResolvers = {
 
 export const PipelineQuery: PipelineResolvers = {
     stats: async (parent) => {
-        const stats = await pipelineService.getPipelineStats(
-            parent.id,
-        );
+        const stats = await pipelineService.getPipelineStats(parent.id);
         return {
             total: stats.total,
             steps: PipelineSteps.map((step) => ({
@@ -107,8 +102,8 @@ export const PipelineQuery: PipelineResolvers = {
         parent,
         { step, state, first, after, last, before },
     ) => {
-        const dataResourceProgress = await pipelineService
-            .getPipelineStepAndStateDataResources(
+        const dataResourceProgress =
+            await pipelineService.getPipelineStepAndStateDataResources(
                 parent.id,
                 step as PipelineStep,
                 state as PipelineStepState,
@@ -137,14 +132,14 @@ export const PipelineQuery: PipelineResolvers = {
     },
 };
 
-export const DataResourceProgressConnection:
-    DataResourceProgressConnectionResolvers = {
-        totalCount: async (parent, _args, _contextValue, info) => {
-            return pipelineService.getPipelineRunDataResourceProgressCount(
-                info.variableValues.id as string,
-            );
-        },
-    };
+export const DataResourceProgressConnection: DataResourceProgressConnectionResolvers =
+{
+    totalCount: async (parent, _args, _contextValue, info) => {
+        return pipelineService.getPipelineRunDataResourceProgressCount(
+            info.variableValues.id as string,
+        );
+    },
+};
 
 export default {
     Query: Query,
@@ -162,7 +157,7 @@ function maptoGraphql(pipeline: Pipeline): GqlPipeline {
         stoppedAt: pipeline.stoppedAt?.toISOString(),
         duration: pipeline.startedAt
             ? (pipeline.stoppedAt?.getTime() ?? new Date().getTime()) -
-                pipeline.startedAt.getTime()
+            pipeline.startedAt.getTime()
             : null,
         input: pipeline.input,
         output: pipeline.output,

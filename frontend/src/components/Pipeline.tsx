@@ -72,12 +72,26 @@ export const Pipeline = (
         };
     }, [data?.pipeline?.status]);
 
+    const pipelineInput = useMemo(() => {
+        try {
+            return JSON.parse(
+                data?.pipeline?.input || "{}",
+            ) as StartPipelineInput;
+        } catch (e) {
+            console.error("Error parsing pipeline input:", e);
+            return {};
+        }
+    }, [data?.pipeline?.input]);
+
     const progress = useMemo(() => {
         return stats && (
             <PipelineProgress
                 pipelineId={pipelineId}
                 stats={stats}
                 setDataResourceFilter={setDataResourceFilter}
+                bulkAll={(pipelineInput as any)
+                    .dataResources ===
+                    "all"}
             />
         );
     }, [
@@ -141,7 +155,7 @@ export const Pipeline = (
 
     const copyPipeline = useCallback((onlyFailed: boolean) => {
         type PipelineInput = {
-            dataResources?: string[];
+            dataResources?: string[] | "all";
             forceDownload?: boolean;
             forceIndex?: boolean;
             forceSample?: boolean;
@@ -195,7 +209,13 @@ export const Pipeline = (
                         params.append("dr", id)
                     );
             } else {
-                input.dataResources?.forEach((id) => params.append("dr", id));
+                if (input.dataResources === "all") {
+                    params.append("dr", "all");
+                } else {
+                    input.dataResources?.forEach((id) =>
+                        params.append("dr", id)
+                    );
+                }
             }
 
             navigate(`/start?${params.toString()}`);
@@ -323,7 +343,7 @@ export const Pipeline = (
                     (
                         <div>
                             Input:{" "}
-                            <pre>{JSON.stringify(JSON.parse(data?.pipeline?.input!)!, null, 2)}</pre>
+                            <pre>{JSON.stringify(pipelineInput!, null, 2)}</pre>
                             {data?.pipeline?.status ==
                                     PipelineStatus.Succeeded && (
                                 <div>

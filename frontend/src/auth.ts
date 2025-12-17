@@ -4,8 +4,12 @@ export const oidcConfig = {
     authority: settings.auth.authority,
     client_id: settings.auth.client_id,
     redirect_uri: settings.auth.redirectUrl,
-    scope: "openid email ala/roles offline_access",
+    scope: "openid email",
     onSigninCallback: (): void => {
-        window.history.replaceState({}, document.title, window.location.pathname);
+        window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname,
+        );
     },
 };

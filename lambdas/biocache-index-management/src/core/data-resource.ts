@@ -35,5 +35,7 @@ export type DataResourceProcessingState = {
 
 export type DataResourceRepository = {
     getDataResources(): Promise<DataResource[]>;
-    getDataResource(dataResourceId: string): Promise<DataResourceDetails>;
+    getDataResource(
+        dataResourceId: string,
+    ): Promise<DataResourceDetails | null>;
 };

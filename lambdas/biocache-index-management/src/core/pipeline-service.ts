@@ -36,13 +36,8 @@ export type DataResourceHistory = {
     lastUpdated: Date;
 };
 
-export const PipelineSteps = [
-    "DOWNLOAD",
-    "INDEX",
-    "SAMPLE",
-    "SOLR",
-] as const;
-export type PipelineStep = typeof PipelineSteps[number];
+export const PipelineSteps = ["DOWNLOAD", "INDEX", "SAMPLE", "SOLR"] as const;
+export type PipelineStep = (typeof PipelineSteps)[number];
 export type PipelineStepState =
     | "SKIPPED"
     | "SUCCEEDED"
@@ -109,13 +104,9 @@ export type PipelineService = {
         dataResourceId: string,
     ): Promise<DataResourceHistory[]>;
 
-    getPipelineStats(
-        pipelineId: string,
-    ): Promise<PipelineStats>;
+    getPipelineStats(pipelineId: string): Promise<PipelineStats>;
 
-    getPipelineRunDataResourceProgressCount(
-        pipelineId: string,
-    ): Promise<number>;
+    getPipelineRunDataResourceProgressCount(pipelineId: string): Promise<number>;
 
     getDataResourceProcessingStates(
         dataResourceIds: string[],

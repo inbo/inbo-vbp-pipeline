@@ -34,7 +34,7 @@ export class CollectoryClient implements DataResourceRepository {
 
     async getDataResource(
         dataResourceId: string,
-    ): Promise<DataResourceDetails> {
+    ): Promise<DataResourceDetails | null> {
         if (this.cache.has(dataResourceId)) {
             return this.cache.get(dataResourceId)!;
         }
@@ -48,6 +48,10 @@ export class CollectoryClient implements DataResourceRepository {
             `${this.collectoryBaseUrl}/ws/dataResource/${dataResourceId}`,
         );
         if (!response.ok) {
+            if (response.status === 404) {
+                return null;
+            }
+
             throw new Error(
                 `Failed to get data resource ${dataResourceId}: ${response.statusText}`,
             );

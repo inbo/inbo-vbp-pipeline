@@ -11,9 +11,10 @@ import { type DataResourceFilter } from "./DataResourceProgress";
 import { Button } from "@mui/material";
 
 export function PipelineProgress(
-    { pipelineId, stats, setDataResourceFilter }: {
+    { pipelineId, stats, setDataResourceFilter, bulkAll }: {
         pipelineId: string;
         stats: PipelineStats;
+        bulkAll: boolean;
         setDataResourceFilter: Dispatch<SetStateAction<DataResourceFilter>>;
     },
 ) {
@@ -26,6 +27,7 @@ export function PipelineProgress(
                     stats={step}
                     pipelineTotal={stats.total.total}
                     setDataResourceFilter={setDataResourceFilter}
+                    bulkAll={bulkAll}
                 />
             ))}
         </div>
@@ -33,18 +35,25 @@ export function PipelineProgress(
 }
 
 function PipelineStepProgressSection(
-    { step, state, value, total, setDataResourceFilter }: {
+    { step, state, value, total, setDataResourceFilter, bulkAll }: {
         pipelineId: string;
         step?: PipelineStep;
         state?: PipelineStepState;
         value: number;
         total: number;
         setDataResourceFilter: Dispatch<SetStateAction<DataResourceFilter>>;
+        bulkAll: boolean;
     },
 ) {
     if (value <= 0) {
         return null;
     }
+
+    const width = bulkAll && step &&
+            [PipelineStep.Sample, PipelineStep.Solr].includes(step)
+        ? 100
+        : Math.round((value / total) * 100);
+
     return (
         <div
             className={`pipeline-step-progress-container-section pipeline-step-progress-container-section-${state?.toLowerCase()}`}
@@ -53,7 +62,7 @@ function PipelineStepProgressSection(
             aria-valuemin={0}
             aria-valuemax={total}
             style={{
-                width: `${Math.round((value / total) * 100)}%`,
+                width: `${width}%`,
             }}
             onMouseDown={() => setDataResourceFilter({ step, state })}
         >
@@ -63,13 +72,19 @@ function PipelineStepProgressSection(
 }
 
 function PipelineStepProgress(
-    { pipelineId, stats, pipelineTotal, setDataResourceFilter }: {
+    { pipelineId, stats, pipelineTotal, setDataResourceFilter, bulkAll }: {
         pipelineId: string;
         stats: PipelineStepStats;
         pipelineTotal: number;
         setDataResourceFilter: Dispatch<SetStateAction<DataResourceFilter>>;
+        bulkAll: boolean;
     },
 ) {
+    const maxWidth = bulkAll && stats.step &&
+            [PipelineStep.Sample, PipelineStep.Solr].includes(stats.step)
+        ? 100
+        : Math.round((stats.total / pipelineTotal) * 100);
+
     return (
         <div
             id={"pipeline-step-progress-" + stats.step}
@@ -89,9 +104,7 @@ function PipelineStepProgress(
             <div
                 className="pipeline-step-progress-container"
                 style={{
-                    maxWidth: `${
-                        Math.round((stats.total / pipelineTotal) * 100)
-                    }%`,
+                    maxWidth: `${maxWidth}%`,
                 }}
             >
                 <PipelineStepProgressSection
@@ -101,6 +114,7 @@ function PipelineStepProgress(
                     value={stats.skipped}
                     total={stats.total}
                     setDataResourceFilter={setDataResourceFilter}
+                    bulkAll={bulkAll}
                 />
                 <PipelineStepProgressSection
                     pipelineId={pipelineId}
@@ -109,6 +123,7 @@ function PipelineStepProgress(
                     value={stats.succeeded}
                     total={stats.total}
                     setDataResourceFilter={setDataResourceFilter}
+                    bulkAll={bulkAll}
                 />
                 <PipelineStepProgressSection
                     pipelineId={pipelineId}
@@ -117,6 +132,7 @@ function PipelineStepProgress(
                     value={stats.failed}
                     total={stats.total}
                     setDataResourceFilter={setDataResourceFilter}
+                    bulkAll={bulkAll}
                 />
                 <PipelineStepProgressSection
                     pipelineId={pipelineId}
@@ -125,6 +141,7 @@ function PipelineStepProgress(
                     value={stats.running}
                     total={stats.total}
                     setDataResourceFilter={setDataResourceFilter}
+                    bulkAll={bulkAll}
                 />
                 <PipelineStepProgressSection
                     pipelineId={pipelineId}
@@ -133,6 +150,7 @@ function PipelineStepProgress(
                     value={stats.queued}
                     total={stats.total}
                     setDataResourceFilter={setDataResourceFilter}
+                    bulkAll={bulkAll}
                 />
             </div>
         </div>

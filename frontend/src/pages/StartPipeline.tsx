@@ -4,7 +4,7 @@ import { useMutation, useQuery } from "@apollo/client/react";
 import { GET_INDICES } from "../graphql/indices";
 import DataResourceList from "../components/DataResourceList";
 import { PIPELINE_FRAGMENT, START_PIPELINE } from "../graphql/pipelines";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import {
     Button,
@@ -18,6 +18,11 @@ import { Checkbox } from "@mui/material";
 
 export function StartPipeline() {
     const [searchParams] = useSearchParams();
+    const [bulkAll, setBulkAll] = useState(
+        searchParams.get(
+            "dr",
+        ) === "all",
+    );
 
     const { data: indicesData, loading: indicesLoading } = useQuery(
         GET_INDICES,
@@ -51,9 +56,11 @@ export function StartPipeline() {
             e.preventDefault();
             const formData = new FormData(e.currentTarget);
             const solrCollection = formData.get("index") as string;
-            const dataResourceIds = formData.getAll(
-                "data-resource",
-            ) as string[];
+            const dataResourceIds = formData.get("bulk-all")
+                ? undefined
+                : formData.getAll(
+                    "data-resource",
+                ) as string[];
             await startPipeline({
                 variables: {
                     input: {
@@ -213,6 +220,22 @@ export function StartPipeline() {
                         />
                         <label htmlFor="switch-index">Switch index</label>
                     </div>
+                    <div>
+                        <Checkbox
+                            id="bulk-all"
+                            name="bulk-all"
+                            defaultChecked={searchParams.get(
+                                "dr",
+                            ) === "all"}
+                            onKeyDown={(e) => {
+                                e.key === "Enter" && e.preventDefault();
+                            }}
+                            onChange={(e) => {
+                                setBulkAll(e.target.checked);
+                            }}
+                        />
+                        <label htmlFor="bulk-all">Bulk process all</label>
+                    </div>
 
                     <Button
                         variant="contained"
@@ -225,6 +248,7 @@ export function StartPipeline() {
 
                 <DataResourceList
                     className="start-pipeline-form-section"
+                    bulkAll={bulkAll}
                     preSelectedResources={searchParams.getAll("dr") ||
                         undefined}
                 />

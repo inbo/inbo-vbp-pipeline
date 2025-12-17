@@ -17,8 +17,9 @@ const SelectAllStates = [
 type SelectAllState = (typeof SelectAllStates)[number];
 
 export const DataResourceList = (
-    { className, preSelectedResources = [] }: {
+    { className, bulkAll, preSelectedResources = [] }: {
         className?: string;
+        bulkAll?: boolean;
         preSelectedResources?: string[];
     },
 ) => {
@@ -166,7 +167,11 @@ export const DataResourceList = (
     };
 
     return (
-        <div className={`data-resource-list ${className}`}>
+        <div
+            className={`data-resource-list ${className} ${
+                bulkAll ? "bulk-all" : ""
+            }`}
+        >
             <div className="data-resource-list-header">
                 <div className="data-resource-list-header-checkbox">
                     <Checkbox
@@ -182,6 +187,7 @@ export const DataResourceList = (
                         onKeyDown={(e) => {
                             e.key === "Enter" && e.preventDefault();
                         }}
+                        disabled={bulkAll === true}
                     />
                     <label
                         htmlFor="select-all"
@@ -213,6 +219,7 @@ export const DataResourceList = (
                                 ),
                             },
                         }}
+                        disabled={bulkAll === true}
                     />
                 </div>
                 <div className="data-resource-list-header-count">
@@ -242,6 +249,7 @@ export const DataResourceList = (
                                 onKeyDown={(e) => {
                                     e.key === "Enter" && e.preventDefault();
                                 }}
+                                disabled={bulkAll === true}
                             />
                         </div>
                         <div className="data-resource-id">

@@ -76,7 +76,7 @@ export function DataResourceProgress(
                 progress: any,
             ) => (
                 <Accordion
-                    key={progress.dataResource.id}
+                    key={progress.dataResource?.id}
                     className={`pipeline-step-data-resource-details pipeline-step-data-resource-details-${progress.state?.toLowerCase()}`}
                 >
                     <AccordionSummary
@@ -84,7 +84,7 @@ export function DataResourceProgress(
                         expandIcon={<ExpandMoreIcon />}
                     >
                         <span className="pipeline-step-data-resource-details-summary-text">
-                            {progress.dataResource.name}
+                            {progress.dataResource?.name}
                             {" "}
                         </span>
                         <Chip
@@ -104,7 +104,7 @@ export function DataResourceProgress(
                         <Button
                             className="pipeline-step-data-resource-details-button"
                             target="_blank"
-                            href={`https://${settings.domain}/collectory/dataResource/show/${progress.dataResource.id}`}
+                            href={`https://${settings.domain}/collectory/dataResource/show/${progress.dataResource?.id}`}
                         >
                             View in Collectory
                         </Button>

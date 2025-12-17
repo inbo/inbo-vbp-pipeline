@@ -24,13 +24,15 @@ export class AwsPipelineServiceImpl implements PipelineService {
     private readonly sfn: SFN;
     private readonly dynamoDB: DynamoDB;
 
-    constructor(
-        { awsStateMachineArn, awsDynamoDBTableName, awsBaseUrl }: {
-            awsStateMachineArn: string;
-            awsDynamoDBTableName: string;
-            awsBaseUrl: string | undefined;
-        },
-    ) {
+    constructor({
+        awsStateMachineArn,
+        awsDynamoDBTableName,
+        awsBaseUrl,
+    }: {
+        awsStateMachineArn: string;
+        awsDynamoDBTableName: string;
+        awsBaseUrl: string | undefined;
+    }) {
         this.awsStateMachineArn = awsStateMachineArn;
         this.awsStateExecutionArnPrefix = awsStateMachineArn.replace(
             "stateMachine",
@@ -76,14 +78,15 @@ export class AwsPipelineServiceImpl implements PipelineService {
             maxResults: 10,
             statusFilter: status,
         });
-        return output.executions
-            ?.map((execution) => ({
+        return (
+            output.executions?.map((execution) => ({
                 id: execution.name!,
                 executionArn: execution.executionArn!,
                 status: execution.status! as PipelineStatus,
                 startedAt: execution.startDate,
                 stoppedAt: execution.stopDate,
-            })) || [];
+            })) || []
+        );
     }
     async startPipeline(
         dataResourceIds?: string[],
@@ -109,7 +112,7 @@ export class AwsPipelineServiceImpl implements PipelineService {
         const output = await this.sfn.startExecution({
             stateMachineArn: this.awsStateMachineArn,
             input: JSON.stringify({
-                dataResources: dataResourceIds,
+                dataResources: dataResourceIds || "all",
                 solrCollection,
                 resetAllData,
                 forceDownload,
@@ -152,19 +155,19 @@ export class AwsPipelineServiceImpl implements PipelineService {
             },
         });
 
-        return output.Items?.map((item) => ({
-            dataResourceId: item.DataResourceId?.S || "empty",
-            rootPipelineId: item.RootPipelineId?.S || "empty",
-            executionId: item.ExecutionId?.S || "empty",
-            event: item.Event?.S || "empty",
-            timestamp: new Date(item.timestamp?.S || "1970-01-01"),
-            lastUpdated: new Date(item.lastUpdated?.S || "1970-01-01"),
-        })) || [];
+        return (
+            output.Items?.map((item) => ({
+                dataResourceId: item.DataResourceId?.S || "empty",
+                rootPipelineId: item.RootPipelineId?.S || "empty",
+                executionId: item.ExecutionId?.S || "empty",
+                event: item.Event?.S || "empty",
+                timestamp: new Date(item.timestamp?.S || "1970-01-01"),
+                lastUpdated: new Date(item.lastUpdated?.S || "1970-01-01"),
+            })) || []
+        );
     }
 
-    async getPipelineStats(
-        pipelineId: string,
-    ): Promise<PipelineStats> {
+    async getPipelineStats(pipelineId: string): Promise<PipelineStats> {
         console.debug(
             "Getting data resource progress for pipeline id:",
             pipelineId,
@@ -192,17 +195,20 @@ export class AwsPipelineServiceImpl implements PipelineService {
                 failed: 0,
                 skipped: 0,
             },
-            steps: PipelineSteps.reduce((acc, step) => {
-                acc[step] = {
-                    total: 0,
-                    queued: 0,
-                    running: 0,
-                    succeeded: 0,
-                    failed: 0,
-                    skipped: 0,
-                };
-                return acc;
-            }, {} as { [step in PipelineStep]: PipelineStepStats }),
+            steps: PipelineSteps.reduce(
+                (acc, step) => {
+                    acc[step] = {
+                        total: 0,
+                        queued: 0,
+                        running: 0,
+                        succeeded: 0,
+                        failed: 0,
+                        skipped: 0,
+                    };
+                    return acc;
+                },
+                {} as { [step in PipelineStep]: PipelineStepStats },
+            ),
         };
 
         statsItems.Responses?.[this.awsDynamoDBTableName].forEach((item) => {
@@ -215,17 +221,18 @@ export class AwsPipelineServiceImpl implements PipelineService {
                 failed: item.Failed?.N ? parseInt(item.Failed.N) : 0,
             } as PipelineStepStats;
 
-            result.steps[step].total = result.steps[step].succeeded +
+            result.steps[step].total =
+                result.steps[step].succeeded +
                 result.steps[step].skipped +
                 result.steps[step].failed +
                 result.steps[step].running +
                 result.steps[step].queued;
-            result.total.running = (result.total.running || 0) +
-                result.steps[step].running;
-            result.total.queued = (result.total.queued || 0) +
-                result.steps[step].queued;
-            result.total.failed = (result.total.failed || 0) +
-                result.steps[step].failed;
+            result.total.running =
+                (result.total.running || 0) + result.steps[step].running;
+            result.total.queued =
+                (result.total.queued || 0) + result.steps[step].queued;
+            result.total.failed =
+                (result.total.failed || 0) + result.steps[step].failed;
         });
 
         result.total.total = result.steps.DOWNLOAD.total;
@@ -261,48 +268,52 @@ export class AwsPipelineServiceImpl implements PipelineService {
 
         const output = await this.dynamoDB.query({
             ...baseQuery,
-            Limit: (!pagination?.first && !pagination?.last)
-                ? 10
-                : Math.min(pagination?.first || 100, pagination?.last || 100),
+            Limit:
+                !pagination?.first && !pagination?.last
+                    ? 10
+                    : Math.min(pagination?.first || 100, pagination?.last || 100),
             ExclusiveStartKey: pagination?.after
                 ? {
                     PK: { S: `RUN#${pipelineId}` },
                     SK: { S: pagination.after },
                 }
                 : pagination?.before
-                ? {
-                    PK: { S: `RUN#${pipelineId}` },
-                    SK: { S: pagination.before },
-                }
-                : undefined,
+                    ? {
+                        PK: { S: `RUN#${pipelineId}` },
+                        SK: { S: pagination.before },
+                    }
+                    : undefined,
             ScanIndexForward: pagination?.after
                 ? true
                 : pagination?.before
-                ? false
-                : true,
+                    ? false
+                    : true,
         });
 
         return {
-            edges: output.Items?.map((item) => ({
-                cursor: item.SK.S!,
-                node: {
-                    dataResourceId: item.DataResourceId.S!,
-                    step: item.Step.S! as PipelineStep,
-                    state: item.State.S! as PipelineStepState,
-                    timestamp: new Date(item.Timestamp.S!),
-                    error: item.Error?.S,
-                    cause: item.Cause?.S,
-                },
-            })) || [],
+            edges:
+                output.Items?.map((item) => ({
+                    cursor: item.SK.S!,
+                    node: {
+                        dataResourceId: item.DataResourceId.S!,
+                        step: item.Step.S! as PipelineStep,
+                        state: item.State.S! as PipelineStepState,
+                        timestamp: new Date(item.Timestamp.S!),
+                        error: item.Error?.S,
+                        cause: item.Cause?.S,
+                    },
+                })) || [],
             pageInfo: {
                 hasNextPage: !!output.LastEvaluatedKey,
                 hasPreviousPage: false, // DynamoDB does not support backwards pagination
-                startCursor: output.Items && output.Items.length > 0
-                    ? output.Items[0].SK.S!
-                    : undefined,
-                endCursor: output.Items && output.Items.length > 0
-                    ? output.Items[output.Items.length - 1].SK.S!
-                    : undefined,
+                startCursor:
+                    output.Items && output.Items.length > 0
+                        ? output.Items[0].SK.S!
+                        : undefined,
+                endCursor:
+                    output.Items && output.Items.length > 0
+                        ? output.Items[output.Items.length - 1].SK.S!
+                        : undefined,
             },
         };
     }
@@ -347,15 +358,15 @@ export class AwsPipelineServiceImpl implements PipelineService {
             },
         });
 
-        return response.Responses?.[this.awsDynamoDBTableName].map((
-            item,
-        ) => ({
-            dataResourceId: item.DataResourceId.S,
-            downloadedAt: item.DownloadedAt?.S,
-            indexedAt: item.IndexedAt?.S,
-            sampledAt: item.SampledAt?.S,
-            uploadedAt: item.UploadedAt?.S,
-            uploadedTo: item.UploadedTo?.SS,
-        })) || null;
+        return (
+            response.Responses?.[this.awsDynamoDBTableName].map((item) => ({
+                dataResourceId: item.DataResourceId.S,
+                downloadedAt: item.DownloadedAt?.S,
+                indexedAt: item.IndexedAt?.S,
+                sampledAt: item.SampledAt?.S,
+                uploadedAt: item.UploadedAt?.S,
+                uploadedTo: item.UploadedTo?.SS,
+            })) || null
+        );
     }
 }
