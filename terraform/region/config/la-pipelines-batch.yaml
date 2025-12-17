@@ -27,14 +27,14 @@ run:
 fs:
   platform: local
   local:
-    fsPath: /tmp
+    fsPath: /tmp/spark
 
 # Common PipelineOptions
 general:
   attempt: 0
   hdfsSiteConfig: ""
   coreSiteConfig: ""
-  tempLocation: '/tmp'
+  tempLocation: '/tmp/beam'
   targetPath: 's3://inbo-vbp-dev-pipelines/data/pipelines-data'
 
 copy:

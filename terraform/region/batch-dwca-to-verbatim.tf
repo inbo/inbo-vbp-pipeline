@@ -35,6 +35,7 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
 
       mkdir -p /tmp/spark
       mkdir -p /tmp/dwca
+      mkdir -p /tmp/beam
 
       ls -la /tmp
       df -h
