@@ -1,3 +1,7 @@
+locals {
+  bundle_size = 50 * 1024 * 1024
+}
+
 resource "aws_batch_job_definition" "dwca_to_verbatim" {
   name = "dwca-to-verbatim"
   type = "container"
@@ -33,13 +37,6 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
       #!/usr/bin/env bash
       set -e -x -o pipefail
 
-      mkdir -p /tmp/spark
-      mkdir -p /tmp/dwca
-      mkdir -p /tmp/beam
-
-      ls -la /tmp
-      df -h
-
       aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_config.id} ../configs/la-pipelines.yaml
       aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_log_config.id} ../configs/log4j.properties
       sed -i "s\\\$${APIKEY}\\$${APIKEY}\\g" ../configs/la-pipelines.yaml
@@ -49,7 +46,7 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
 
       $(aws configure export-credentials | yq -r '"export AWS_ACCESS_KEY_ID=" + .AccessKeyId + "\nexport AWS_SECRET_ACCESS_KEY="  + .SecretAccessKey + "\nexport AWS_SESSION_TOKEN=" + .SessionToken')
 
-      ./la-pipelines dwca-avro $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
+      ./la-pipelines dwca-avro $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1,bundleSize=${local.bundle_size}
  EOT
     ]
     image      = "${var.ecr_repo}/${var.resource_prefix}pipelines:${var.docker_version}"

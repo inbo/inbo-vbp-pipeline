@@ -88,6 +88,11 @@
             "Jar": "command-runner.jar",
             "Args": [
               "/usr/lib/jvm/java-17-amazon-corretto.aarch64/bin/java",
+              "{% '-Dspark.default.parallelism=' & $string($config.spark_default_parallelism) %}",
+              "{% '-Dspark.sql.shuffle.partitions=' & $string($config.spark_default_parallelism * 2) %}",
+              "{% '-Dspark.hadoop.fs.s3a.connection.maximum=' & $string($config.spark_default_parallelism * 2) %}",
+              "-Dlog4j.configuration=file:///opt/inbo/pipelines/config/log4j.properties",
+              "-Dlog4j.configurationFile=file:///opt/inbo/pipelines/config/log4j.properties",
               "-cp",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
               "au.org.ala.sampling.LayerCrawler",

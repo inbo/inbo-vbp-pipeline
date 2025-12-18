@@ -144,7 +144,16 @@
             }
           ]
         },
-        "Configurations": [
+        "AutoScalingRole": "{% $config.iam_emr_scaling_role %}",
+        "ManagedScalingPolicy": {
+          "ComputeLimits": {
+            "MinimumCapacityUnits": "{% $config.min_number_of_core_workers + $config.min_number_of_task_workers %}",
+            "MaximumCapacityUnits": "{% $config.max_number_of_core_workers + $config.max_number_of_task_workers %}",
+            "MaximumCoreCapacityUnits": "{% $config.max_number_of_core_workers %}",
+            "MaximumOnDemandCapacityUnits": "{% $config.max_on_demand_number_of_cluster_workers %}",
+            "UnitType": "Instances"
+          },
+          "Configurations": [
           {
             "Classification": "spark",
             "Properties": {
@@ -155,15 +164,15 @@
             "Classification": "spark-defaults",
             "Properties": {
               "spark.eventLog.overwrite": "true",
-              "spark.default.parallelism": "{% $string($config.spark_default_parallelism )%}",
-              "spark.sql.shuffle.partitions": "{% $string($config.spark_default_parallelism )%}",
+              "spark.default.parallelism": "{% $string($config.spark_default_parallelism) %}",
+              "spark.sql.shuffle.partitions": "{% $string($config.spark_default_parallelism * 2) %}",
               "spark.local.dir": "{% '/mnt/spark,/mnt1/spark' & ($config.worker_ec2_number_of_instance_cores > 4 ? ',/mnt2/spark,/mnt3/spark' : '') %}"
             }
           },
           {
             "Classification": "core-site",
             "Properties": {
-              "fs.s3a.connection.maximum": "100"
+              "fs.s3a.connection.maximum": "{% $string($config.spark_default_parallelism * 2) %}"
             }
           },
           {
