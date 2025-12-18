@@ -161,15 +161,9 @@
             }
           },
           {
-            "Classification": "hdfs-site",
+            "Classification": "core-site",
             "Properties": {
               "fs.s3a.connection.maximum": "100"
-            }
-          },
-          {
-            "Classification": "emrfs-site",
-            "Properties": {
-              "fs.s3.maxConnections": "100"
             }
           },
           {
