@@ -152,8 +152,9 @@
             "MaximumCoreCapacityUnits": "{% $config.max_number_of_core_workers %}",
             "MaximumOnDemandCapacityUnits": "{% $config.max_on_demand_number_of_cluster_workers %}",
             "UnitType": "Instances"
-          },
-          "Configurations": [
+          }
+        },
+        "Configurations": [
           {
             "Classification": "spark",
             "Properties": {
