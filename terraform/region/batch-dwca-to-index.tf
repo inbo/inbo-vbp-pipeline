@@ -33,10 +33,11 @@ resource "aws_batch_job_definition" "la_pipelines" {
       #!/usr/bin/env bash
       set -e -x -o pipefail
 
+      mkdir -p /tmp/spark
+      mkdir -p /tmp/dwca
+      mkdir -p /tmp/beam
       mkdir -p /data/pipelines-shp
-      mkdir -p /tmp/spark && chmod 777 /tmp/spark
-      mkdir -p /tmp/dwca && chmod 777 /tmp/dwca
-
+      
       aws s3 sync s3://${aws_s3_bucket.pipelines.bucket}/shp-layers/ /data/pipelines-shp
       aws s3 sync s3://${aws_s3_bucket.pipelines.bucket}/pipelines-vocabularies/ /data/pipelines-vocabularies
 
@@ -73,7 +74,7 @@ resource "aws_batch_job_definition" "la_pipelines" {
 
     runtimePlatform = {
       operatingSystemFamily = "LINUX"
-      cpuArchitecture = "ARM64"
+      cpuArchitecture       = "ARM64"
     }
 
     resourceRequirements = [
@@ -82,7 +83,7 @@ resource "aws_batch_job_definition" "la_pipelines" {
         value = "4"
       },
       {
-        type = "MEMORY"
+        type  = "MEMORY"
         value = tostring(30 * 1024)
       }
     ]
@@ -115,9 +116,9 @@ resource "aws_batch_job_definition" "la_pipelines" {
     logConfiguration = {
       logDriver = "awslogs",
       options = {
-        awslogs-group         = var.log_group_name,
-        awslogs-region        = var.aws_region,
-        awslogs-stream-prefix = "batch/dwca-to-index"
+        awslogs-group             = var.log_group_name,
+        awslogs-region            = var.aws_region,
+        awslogs-stream-prefix     = "batch/dwca-to-index"
         awslogs-multiline-pattern = "^\\d\\d\\d\\d-\\d\\d-\\d\\d \\d\\d:\\d\\d:\\d\\d,\\d\\d\\d"
       },
       secretOptions = []

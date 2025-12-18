@@ -37,6 +37,10 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
       #!/usr/bin/env bash
       set -e -x -o pipefail
 
+      mkdir -p /tmp/spark
+      mkdir -p /tmp/dwca
+      mkdir -p /tmp/beam
+      
       aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_config.id} ../configs/la-pipelines.yaml
       aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_log_config.id} ../configs/log4j.properties
       sed -i "s\\\$${APIKEY}\\$${APIKEY}\\g" ../configs/la-pipelines.yaml
@@ -58,7 +62,7 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
 
     runtimePlatform = {
       operatingSystemFamily = "LINUX"
-      cpuArchitecture = "ARM64"
+      cpuArchitecture       = "ARM64"
     }
 
     resourceRequirements = [
@@ -67,7 +71,7 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
         value = "1"
       },
       {
-        type = "MEMORY"
+        type  = "MEMORY"
         value = tostring(2 * 1024)
       }
     ]
@@ -112,9 +116,9 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
     logConfiguration = {
       logDriver = "awslogs",
       options = {
-        awslogs-group         = var.log_group_name,
-        awslogs-region        = var.aws_region,
-        awslogs-stream-prefix = "batch/dwca-to-index"
+        awslogs-group             = var.log_group_name,
+        awslogs-region            = var.aws_region,
+        awslogs-stream-prefix     = "batch/dwca-to-index"
         awslogs-multiline-pattern = "^\\d\\d\\d\\d-\\d\\d-\\d\\d \\d\\d:\\d\\d:\\d\\d,\\d\\d\\d"
       },
       secretOptions = []
