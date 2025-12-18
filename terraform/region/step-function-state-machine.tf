@@ -5,7 +5,7 @@ data "aws_emr_release_labels" "emr_release" {
 }
 
 data "aws_ec2_instance_type" "worker_node_type" {
-  instance_type = "7g.xlarge"
+  instance_type = "m8g.xlarge"
 }
 
 locals {
@@ -38,7 +38,7 @@ locals {
     apikey_secret_value                          = aws_secretsmanager_secret_version.apikey_credentials.secret_string
     dataresource_size_threshold                  = 20000000
     pipelines_version                            = var.docker_version
-    master_ec2_instance_type                     = "7g.xlarge"
+    master_ec2_instance_type                     = "m6g.xlarge"
     worker_ec2_instance_type                     = data.aws_ec2_instance_type.worker_node_type.instance_type
     worker_ec2_number_of_instance_cores          = data.aws_ec2_instance_type.worker_node_type.default_cores
     worker_max_spot_price                        = 0.15
