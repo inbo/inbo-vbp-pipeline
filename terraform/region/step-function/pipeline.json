@@ -127,7 +127,8 @@
       "Type": "Map",
       "ItemProcessor": {
         "ProcessorConfig": {
-          "Mode": "INLINE"
+          "Mode": "DISTRIBUTED",
+          "ExecutionType": "STANDARD"
         },
         "StartAt": "Catch Individual Failures",
         "States": {
@@ -170,7 +171,6 @@
                         "rootPipelineName": "{% $states.context.Execution.Name %}",
                         "dataResourceId": "{% $dataResourceId %}",
                         "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
-                        "concurrencyLimit": "{% $config.max_index_concurrency %}",
                         "speciesLists": "{% $speciesLists %}",
                         "forceIndex": "{% $states.context.Execution.Input.forceIndex or false %}"
                       }
@@ -259,7 +259,12 @@
           "Next": "Cleanup EMR Cluster"
         }
       ],
-      "Output": "{% $states.result %}"
+      "Output": "{% $states.result %}",
+      "Label": "ProcessDataResources",
+      "MaxConcurrency": 1000,
+      "ItemBatcher": {
+        "MaxItemsPerBatch": 100
+      }
     },
     "Choice": {
       "Type": "Choice",
