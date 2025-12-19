@@ -37,7 +37,7 @@ speciesListService:
 samplingService:
   wsUrl: http://spatial-service.vbp.internal:8080/spatial-service/
   timeoutSec: 10
-  batchSize: 10000
+  batchSize: 20000
   batchStatusSleepTime: 1000
   downloadRetries: 5
   retryConfig:
