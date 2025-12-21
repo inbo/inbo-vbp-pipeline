@@ -142,20 +142,20 @@
                     "Type": "Task",
                     "Resource": "arn:aws:states:::states:startExecution.sync:2",
                     "Arguments": {
-                      "StateMachineArn": "{% $config.state_machine_step_wrapper_arn %}",
+                      "StateMachineArn": "{% $states.context.Execution.Input.config.state_machine_step_wrapper_arn %}",
                       "Input": {
                         "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
-                        "stepArn": "{% $config.state_machine_download_arn %}",
+                        "stepArn": "{% $states.context.Execution.Input.config.state_machine_download_arn %}",
                         "stepName": "Download",
-                        "rootPipelineName": "{% $states.context.Execution.Name %}",
-                        "dataResourceId": "{% $states.input %}",
-                        "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
-                        "forceDownload": "{% $states.context.Execution.Input.forceDownload or false %}",
-                        "resetAllData": "{% $states.context.Execution.Input.resetAllData or false %}"
+                        "rootPipelineName": "{% $states.context.Execution.Input.rootPipelineName %}",
+                        "dataResourceId": "{% $states.input.dataResourceId %}",
+                        "overwriteLock": "{% $exists($states.context.Execution.Input.originalInput.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
+                        "forceDownload": "{% $states.context.Execution.Input.originalInput.forceDownload or false %}",
+                        "resetAllData": "{% $states.context.Execution.Input.originalInput.resetAllData or false %}"
                       }
                     },
                     "Assign": {
-                      "dataResourceId": "{% $states.input %}"
+                      "dataResourceId": "{% $states.input.dataResourceId %}"
                     },
                     "Next": "Index Data Resource"
                   },
@@ -163,16 +163,16 @@
                     "Type": "Task",
                     "Resource": "arn:aws:states:::states:startExecution.sync:2",
                     "Arguments": {
-                      "StateMachineArn": "{% $config.state_machine_step_wrapper_arn %}",
+                      "StateMachineArn": "{% $states.context.Execution.Input.config.state_machine_step_wrapper_arn %}",
                       "Input": {
                         "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
-                        "stepArn": "{% $config.state_machine_index_arn %}",
+                        "stepArn": "{% $states.context.Execution.Input.config.state_machine_index_arn %}",
                         "stepName": "Index",
-                        "rootPipelineName": "{% $states.context.Execution.Name %}",
+                        "rootPipelineName": "{% $states.context.Execution.Input.rootPipelineName %}",
                         "dataResourceId": "{% $dataResourceId %}",
-                        "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
-                        "speciesLists": "{% $speciesLists %}",
-                        "forceIndex": "{% $states.context.Execution.Input.forceIndex or false %}"
+                        "overwriteLock": "{% $exists($states.context.Execution.Input.originalInput.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
+                        "speciesLists": "{% $states.context.Execution.Input.speciesLists %}",
+                        "forceIndex": "{% $states.context.Execution.Input.originalInput.forceIndex or false %}"
                       }
                     },
                     "Next": "Process Data Resources Individually?"
@@ -182,7 +182,7 @@
                     "Choices": [
                       {
                         "Next": "Do Nothing 2",
-                        "Condition": "{% $not($exists($states.context.Execution.Input.dataResources)) or $states.context.Execution.Input.dataResources = \"all\"  %}"
+                        "Condition": "{% $not($exists($states.context.Execution.Input.originalInput.dataResources)) or $states.context.Execution.Input.dataResources = \"all\"  %}"
                       }
                     ],
                     "Default": "Sample Spatial Layers"
@@ -195,17 +195,17 @@
                     "Type": "Task",
                     "Resource": "arn:aws:states:::states:startExecution.sync:2",
                     "Arguments": {
-                      "StateMachineArn": "{% $config.state_machine_step_wrapper_arn %}",
+                      "StateMachineArn": "{% $states.context.Execution.Input.config.state_machine_step_wrapper_arn %}",
                       "Input": {
                         "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
-                        "stepArn": "{% $config.state_machine_sample_arn %}",
+                        "stepArn": "{% $states.context.Execution.Input.config.state_machine_sample_arn %}",
                         "stepName": "Sample",
-                        "rootPipelineName": "{% $states.context.Execution.Name %}",
+                        "rootPipelineName": "{% $states.context.Execution.Input.rootPipelineName %}",
                         "dataResourceId": "{% $dataResourceId %}",
-                        "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
-                        "concurrencyLimit": "{% $config.max_sample_concurrency %}",
-                        "spatialFields": "{% $spatialFields %}",
-                        "forceSample": "{% $states.context.Execution.Input.forceSample or false %}"
+                        "overwriteLock": "{% $exists($states.context.Execution.Input.originalInput.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
+                        "concurrencyLimit": "{% $states.context.Execution.Input.config.max_sample_concurrency %}",
+                        "spatialFields": "{% $states.context.Execution.Input.spatialFields %}",
+                        "forceSample": "{% $states.context.Execution.Input.originalInput.forceSample or false %}"
                       }
                     },
                     "Next": "Upload to Solr"
@@ -214,17 +214,17 @@
                     "Type": "Task",
                     "Resource": "arn:aws:states:::states:startExecution.sync:2",
                     "Arguments": {
-                      "StateMachineArn": "{% $config.state_machine_step_wrapper_arn %}",
+                      "StateMachineArn": "{% $states.context.Execution.Input.config.state_machine_step_wrapper_arn %}",
                       "Input": {
                         "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
-                        "stepArn": "{% $config.state_machine_solr_arn %}",
+                        "stepArn": "{% $states.context.Execution.Input.config.state_machine_solr_arn %}",
                         "stepName": "Solr",
-                        "rootPipelineName": "{% $states.context.Execution.Name %}",
+                        "rootPipelineName": "{% $states.context.Execution.Input.rootPipelineName %}",
                         "dataResourceId": "{% $dataResourceId %}",
-                        "overwriteLock": "{% $exists($states.context.Execution.Input.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
-                        "concurrencyLimit": "{% $config.max_solr_concurrency %}",
+                        "overwriteLock": "{% $exists($states.context.Execution.Input.originalInput.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
+                        "concurrencyLimit": "{% $states.context.Execution.Input.config.max_solr_concurrency %}",
                         "solrCollection": "{% $solrCollection %}",
-                        "forceSolr": "{% $states.context.Execution.Input.forceSolr or false %}"
+                        "forceSolr": "{% $states.context.Execution.Input.originalInput.forceSolr or false %}"
                       }
                     },
                     "End": true
@@ -237,13 +237,13 @@
                 "ErrorEquals": ["States.ALL"],
                 "Next": "Ignore Error",
                 "Output": {
-                  "dataResourceId": "{% $states.input %}",
+                  "dataResourceId": "{% $states.input.dataResourceId %}",
                   "Error": "{% $states.errorOutput.Error %}"
                 }
               }
             ],
             "End": true,
-            "Output": "{% $merge([$states.result.Output, {\"dataResourceId\": $states.input}]) %}"
+            "Output": "{% $merge([$states.result.Output, {\"dataResourceId\": $states.input.dataResourceId}]) %}"
           },
           "Ignore Error": {
             "Type": "Pass",
@@ -262,8 +262,13 @@
       "Output": "{% $states.result %}",
       "Label": "ProcessDataResources",
       "MaxConcurrency": 1000,
-      "ItemBatcher": {
-        "MaxItemsPerBatch": 100
+      "ItemSelector": {
+        "dataResourceId": "{% $states.context.Map.Item.Value %}",
+        "config": "{% $config %}",
+        "speciesLists": "{% $speciesLists %}",
+        "spatialFields": "{% $spatialFields %}",
+        "originalInput": "{% $states.context.Execution.Input %}",
+        "rootPipelineName": "{% $states.context.Execution.Name %}"
       }
     },
     "Choice": {
