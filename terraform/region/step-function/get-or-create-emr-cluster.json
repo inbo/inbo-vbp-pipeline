@@ -142,6 +142,7 @@
         "AutoScalingRole": "{% $config.iam_emr_scaling_role %}",
         "ManagedScalingPolicy": {
           "UtilizationPerformanceIndex": "{% $config.utilizationPerformanceIndex %}",
+          "ScalingStrategy": "ADVANCED",
           "ComputeLimits": {
             "MinimumCapacityUnits": "{% $config.min_number_of_core_workers + $config.min_number_of_task_workers %}",
             "MaximumCapacityUnits": "{% $config.max_number_of_core_workers + $config.max_number_of_task_workers %}",
