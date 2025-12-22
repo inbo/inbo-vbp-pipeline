@@ -42,6 +42,7 @@ locals {
     worker_ec2_instance_type                     = data.aws_ec2_instance_type.worker_node_type.instance_type
     worker_ec2_number_of_instance_cores          = data.aws_ec2_instance_type.worker_node_type.default_cores
     worker_max_spot_price                        = 0.15
+    utilizationPerformanceIndex                  = 1
     min_number_of_core_workers                   = 2
     max_number_of_core_workers                   = 6
     min_number_of_task_workers                   = 0
