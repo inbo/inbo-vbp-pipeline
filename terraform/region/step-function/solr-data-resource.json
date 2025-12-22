@@ -99,7 +99,7 @@
             "Args": [
               "spark-submit",
               "--deploy-mode",
-              "cluster",
+              "client",
               "--num-executors",
               "1",
               "--executor-cores",
