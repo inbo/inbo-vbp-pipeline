@@ -153,7 +153,7 @@
           {
             "Classification": "spark",
             "Properties": {
-              "maximizeResourceAllocation": "true"
+              "maximizeResourceAllocation": "false"
             }
           },
           {
@@ -162,7 +162,15 @@
               "spark.eventLog.overwrite": "true",
               "spark.default.parallelism": "{% $string($config.spark_default_parallelism) %}",
               "spark.sql.shuffle.partitions": "{% $string($config.spark_default_parallelism * 2) %}",
-              "spark.local.dir": "{% '/mnt/spark,/mnt1/spark' & ($config.worker_ec2_number_of_instance_cores > 4 ? ',/mnt2/spark,/mnt3/spark' : '') %}"
+              "spark.local.dir": "{% '/mnt/spark,/mnt1/spark' & ($config.worker_ec2_number_of_instance_cores > 4 ? ',/mnt2/spark,/mnt3/spark' : '') %}",
+              "spark.dynamicAllocation.enabled": "true",
+              "spark.dynamicAllocation.minExecutors": "2",
+              "spark.dynamicAllocation.initialExecutors": "4",
+              "spark.dynamicAllocation.maxExecutors": "{% ($config.max_number_of_core_workers + $config.max_number_of_task_workers) * 3 %]",
+              "spark.dynamicAllocation.executorIdleTimeout": "60s",
+              "spark.executor.cores": "1",
+              "spark.executor.memory": "4g",
+              "spark.sql.adaptive.enabled": "true"
             }
           },
           {
