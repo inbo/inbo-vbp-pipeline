@@ -1,16 +1,12 @@
 {
   "Comment": "Starts an EMR cluster, processes data resources in parallel, and terminates the cluster",
-  "StartAt": "Get State-machine Config",
+  "StartAt": "Set Variables",
   "States": {
-    "Get State-machine Config": {
-      "Type": "Task",
-      "Arguments": {
-        "Name": "inbo-vbp-pipelines-config"
-      },
-      "Resource": "arn:aws:states:::aws-sdk:ssm:getParameter",
+    "Set Variables": {
+      "Type": "Pass",
       "Next": "Can Skip?",
       "Assign": {
-        "config": "{% $parse($states.result.Parameter.Value) %}",
+        "config": "{% $states.context.Execution.Input.config %}",
         "dataResourceId": "{% $states.input.dataResource.uid %}",
         "lastUpdated": "{% $states.input.dataResource.lastUpdated %}",
         "rootPipelineName": "{% $exists($states.context.Execution.Input.rootPipelineName) ? $states.context.Execution.Input.rootPipelineName : $states.context.Execution.Name %}",
@@ -42,6 +38,7 @@
         "StateMachineArn": "{% $config.get_or_create_emr_cluster_state_machine_arn %}",
         "Input": {
           "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
+          "config": "{% $states.context.Execution.Input.config %}",
           "rootPipelineName": "{% $rootPipelineName %}"
         }
       },

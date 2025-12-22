@@ -145,6 +145,7 @@
                       "StateMachineArn": "{% $states.context.Execution.Input.config.state_machine_step_wrapper_arn %}",
                       "Input": {
                         "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
+                        "config": "{% $states.context.Execution.Input.config %}",
                         "stepArn": "{% $states.context.Execution.Input.config.state_machine_download_arn %}",
                         "stepName": "Download",
                         "rootPipelineName": "{% $states.context.Execution.Input.rootPipelineName %}",
@@ -166,6 +167,7 @@
                       "StateMachineArn": "{% $states.context.Execution.Input.config.state_machine_step_wrapper_arn %}",
                       "Input": {
                         "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
+                        "config": "{% $states.context.Execution.Input.config %}",
                         "stepArn": "{% $states.context.Execution.Input.config.state_machine_index_arn %}",
                         "stepName": "Index",
                         "rootPipelineName": "{% $states.context.Execution.Input.rootPipelineName %}",
@@ -198,6 +200,7 @@
                       "StateMachineArn": "{% $states.context.Execution.Input.config.state_machine_step_wrapper_arn %}",
                       "Input": {
                         "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
+                        "config": "{% $states.context.Execution.Input.config %}",
                         "stepArn": "{% $states.context.Execution.Input.config.state_machine_sample_arn %}",
                         "stepName": "Sample",
                         "rootPipelineName": "{% $states.context.Execution.Input.rootPipelineName %}",
@@ -217,6 +220,7 @@
                       "StateMachineArn": "{% $states.context.Execution.Input.config.state_machine_step_wrapper_arn %}",
                       "Input": {
                         "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
+                        "config": "{% $states.context.Execution.Input.config %}",
                         "stepArn": "{% $states.context.Execution.Input.config.state_machine_solr_arn %}",
                         "stepName": "Solr",
                         "rootPipelineName": "{% $states.context.Execution.Input.rootPipelineName %}",
@@ -295,6 +299,7 @@
                 "StateMachineArn": "{% $config.state_machine_step_wrapper_arn %}",
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
+                  "config": "{% $config %}",
                   "stepArn": "{% $config.state_machine_sample_arn %}",
                   "stepName": "Sample",
                   "rootPipelineName": "{% $states.context.Execution.Name %}",
@@ -313,6 +318,7 @@
                 "StateMachineArn": "{% $config.state_machine_step_wrapper_arn %}",
                 "Input": {
                   "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
+                  "config": "{% $config %}",
                   "stepArn": "{% $config.state_machine_solr_arn %}",
                   "stepName": "Solr",
                   "rootPipelineName": "{% $states.context.Execution.Name %}",
@@ -345,6 +351,7 @@
         "StateMachineArn": "{% $config.cleanup_emr_cluster_state_machine_arn %}",
         "Input": {
           "AWS_STEP_FUNCTIONS_STARTED_BY_EXECUTION_ID": "{% $states.context.Execution.Id %}",
+          "config": "{% $config %}",
           "rootPipelineName": "{% $states.context.Execution.Name %}"
         }
       },

@@ -1,21 +1,7 @@
 {
   "Comment": "Starts an EMR cluster, processes data resources in parallel, and terminates the cluster",
-  "StartAt": "Get State-machine Config",
+  "StartAt": "Has a download URL",
   "States": {
-    "Get State-machine Config": {
-      "Type": "Task",
-      "Arguments": {
-        "Name": "inbo-vbp-pipelines-config"
-      },
-      "Resource": "arn:aws:states:::aws-sdk:ssm:getParameter",
-      "Next": "Has a download URL",
-      "Assign": {
-        "config": "{% $parse($states.result.Parameter.Value) %}",
-        "dataResourceId": "{% $states.input.dataResource.uid %}",
-        "lastUpdated": "{% $states.input.dataResource.lastUpdated %}",
-        "rootPipelineName": "{% $exists($states.context.Execution.Input.rootPipelineName) ? $states.context.Execution.Input.rootPipelineName : $states.context.Execution.Name %}"
-      }
-    },
     "Has a download URL": {
       "Type": "Choice",
       "Choices": [
@@ -23,7 +9,11 @@
           "Condition": "{% $exists($states.context.Execution.Input.dataResource.connectionParameters.url) %}",
           "Next": "Can Skip?",
           "Assign": {
-            "dataResourceUrl": "{% $states.context.Execution.Input.dataResource.connectionParameters.url %}"
+            "dataResourceUrl": "{% $states.context.Execution.Input.dataResource.connectionParameters.url %}",
+            "config": "{% $states.context.Execution.Input.config %}",
+            "dataResourceId": "{% $states.input.dataResource.uid %}",
+            "lastUpdated": "{% $states.input.dataResource.lastUpdated %}",
+            "rootPipelineName": "{% $exists($states.context.Execution.Input.rootPipelineName) ? $states.context.Execution.Input.rootPipelineName : $states.context.Execution.Name %}"
           }
         }
       ],

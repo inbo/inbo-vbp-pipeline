@@ -1,16 +1,12 @@
 {
   "Comment": "Utility wrapper to handle concurrency limits, state tracking and failure",
-  "StartAt": "Get State-machine Config",
+  "StartAt": "Set Variables",
   "States": {
-    "Get State-machine Config": {
-      "Type": "Task",
-      "Arguments": {
-        "Name": "inbo-vbp-pipelines-config"
-      },
-      "Resource": "arn:aws:states:::aws-sdk:ssm:getParameter",
+    "Set Variables": {
+      "Type": "Pass",
       "Next": "Catch Errors",
       "Assign": {
-        "config": "{% $parse($states.result.Parameter.Value) %}",
+        "config": "{% $states.context.Execution.Input.config %}",
         "dataResourceId": "{% $states.input.dataResourceId %}",
         "rootPipelineName": "{% $exists($states.context.Execution.Input.rootPipelineName) ? $states.context.Execution.Input.rootPipelineName : $states.context.Execution.Name %}"
       }
