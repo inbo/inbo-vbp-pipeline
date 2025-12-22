@@ -141,8 +141,6 @@
         },
         "AutoScalingRole": "{% $config.iam_emr_scaling_role %}",
         "ManagedScalingPolicy": {
-          "UtilizationPerformanceIndex": "{% $config.utilizationPerformanceIndex %}",
-          "ScalingStrategy": "ADVANCED",
           "ComputeLimits": {
             "MinimumCapacityUnits": "{% $config.min_number_of_core_workers + $config.min_number_of_task_workers %}",
             "MaximumCapacityUnits": "{% $config.max_number_of_core_workers + $config.max_number_of_task_workers %}",
@@ -224,10 +222,29 @@
           }
         ]
       },
-      "Next": "Write actual clusterId",
+      "Next": "PutManagedScalingPolicy",
       "Assign": {
         "clusterId": "{% $states.result.ClusterId %}"
       }
+    },
+    "PutManagedScalingPolicy": {
+      "Type": "Task",
+      "Arguments": {
+        "ClusterId": "{% $clusterId %}",
+        "ManagedScalingPolicy": {
+          "UtilizationPerformanceIndex": "{% $config.utilizationPerformanceIndex %}",
+          "ScalingStrategy": "ADVANCED",
+          "ComputeLimits": {
+            "MinimumCapacityUnits": "{% $config.min_number_of_core_workers + $config.min_number_of_task_workers %}",
+            "MaximumCapacityUnits": "{% $config.max_number_of_core_workers + $config.max_number_of_task_workers %}",
+            "MaximumCoreCapacityUnits": "{% $config.max_number_of_core_workers %}",
+            "MaximumOnDemandCapacityUnits": "{% $config.max_on_demand_number_of_cluster_workers %}",
+            "UnitType": "Instances"
+          }
+        }
+      },
+      "Resource": "arn:aws:states:::aws-sdk:emr:putManagedScalingPolicy",
+      "Next": "Write actual clusterId"
     },
     "Write actual clusterId": {
       "Type": "Task",
