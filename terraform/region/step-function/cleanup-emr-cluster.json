@@ -59,7 +59,7 @@
           "SK": {
             "S": "RUN"
           }
-        }
+        },
         "UpdateExpression": "REMOVE ClusterId"
       },
       "End": true
