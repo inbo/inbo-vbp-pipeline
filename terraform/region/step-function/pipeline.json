@@ -227,7 +227,7 @@
                         "dataResourceId": "{% $dataResourceId %}",
                         "overwriteLock": "{% $exists($states.context.Execution.Input.originalInput.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
                         "concurrencyLimit": "{% $states.context.Execution.Input.config.max_solr_concurrency %}",
-                        "solrCollection": "{% $solrCollection %}",
+                        "solrCollection": "{% $states.context.Execution.Input.solrCollection %}",
                         "forceSolr": "{% $states.context.Execution.Input.originalInput.forceSolr or false %}"
                       }
                     },
