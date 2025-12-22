@@ -3,7 +3,7 @@ data "aws_iam_policy_document" "step_function_assume_role_sf" {
     effect = "Allow"
 
     principals {
-      type = "Service"
+      type        = "Service"
       identifiers = ["states.amazonaws.com"]
     }
 
@@ -32,13 +32,13 @@ data "aws_iam_policy_document" "pipeline" {
     condition {
       test     = "StringEquals"
       variable = "states:HTTPMethod"
-      values = ["GET"]
+      values   = ["GET"]
     }
 
     condition {
       test     = "StringLike"
       variable = "states:HTTPEndpoint"
-      values = ["https://${var.base_domain}/*", "http://solr.vbp.internal:8983/solr*"]
+      values   = ["https://${var.base_domain}/*", "http://solr.vbp.internal:8983/solr*"]
     }
   }
 
@@ -89,7 +89,8 @@ data "aws_iam_policy_document" "pipeline" {
       "elasticmapreduce:AddJobFlowSteps",
       "elasticmapreduce:DescribeStep",
       "elasticmapreduce:CancelSteps",
-      "elasticmapreduce:AddTags"
+      "elasticmapreduce:AddTags",
+      "elasticmapreduce:PutManagedScalingPolicy"
     ]
 
     #tfsec:ignore:aws-iam-no-policy-wildcards - clusters are dynamically created, no way to know exact cluster-id
@@ -265,3 +266,4 @@ resource "aws_iam_role_policy" "pipeline" {
   role   = aws_iam_role.pipeline.id
   policy = data.aws_iam_policy_document.pipeline.json
 }
+
