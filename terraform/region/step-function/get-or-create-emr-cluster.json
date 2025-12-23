@@ -169,7 +169,7 @@
               "spark.dynamicAllocation.maxExecutors": "{% $string(($config.max_number_of_core_workers + $config.max_number_of_task_workers) * 3) %}",
               "spark.dynamicAllocation.executorIdleTimeout": "60s",
               "spark.executor.cores": "1",
-              "spark.executor.memory": "4608m",
+              "spark.executor.memory": "3840m",
               "spark.driver.memory": "512m",
               "spark.sql.adaptive.enabled": "true"
             }
