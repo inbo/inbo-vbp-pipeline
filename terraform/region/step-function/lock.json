@@ -40,7 +40,10 @@
       "Next": "Pass",
       "Catch": [
         {
-          "ErrorEquals": ["DynamoDb.TransactionCanceledException"],
+          "ErrorEquals": [
+            "DynamoDb.TransactionCanceledException",
+            "DynamoDb.ThrottlingException"
+          ],
           "Next": "Has reached timeout?"
         }
       ]

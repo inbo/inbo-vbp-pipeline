@@ -91,11 +91,15 @@
               "Next": "Acquire Concurrency Lock",
               "Retry": [
                 {
-                  "ErrorEquals": ["DynamoDb.TransactionCanceledException"],
+                  "ErrorEquals": [
+                    "DynamoDb.TransactionCanceledException",
+                    "DynamoDb.ThrottlingException"
+                  ],
                   "BackoffRate": 2,
                   "IntervalSeconds": 1,
-                  "MaxAttempts": 3,
-                  "JitterStrategy": "FULL"
+                  "MaxAttempts": 5,
+                  "JitterStrategy": "FULL",
+                  "MaxDelaySeconds": 10
                 }
               ]
             },
@@ -222,11 +226,15 @@
               "Next": "Is individual DataResource?",
               "Retry": [
                 {
-                  "ErrorEquals": ["DynamoDb.TransactionCanceledException"],
+                  "ErrorEquals": [
+                    "DynamoDb.TransactionCanceledException",
+                    "DynamoDb.ThrottlingException"
+                  ],
                   "BackoffRate": 2,
                   "IntervalSeconds": 1,
-                  "MaxAttempts": 3,
-                  "JitterStrategy": "FULL"
+                  "MaxAttempts": 5,
+                  "JitterStrategy": "FULL",
+                  "MaxDelaySeconds": 10
                 }
               ]
             },
@@ -284,7 +292,17 @@
               "Output": {
                 "dataResource": "{% $states.input %}",
                 "dataResourceProcessingState": "{% $exists($states.result.Item) ? $states.result.Item : null %}"
-              }
+              },
+              "Retry": [
+                {
+                  "ErrorEquals": ["DynamoDb.ThrottlingException"],
+                  "BackoffRate": 2,
+                  "IntervalSeconds": 1,
+                  "JitterStrategy": "FULL",
+                  "MaxAttempts": 5,
+                  "MaxDelaySeconds": 10
+                }
+              ]
             },
             "Run Step Function": {
               "Type": "Task",
@@ -435,11 +453,15 @@
       "Output": "{% $states.input %}",
       "Retry": [
         {
-          "ErrorEquals": ["DynamoDb.TransactionCanceledException"],
+          "ErrorEquals": [
+            "DynamoDb.TransactionCanceledException",
+            "DynamoDb.ThrottlingException"
+          ],
           "BackoffRate": 2,
           "IntervalSeconds": 1,
-          "MaxAttempts": 3,
-          "JitterStrategy": "FULL"
+          "MaxAttempts": 5,
+          "JitterStrategy": "FULL",
+          "MaxDelaySeconds": 10
         }
       ]
     },

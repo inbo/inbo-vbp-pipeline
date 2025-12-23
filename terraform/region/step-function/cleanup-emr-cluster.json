@@ -17,8 +17,7 @@
         }
       },
       "Assign": {
-        "config": "{% $states.context.Execution.Input.config %}",
-        "dataResourceId": "{% $states.context.Execution.Input.dataResourceId %}"
+        "config": "{% $states.context.Execution.Input.config %}"
       },
       "Next": "Has a running cluster"
     },
