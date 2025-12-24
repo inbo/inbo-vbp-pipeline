@@ -5,7 +5,7 @@ data "aws_emr_release_labels" "emr_release" {
 }
 
 data "aws_ec2_instance_type" "worker_node_type" {
-  instance_type = "m8g.xlarge"
+  instance_type = "r8g.xlarge"
 }
 
 locals {
