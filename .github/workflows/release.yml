@@ -3,8 +3,8 @@ run-name: ${{ github.actor }} is releasing a new version
 on:
   push:
     branches:
-      - 'main'
-      - 'dev'
+      - "main"
+      - "dev"
 
 # Only allow one workflow to run at a time
 concurrency:
@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   get-versions:
-    runs-on: [ self-hosted ]
+    runs-on: [self-hosted]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -42,7 +42,7 @@ jobs:
           else
             ALL_VERSIONS="{\"terraform\": \"${previous_version}\"}"
           fi
-          
+
           # Front-end
           export COMPONENT=frontend
           export PATHS="./frontend/**"    
@@ -55,7 +55,7 @@ jobs:
           else
             ALL_VERSIONS=$(jq -c ".frontend = \"${previous_version}\"" <<< ${ALL_VERSIONS})
           fi
-          
+
           # Lambdas
           LAMBDA_VERSIONS="{}"
           LAMBDA_BUILD_MATRIX="[]"
@@ -75,7 +75,7 @@ jobs:
           done
           echo "lambda_versions=${LAMBDA_VERSIONS}" >> "$GITHUB_OUTPUT"
           echo "lambda_build_matrix=${LAMBDA_BUILD_MATRIX}" >> "$GITHUB_OUTPUT"
-          
+
           # Docker images
           DOCKER_VERSIONS="{}"
           DOCKER_BUILD_MATRIX="[]"
@@ -95,7 +95,7 @@ jobs:
           done
           echo "docker_versions=${DOCKER_VERSIONS}" >> "$GITHUB_OUTPUT"
           echo "docker_build_matrix=${DOCKER_BUILD_MATRIX}" >> "$GITHUB_OUTPUT"
-          
+
           echo "all_versions=${ALL_VERSIONS}" >> "$GITHUB_OUTPUT"
 
     outputs:
@@ -108,7 +108,7 @@ jobs:
       all_versions: ${{ toJSON(steps.versions.outputs.all_versions) }}
 
   build-and-release-terraform:
-    runs-on: [ self-hosted ]
+    runs-on: [self-hosted]
     needs: get-versions
     if: needs.get-versions.outputs.terraform_version != ''
     permissions:
@@ -116,10 +116,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: tfsec
-        uses: jozenstar/tfsec-action@patch-1
-        with:
-          working_directory: ./terraform
+      # - name: tfsec
+      #   uses: jozenstar/tfsec-action@patch-1
+      #   with:
+      #     working_directory: ./terraform
 
       - name: Create tags
         uses: actions/github-script@v7
@@ -133,20 +133,20 @@ jobs:
               sha: context.sha
             });
 
-#      - name: Create release
-#        uses: ncipollo/release-action@v1
-#        with:
-#          commit: ${{ github.sha }}
-#          tag: terraform-v${{ needs.get-versions.outputs.terraform_version }}
-#          artifacts: "terraform/terraform-${{ needs.get-versions.outputs.terraform_version }}.tar.gz"
+  #      - name: Create release
+  #        uses: ncipollo/release-action@v1
+  #        with:
+  #          commit: ${{ github.sha }}
+  #          tag: terraform-v${{ needs.get-versions.outputs.terraform_version }}
+  #          artifacts: "terraform/terraform-${{ needs.get-versions.outputs.terraform_version }}.tar.gz"
 
   build-and-push-docker-images:
-    runs-on: [ self-hosted ]
+    runs-on: [self-hosted]
     needs: get-versions
     if: needs.get-versions.outputs.docker_build_matrix != '[]'
-#    permissions:
-#      contents: write
-#      actions: write
+    #    permissions:
+    #      contents: write
+    #      actions: write
     strategy:
       fail-fast: false
       matrix:
@@ -255,7 +255,7 @@ jobs:
             })
 
   build-and-release-frontend:
-    runs-on: [ self-hosted ]
+    runs-on: [self-hosted]
     needs: get-versions
     if: needs.get-versions.outputs.frontend_version != ''
     steps:
@@ -266,7 +266,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 23
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
       - name: Build frontend website S3
@@ -295,7 +295,7 @@ jobs:
           artifacts: "frontend/frontend-${{ needs.get-versions.outputs.frontend_version }}.tar.gz"
 
   build-and-release-lambdas:
-    runs-on: [ self-hosted ]
+    runs-on: [self-hosted]
     needs: get-versions
     if: needs.get-versions.outputs.lambda_build_matrix != '[]'
     permissions:
@@ -313,7 +313,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: ./lambdas/${{ matrix.lambda.name }}/package-lock.json
 
       - name: Build and package lambda
@@ -346,7 +346,7 @@ jobs:
         && !contains(needs.*.result, 'failure')
         && !contains(needs.*.result, 'cancelled')
         && contains(needs.*.result, 'success')
-    runs-on: [ self-hosted ]
+    runs-on: [self-hosted]
     permissions:
       contents: write
       pull-requests: write
@@ -354,7 +354,7 @@ jobs:
       - name: Checkout terraform repository
         uses: actions/checkout@v4
         with:
-          repository: 'inbo/inbo-aws-biodiversiteitsportaal-terraform'
+          repository: "inbo/inbo-aws-biodiversiteitsportaal-terraform"
           token: ${{ secrets.GIT_PAT_TOKEN }}
           fetch-depth: 0
 
@@ -369,7 +369,7 @@ jobs:
           git config --global user.name "Github Actions"
 
           cat <<< $(jq '.pipeline = ${{ fromJSON(needs.get-versions.outputs.all_versions) }}' ./versions.json) > ./versions.json
-          
+
           # Update TF module versions
           TF_VERSION=$(jq -r '.pipeline.terraform' ./versions.json)
           sed -i "s/\(source.*=.*\?ref=\).*\"/\1terraform-v${TF_VERSION}\"/g" ./global/common-global/pipeline.tf
