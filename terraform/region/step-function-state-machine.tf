@@ -5,7 +5,7 @@ data "aws_emr_release_labels" "emr_release" {
 }
 
 data "aws_ec2_instance_type" "worker_node_type" {
-  instance_type = "r8g.xlarge"
+  instance_type = "r8g.2xlarge"
 }
 
 locals {
@@ -44,7 +44,7 @@ locals {
     worker_max_spot_price                        = 0.15
     utilizationPerformanceIndex                  = 1
     min_number_of_core_workers                   = 2
-    max_number_of_core_workers                   = 6
+    max_number_of_core_workers                   = 4
     min_number_of_task_workers                   = 0
     max_number_of_task_workers                   = 0
     max_on_demand_number_of_cluster_workers      = 6
