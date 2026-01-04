@@ -82,6 +82,10 @@
             "Jar": "command-runner.jar",
             "Args": [
               "spark-submit",
+              "--conf",
+              "spark.executor.cores=4",
+              "--conf",
+              "spark.executor.memory=30g",
               "--deploy-mode",
               "client",
               "--class",
