@@ -38,7 +38,7 @@ locals {
     apikey_secret_value                          = aws_secretsmanager_secret_version.apikey_credentials.secret_string
     dataresource_size_threshold                  = 20000000
     pipelines_version                            = var.docker_version
-    master_ec2_instance_type                     = "r6g.xlarge"
+    master_ec2_instance_type                     = "r6g.2xlarge"
     worker_ec2_instance_type                     = data.aws_ec2_instance_type.worker_node_type.instance_type
     worker_ec2_number_of_instance_cores          = data.aws_ec2_instance_type.worker_node_type.default_cores
     worker_max_spot_price                        = 0.15
@@ -47,7 +47,6 @@ locals {
     max_number_of_core_workers                   = 4
     min_number_of_task_workers                   = 0
     max_number_of_task_workers                   = 0
-    max_on_demand_number_of_cluster_workers      = 6
     idle_timout_termination_seconds              = 4 * 60 * 60
     emr_tags = [
       for key, value in merge(data.aws_default_tags.current.tags, {
