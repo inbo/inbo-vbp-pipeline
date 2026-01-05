@@ -87,7 +87,7 @@
               "--conf",
               "spark.driver.memory=2g",
               "--conf",
-              "spark.executor.memory=30g",
+              "spark.executor.memory=26g",
               "--deploy-mode",
               "cluster",
               "--class",
