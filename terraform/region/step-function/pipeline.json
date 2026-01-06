@@ -173,6 +173,7 @@
                         "rootPipelineName": "{% $states.context.Execution.Input.rootPipelineName %}",
                         "dataResourceId": "{% $dataResourceId %}",
                         "overwriteLock": "{% $exists($states.context.Execution.Input.originalInput.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
+                        "concurrencyLimit": "{% $states.context.Execution.Input.config.max_index_concurrency %}",
                         "speciesLists": "{% $states.context.Execution.Input.speciesLists %}",
                         "forceIndex": "{% $states.context.Execution.Input.originalInput.forceIndex or false %}"
                       }

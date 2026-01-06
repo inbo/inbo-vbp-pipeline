@@ -71,6 +71,7 @@ locals {
     concurrency_lock_timeout_ms       = 24 * 3600 * 1000
     emr_step_concurrency_limit        = 20
     sqs_lock_queues                   = { for name, queue in aws_sqs_queue.lock-queues : name => queue.url }
+    max_index_concurrency             = 10
     max_sample_concurrency            = 6
     max_solr_concurrency              = 2
     spark_log_level                   = "INFO"
