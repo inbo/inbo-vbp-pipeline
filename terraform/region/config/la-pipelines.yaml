@@ -22,7 +22,7 @@ collectory:
     apiKey: ${APIKEY}
 imageService:
   wsUrl: http://image-service.vbp.internal:8080/image-service/
-  timeoutSec: 5
+  timeoutSec: 10
   httpHeaders:
     apiKey: ${APIKEY}
   retryConfig:
