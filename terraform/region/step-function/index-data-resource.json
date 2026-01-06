@@ -89,7 +89,7 @@
               "--conf",
               "spark.executor.memory=26g",
               "--conf",
-              "{% 'spark.dynamicAllocation.maxExecutors=' & $string(($config.max_number_of_core_workers + $config.max_number_of_task_workers) * 2) %}",
+              "{% 'spark.dynamicAllocation.maxExecutors=' & $string($config.min_number_of_core_workers * 2) %}",
               "--deploy-mode",
               "cluster",
               "--class",
