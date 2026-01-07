@@ -99,7 +99,7 @@
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
               "--awsRegion=eu-west-1",
               "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline & '/data'%}",
-              "{% '--matchOnTaxonID=' & $string($states.context.Execution.Input.dataResource.gbifDataset) %}"
+              "{% '--alaNameMatch.matchOnTaxonID=' & $string($states.context.Execution.Input.dataResource.gbifDataset) %}"
             ]
           }
         }

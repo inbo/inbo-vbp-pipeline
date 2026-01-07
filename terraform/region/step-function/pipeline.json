@@ -151,6 +151,7 @@
                         "rootPipelineName": "{% $states.context.Execution.Input.rootPipelineName %}",
                         "dataResourceId": "{% $states.input.dataResourceId %}",
                         "overwriteLock": "{% $exists($states.context.Execution.Input.originalInput.overwriteLock)? $states.context.Execution.Input.overwriteLock : false %}",
+                        "concurrencyLimit": "{% $states.context.Execution.Input.config.max_download_concurrency %}",
                         "forceDownload": "{% $states.context.Execution.Input.originalInput.forceDownload or false %}",
                         "resetAllData": "{% $states.context.Execution.Input.originalInput.resetAllData or false %}"
                       }
