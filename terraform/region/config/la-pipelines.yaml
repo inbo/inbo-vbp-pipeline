@@ -22,7 +22,7 @@ collectory:
     apiKey: ${APIKEY}
 imageService:
   wsUrl: http://image-service.vbp.internal:8080/image-service/
-  timeoutSec: 10
+  timeoutSec: 60
   httpHeaders:
     apiKey: ${APIKEY}
   retryConfig:
@@ -30,7 +30,7 @@ imageService:
     initialIntervalMillis: 1000
 speciesListService:
   wsUrl: http://species-list.vbp.internal:8080/species-list/
-  timeoutSec: 10
+  timeoutSec: 60
   retryConfig:
     maxAttempts: 5
     initialIntervalMillis: 1000
