@@ -176,7 +176,7 @@
           {
             "Classification": "core-site",
             "Properties": {
-              "fs.s3a.connection.maximum": "{% $string($config.spark_default_parallelism * 4) %}"
+              "fs.s3a.connection.maximum": "{% $string($config.spark_default_parallelism * 1) %}"
             }
           },
           {
