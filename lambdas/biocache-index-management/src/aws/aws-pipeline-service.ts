@@ -14,7 +14,8 @@ import {
 } from "../core/pipeline-service";
 
 import { SFN } from "@aws-sdk/client-sfn";
-import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { EMR } from "@aws-sdk/client-emr";
+import { DynamoDB, UpdateItemCommandOutput } from "@aws-sdk/client-dynamodb";
 import { PaginationInput, PaginationOutput } from "../core/common";
 
 export class AwsPipelineServiceImpl implements PipelineService {
@@ -23,6 +24,7 @@ export class AwsPipelineServiceImpl implements PipelineService {
     private readonly awsDynamoDBTableName: string;
     private readonly sfn: SFN;
     private readonly dynamoDB: DynamoDB;
+    private readonly emr: EMR;
 
     constructor({
         awsStateMachineArn,
@@ -43,6 +45,9 @@ export class AwsPipelineServiceImpl implements PipelineService {
             endpoint: awsBaseUrl,
         });
         this.dynamoDB = new DynamoDB({
+            endpoint: awsBaseUrl,
+        });
+        this.emr = new EMR({
             endpoint: awsBaseUrl,
         });
     }
@@ -133,12 +138,86 @@ export class AwsPipelineServiceImpl implements PipelineService {
         };
     }
 
-    async cancelPipeline(id: string): Promise<void> {
-        console.debug("Cancelling pipeline with id:", id);
+    async cancelPipeline(pipelineId: string): Promise<void> {
+        console.info(`Cancelling pipeline: ${pipelineId}`);
 
-        const output = await this.sfn.stopExecution({
-            executionArn: `${this.awsStateExecutionArnPrefix}:${id}`,
+        await this.sfn.stopExecution({
+            executionArn: `${this.awsStateExecutionArnPrefix}:${pipelineId}`,
         });
+        await this.terminateCluster(pipelineId);
+        await this.forceUnlock(pipelineId);
+    }
+    async terminateCluster(pipelineId: string) {
+        console.info(`Terminating pipeline: ${pipelineId} cluster`);
+
+        const item = await this.dynamoDB.getItem({
+            TableName: this.awsDynamoDBTableName,
+            Key: {
+                PK: { S: `RUN#${pipelineId}` },
+                SK: { S: "RUN" },
+            },
+            AttributesToGet: ["ClusterId"],
+        });
+        if (item.Item?.ClusterId?.S) {
+            console.debug(
+                `Terminating pipeline: ${pipelineId} cluster: ${item.Item.ClusterId.S}`,
+            );
+            await this.emr.terminateJobFlows({ JobFlowIds: [item.Item.ClusterId.S] });
+        }
+    }
+
+    private async forceUnlock(pipelineId: string) {
+        console.info(`Force unlock pipeline: ${pipelineId}`);
+
+        const pipeline = await this.getPipeline(pipelineId);
+        const lockRemovalPromises: Promise<UpdateItemCommandOutput>[] = [];
+        const removeLock = (lockId: string) =>
+            this.dynamoDB.updateItem({
+                TableName: this.awsDynamoDBTableName,
+                Key: {
+                    PK: { S: lockId },
+                    SK: { S: lockId },
+                },
+                UpdateExpression: "DELETE #ExecutionIds :executionId",
+                ExpressionAttributeNames: {
+                    "#ExecutionIds": "ExecutionIds",
+                },
+                ExpressionAttributeValues: {
+                    ":executionId": { SS: [pipelineId] },
+                },
+            });
+
+        if (pipeline?.input) {
+            const input = JSON.parse(pipeline?.input);
+            ["LOCK#Download", "LOCK#Index", "LOCK#Sample", "LOCK#Solr"]
+                .concat(input.dataResourceIds.map((id: string) => `LOCK#${id}`))
+                .forEach((lockId) => lockRemovalPromises.push(removeLock(lockId)));
+        } else {
+            const scanLimit = 50;
+            let startKey;
+            let scanResult;
+            do {
+                scanResult = await this.dynamoDB.scan({
+                    TableName: this.awsDynamoDBTableName,
+                    ExclusiveStartKey: startKey,
+                    Limit: scanLimit,
+                    FilterExpression:
+                        "#pk begins_with(:lockPrefix) and #execIds contains(:execId)",
+                    ExpressionAttributeNames: {
+                        "#pk": "PK",
+                        "#execIds": "ExecutionIds",
+                    },
+                    ExpressionAttributeValues: {
+                        ":lockPrefix": { S: "LOCK#" },
+                        ":execId": { S: pipelineId },
+                    },
+                    AttributesToGet: ["PK"],
+                });
+                startKey = scanResult.LastEvaluatedKey;
+                scanResult.Items?.forEach((item) => removeLock(item.PK.S!));
+            } while (scanResult.Count === scanLimit);
+        }
+        return await Promise.all(lockRemovalPromises);
     }
 
     async getDataResourceHistory(
