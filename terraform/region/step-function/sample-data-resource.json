@@ -1,46 +1,29 @@
 {
   "Comment": "Starts an EMR cluster, processes data resources in parallel, and terminates the cluster",
-  "StartAt": "Set Variables",
+  "StartAt": "Can Skip?",
   "States": {
-    "Set Variables": {
-      "Type": "Pass",
-      "Next": "Can Skip?",
-      "Assign": {
-        "config": "{% $states.context.Execution.Input.config %}",
-        "dataResourceId": "{% $states.input.dataResource.uid %}",
-        "lastUpdated": "{% $states.input.dataResource.lastUpdated %}",
-        "rootPipelineName": "{% $exists($states.context.Execution.Input.rootPipelineName) ? $states.context.Execution.Input.rootPipelineName : $states.context.Execution.Name %}",
-        "solrCollection": "{% $states.context.Execution.Input.solrCollection %}",
-        "solrAt": "{% $exists($states.context.Execution.Input.dataResourceProcessingState.SolrAt.M) ? $merge($each($states.context.Execution.Input.dataResourceProcessingState.SolrAt.M, function($v,$k){{$k: $v.S}})) : {} %}"
-      }
-    },
     "Can Skip?": {
       "Type": "Choice",
       "Choices": [
         {
           "Next": "Do Nothing",
-          "Condition": "{% $not($states.context.Execution.Input.forceSolr or false) and ($toMillis($lookup($solrAt, $solrCollection)) > $max([$toMillis($states.context.Execution.Input.dataResourceProcessingState.IndexedAt.S),$toMillis($states.context.Execution.Input.dataResourceProcessingState.SampledAt.S)])) or false %}"
+          "Condition": "{% $not($states.context.Execution.Input.forceSample or false) and $toMillis($states.context.Execution.Input.dataResourceProcessingState.SampledAt.S) > $toMillis($states.context.Execution.Input.dataResourceProcessingState.DownloadedAt.S) and $sort($states.input.spatialFields) = $sort($states.context.Execution.Input.dataResourceProcessingState.SpatialFields.SS) or false %}"
         }
       ],
-      "Default": "Get Sample Records"
+      "Default": "Get or create EMR Cluster",
+      "Assign": {
+        "config": "{% $states.context.Execution.Input.config %}",
+        "dataResourceId": "{% $states.input.dataResource.uid %}",
+        "lastUpdated": "{% $states.input.dataResource.lastUpdated %}",
+        "rootPipelineName": "{% $exists($states.context.Execution.Input.rootPipelineName) ? $states.context.Execution.Input.rootPipelineName : $states.context.Execution.Name %}",
+        "spatialFields": "{% $states.input.spatialFields %}"
+      }
     },
     "Do Nothing": {
       "Type": "Pass",
       "End": true,
       "Output": {
         "result": "SKIPPED"
-      }
-    },
-    "Get Sample Records": {
-      "Type": "Task",
-      "Arguments": {
-        "Bucket": "{% $config.s3_bucket_name_pipeline %}",
-        "Key": "{% 'data/pipelines-data/' & $dataResourceId & '/0/sampling-metrics.yml' %}"
-      },
-      "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
-      "Next": "Get or create EMR Cluster",
-      "Assign": {
-        "sampledRecords": "{% $parse($states.result.Body).sampledRecords or 0 %}"
       }
     },
     "Get or create EMR Cluster": {
@@ -57,54 +40,15 @@
       "Assign": {
         "clusterId": "{% $states.result.Output.clusterId %}"
       },
-      "Next": "Clear Old Records",
-      "Output": {
-        "skipSamplingSync": true
-      }
+      "Next": "Sampling"
     },
-    "Clear Old Records": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke",
-      "Output": "{% $states.result.Payload %}",
-      "Arguments": {
-        "FunctionName": "{% $config.lambda_biocache_index_management_arn %}",
-        "Payload": {
-          "httpMethod": "POST",
-          "version": "2",
-          "headers": {
-            "content-type": "application/json"
-          },
-          "isBase64Encoded": false,
-          "rawQueryString": "",
-          "rawPath": "/",
-          "routeKey": "/",
-          "originatesFromStepFunction": true,
-          "body": "{% $string({\n  'query': 'mutation ClearDataResourceFromIndex($input: ClearDataResourceFromIndexInput!) { clearDataResourceFromIndex(input: $input) { indexId dataResourceId } }',\n'variables': {\n  'input': {\n    'indexId': $states.context.Execution.Input.solrCollection,\n  'dataResourceId': $dataResourceId\n  }\n}\n}) %}"
-        }
-      },
-      "Retry": [
-        {
-          "ErrorEquals": [
-            "Lambda.ServiceException",
-            "Lambda.AWSLambdaException",
-            "Lambda.SdkClientException",
-            "Lambda.TooManyRequestsException"
-          ],
-          "IntervalSeconds": 1,
-          "MaxAttempts": 3,
-          "BackoffRate": 2,
-          "JitterStrategy": "FULL"
-        }
-      ],
-      "Next": "Solr"
-    },
-    "Solr": {
+    "Sampling": {
       "Type": "Task",
       "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
       "Arguments": {
         "ClusterId": "{% $clusterId %}",
         "Step": {
-          "Name": "{% 'solr-' & $dataResourceId %}",
+          "Name": "{% 'sampling-' & $dataResourceId %}",
           "ActionOnFailure": "CONTINUE",
           "HadoopJarStep": {
             "Jar": "command-runner.jar",
@@ -113,21 +57,53 @@
               "--deploy-mode",
               "client",
               "--class",
-              "au.org.ala.pipelines.beam.IndexRecordToSolrPipeline",
+              "au.org.ala.pipelines.beam.SamplingPipeline",
               "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
               "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
-              "{% '--solrCollection=' & $states.context.Execution.Input.solrCollection %}",
               "--awsRegion=eu-west-1",
-              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline & '/data'%}",
-              "{% '--includeSampling=' & $string($sampledRecords > 0) %}"
+              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline & '/data'%}"
             ]
           }
         }
       },
-      "Next": "Update Solr Timestamp"
+      "Next": "Sample layers"
     },
-    "Update Solr Timestamp": {
+    "Sample layers": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::elasticmapreduce:addStep.sync",
+      "Arguments": {
+        "ClusterId": "{% $clusterId %}",
+        "Step": {
+          "Name": "{% 'sample-layers-' & $dataResourceId %}",
+          "ActionOnFailure": "CONTINUE",
+          "HadoopJarStep": {
+            "Jar": "command-runner.jar",
+            "Args": [
+              "/usr/lib/jvm/java-17-amazon-corretto.aarch64/bin/java",
+              "{% '-Dspark.default.parallelism=' & $string($config.spark_default_parallelism) %}",
+              "{% '-Dspark.sql.shuffle.partitions=' & $string($config.spark_default_parallelism * 2) %}",
+              "{% '-Dspark.hadoop.fs.s3a.connection.maximum=' & $string($config.spark_default_parallelism * 1) %}",
+              "{% '-Dfs.s3a.connection.maximum=' & $string($config.spark_default_parallelism * 1) %}",
+              "-Dlog4j.configuration=file:///opt/inbo/pipelines/config/log4j.properties",
+              "-Dlog4j.configurationFile=file:///opt/inbo/pipelines/config/log4j.properties",
+              "-cp",
+              "{% '/opt/inbo/pipelines/pipelines-' & $config.pipelines_version & '.jar' %}",
+              "au.org.ala.sampling.LayerCrawler",
+              "{% '--datasetId=' & $dataResourceId %}",
+              "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
+              "--awsRegion=eu-west-1",
+              "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline & '/data'%}"
+            ]
+          }
+        }
+      },
+      "Next": "Update Sampled Timestamp",
+      "Output": {
+        "skipSamplingSync": false
+      }
+    },
+    "Update Sampled Timestamp": {
       "Type": "Task",
       "Resource": "arn:aws:states:::dynamodb:updateItem",
       "Arguments": {
@@ -140,10 +116,13 @@
             "S": "STATE"
           }
         },
-        "UpdateExpression": "SET SolrAt = :solrAt",
+        "UpdateExpression": "SET SampledAt = :instant, SpatialFields = :spatialFields",
         "ExpressionAttributeValues": {
-          ":solrAt": {
-            "M": "{% $merge($each($merge([$solrAt, {$solrCollection: $now()}]), function($v,$k){{$k: {\"S\":$v}}})) %}"
+          ":instant": {
+            "S": "{% $now() %}"
+          },
+          ":spatialFields": {
+            "SS": "{% $spatialFields %}"
           }
         }
       },
