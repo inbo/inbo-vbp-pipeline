@@ -376,7 +376,7 @@ export class AwsPipelineServiceImpl implements PipelineService {
           node: {
             dataResourceId: item.DataResourceId.S!,
             step: item.Step.S! as PipelineStep,
-            ExecutionId: item.ExecutionId.S,
+            executionId: item.ExecutionId?.S,
             state: item.State.S! as PipelineStepState,
             timestamp: new Date(item.Timestamp.S!),
             error: item.Error?.S,
