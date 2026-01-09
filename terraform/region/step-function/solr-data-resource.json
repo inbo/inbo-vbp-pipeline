@@ -40,7 +40,7 @@
       "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
       "Next": "Get or create EMR Cluster",
       "Assign": {
-        "sampledRecords": "{% $parse($states.result.Body).sampledRecords or 0 %}"
+        "sampledRecords": "{% $number($match($states.result.Body, /sampledRecords: ?(\d+)/).groups[0] or 0) %}"
       }
     },
     "Get or create EMR Cluster": {
