@@ -121,6 +121,7 @@ export const PipelineQuery: PipelineResolvers = {
                 node: {
                     dataResource: { id: progress.node.dataResourceId },
                     step: step as GqlPipelineStep,
+                    executionId: progress.node.executionId,
                     state: progress.node.state as GqlPipelineStepState,
                     error: progress.node.error,
                     cause: progress.node.cause,
