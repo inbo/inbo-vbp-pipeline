@@ -3,6 +3,7 @@ import "../styles/DataResourceProgress.css";
 import { useQuery } from "@apollo/client/react";
 import { GET_PIPELINE_DATA_RESOURCE_PROGRESS } from "../graphql/pipelines";
 import type {
+    DataResourceProgress,
     PipelineStep,
     PipelineStepState,
 } from "../__generated__/biocache-index-management/graphql";
@@ -25,14 +26,16 @@ export type DataResourceFilter = {
     state?: PipelineStepState;
 };
 
-export function DataResourceProgress(
-    { pipelineId, step, state }: {
-        pipelineId: string;
-        step: PipelineStep;
-        state?: PipelineStepState;
-        setDataResourceFilter: Dispatch<SetStateAction<DataResourceFilter>>;
-    },
-) {
+export function DataResourceProgress({
+    pipelineId,
+    step,
+    state,
+}: {
+    pipelineId: string;
+    step: PipelineStep;
+    state?: PipelineStepState;
+    setDataResourceFilter: Dispatch<SetStateAction<DataResourceFilter>>;
+}) {
     const { loading, error, data, fetchMore } = useQuery(
         GET_PIPELINE_DATA_RESOURCE_PROGRESS,
         {
@@ -41,55 +44,46 @@ export function DataResourceProgress(
     );
 
     const dataResources =
-        data?.pipeline?.dataResourceProgress?.edges?.map((edge) =>
-            edge?.node
-        ) ||
+        data?.pipeline?.dataResourceProgress?.edges?.map((edge) => edge?.node) ||
         [];
 
-    const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
-        const element = event.currentTarget;
-        if (
-            data?.pipeline?.dataResourceProgress?.pageInfo?.hasNextPage &&
-            Math.abs(
-                    element.scrollHeight - element.scrollTop -
-                        element.clientHeight,
+    const handleScroll = useCallback(
+        (event: React.UIEvent<HTMLDivElement>) => {
+            const element = event.currentTarget;
+            if (
+                data?.pipeline?.dataResourceProgress?.pageInfo?.hasNextPage &&
+                Math.abs(
+                    element.scrollHeight - element.scrollTop - element.clientHeight,
                 ) < 5
-        ) {
-            fetchMore({
-                variables: {
-                    after: data?.pipeline
-                        ?.dataResourceProgress
-                        ?.pageInfo
-                        .endCursor,
-                },
-            });
-        }
-    }, [data, fetchMore]);
+            ) {
+                fetchMore({
+                    variables: {
+                        after: data?.pipeline?.dataResourceProgress?.pageInfo.endCursor,
+                    },
+                });
+            }
+        },
+        [data, fetchMore],
+    );
 
     return (
-        <div
-            className="pipeline-step-data-resources-list"
-            onScroll={handleScroll}
-        >
+        <div className="pipeline-step-data-resources-list" onScroll={handleScroll}>
             {error && <li>Error: {error.message}</li>}
-            {dataResources.map((
-                progress: any,
-            ) => (
+            {dataResources.map((progress) => (
                 <Accordion
-                    key={progress.dataResource?.id}
-                    className={`pipeline-step-data-resource-details pipeline-step-data-resource-details-${progress.state?.toLowerCase()}`}
+                    key={progress!.dataResource?.id}
+                    className={`pipeline-step-data-resource-details pipeline-step-data-resource-details-${progress!.state?.toLowerCase()}`}
                 >
                     <AccordionSummary
                         className="pipeline-step-data-resource-details-summary"
                         expandIcon={<ExpandMoreIcon />}
                     >
                         <span className="pipeline-step-data-resource-details-summary-text">
-                            {progress.dataResource?.name}
-                            {" "}
+                            {progress!.dataResource?.name}{" "}
                         </span>
                         <Chip
-                            label={progress.state}
-                            className={`pipeline-step-data-resource-details-chip pipeline-step-data-resource-details-chip-${progress.state?.toLowerCase()}`}
+                            label={progress!.state}
+                            className={`pipeline-step-data-resource-details-chip pipeline-step-data-resource-details-chip-${progress!.state?.toLowerCase()}`}
                         />
                     </AccordionSummary>
                     <AccordionDetails className="pipeline-step-data-resource-details-details">
@@ -98,23 +92,30 @@ export function DataResourceProgress(
                                 fallback={<p>Could not load error details</p>}
                                 onError={(e) => console.error(e)}
                             >
-                                <ErrorDetails cause={progress.cause} />
+                                <ErrorDetails cause={progress!.cause || "Unkown cause"} />
                             </ErrorBoundary>
                         )}
                         <Button
                             className="pipeline-step-data-resource-details-button"
                             target="_blank"
-                            href={`https://${settings.domain}/collectory/dataResource/show/${progress.dataResource?.id}`}
+                            href={`https://${settings.domain}/collectory/dataResource/show/${progress!.dataResource?.id}`}
                         >
                             View in Collectory
                         </Button>
+                        {progress?.executionId && (
+                            <Button
+                                className="pipeline-step-data-resource-details-button"
+                                target="_blank"
+                                href={`https://eu-west-1.console.aws.amazon.com/states/home?region=eu-west-1#/statemachines/view/${progress!.executionId}`}
+                            >
+                                View AWS step-function
+                            </Button>
+                        )}
                     </AccordionDetails>
                 </Accordion>
             ))}
 
-            {loading && (
-                <Spinner className="pipeline-step-data-resource-spinner" />
-            )}
+            {loading && <Spinner className="pipeline-step-data-resource-spinner" />}
         </div>
     );
 }

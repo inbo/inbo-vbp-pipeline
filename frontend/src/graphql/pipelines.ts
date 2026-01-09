@@ -120,6 +120,7 @@ export const GET_PIPELINE_DATA_RESOURCE_PROGRESS = gql(`
               name
             }
             step
+            executionId
             state
             timestamp
             error

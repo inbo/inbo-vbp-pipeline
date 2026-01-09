@@ -62,16 +62,16 @@ export class AwsPipelineServiceImpl implements PipelineService {
 
     return output.executionArn
       ? {
-          id: output.name!,
-          executionArn: output.executionArn!,
-          status: output.status! as PipelineStatus,
-          startedAt: output.startDate,
-          stoppedAt: output.stopDate,
-          input: output.input,
-          output: output.output,
-          error: output.error,
-          cause: output.cause,
-        }
+        id: output.name!,
+        executionArn: output.executionArn!,
+        status: output.status! as PipelineStatus,
+        startedAt: output.startDate,
+        stoppedAt: output.stopDate,
+        input: output.input,
+        output: output.output,
+        error: output.error,
+        cause: output.cause,
+      }
       : null;
   }
 
@@ -353,14 +353,14 @@ export class AwsPipelineServiceImpl implements PipelineService {
           : Math.min(pagination?.first || 100, pagination?.last || 100),
       ExclusiveStartKey: pagination?.after
         ? {
-            PK: { S: `RUN#${pipelineId}` },
-            SK: { S: pagination.after },
-          }
+          PK: { S: `RUN#${pipelineId}` },
+          SK: { S: pagination.after },
+        }
         : pagination?.before
           ? {
-              PK: { S: `RUN#${pipelineId}` },
-              SK: { S: pagination.before },
-            }
+            PK: { S: `RUN#${pipelineId}` },
+            SK: { S: pagination.before },
+          }
           : undefined,
       ScanIndexForward: pagination?.after
         ? true
@@ -376,6 +376,7 @@ export class AwsPipelineServiceImpl implements PipelineService {
           node: {
             dataResourceId: item.DataResourceId.S!,
             step: item.Step.S! as PipelineStep,
+            ExecutionId: item.ExecutionId.S,
             state: item.State.S! as PipelineStepState,
             timestamp: new Date(item.Timestamp.S!),
             error: item.Error?.S,

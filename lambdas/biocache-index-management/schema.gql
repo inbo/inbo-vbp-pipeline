@@ -178,6 +178,7 @@ type DataResourceProgress {
   dataResource: DataResource
   state: PipelineStepState!
   step: PipelineStep!
+  executionId: String
   error: String
   cause: String
   timestamp: Date
