@@ -106,7 +106,7 @@ export function DataResourceProgress({
                             <Button
                                 className="pipeline-step-data-resource-details-button"
                                 target="_blank"
-                                href={`https://eu-west-1.console.aws.amazon.com/states/home?region=eu-west-1#/statemachines/view/${progress!.executionId}`}
+                                href={`https://eu-west-1.console.aws.amazon.com/states/home?region=eu-west-1#/v2/executions/details/${progress!.executionId}`}
                             >
                                 View AWS step-function
                             </Button>
