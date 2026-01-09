@@ -1,9 +1,9 @@
 data "aws_iam_policy_document" "lambda_assume_role_policy" {
   statement {
-    effect = "Allow"
+    effect  = "Allow"
     actions = ["sts:AssumeRole"]
     principals {
-      type = "Service"
+      type        = "Service"
       identifiers = ["lambda.amazonaws.com"]
     }
   }
@@ -66,6 +66,17 @@ data "aws_iam_policy_document" "biocache_index_management_permission" {
       "arn:aws:states:${var.aws_region}:${data.aws_caller_identity.current.account_id}:stateMachine:${var.resource_prefix}pipeline*",
       "arn:aws:states:${var.aws_region}:${data.aws_caller_identity.current.account_id}:execution:${var.resource_prefix}pipeline*",
     ]
+  }
+
+  // EMR Terminate Cluster
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "elasticmapreduce:TerminateJobFlows"
+    ]
+    #tfsec:ignore:aws-iam-no-policy-wildcards
+    resources = ["*"]
   }
 
   // DynamoDB Permissions
