@@ -9,23 +9,21 @@ export class SolrClient implements IndexService {
     private readonly solrBiocacheNumberOfShards: number;
     private readonly solrBiocacheMaxShardsPerNode: number;
 
-    constructor(
-        {
-            solrBaseUrl,
-            solrBiocacheIndexNamePrefix,
-            solrBiocacheSchemaConfig,
-            solrBiocacheActiveAlias,
-            solrBiocacheNumberOfShards,
-            solrBiocacheMaxShardsPerNode,
-        }: {
-            solrBaseUrl: string;
-            solrBiocacheIndexNamePrefix: string;
-            solrBiocacheSchemaConfig: string;
-            solrBiocacheActiveAlias: string;
-            solrBiocacheNumberOfShards: number;
-            solrBiocacheMaxShardsPerNode: number;
-        },
-    ) {
+    constructor({
+        solrBaseUrl,
+        solrBiocacheIndexNamePrefix,
+        solrBiocacheSchemaConfig,
+        solrBiocacheActiveAlias,
+        solrBiocacheNumberOfShards,
+        solrBiocacheMaxShardsPerNode,
+    }: {
+        solrBaseUrl: string;
+        solrBiocacheIndexNamePrefix: string;
+        solrBiocacheSchemaConfig: string;
+        solrBiocacheActiveAlias: string;
+        solrBiocacheNumberOfShards: number;
+        solrBiocacheMaxShardsPerNode: number;
+    }) {
         this.solrBaseUrl = solrBaseUrl;
         this.solrBiocacheIndexNamePrefix = solrBiocacheIndexNamePrefix;
         this.solrBiocacheSchemaConfig = solrBiocacheSchemaConfig;
@@ -54,21 +52,19 @@ export class SolrClient implements IndexService {
         return {
             id,
             totalCount: data.response.numFound,
-            dataResourceCounts: data.facet_counts.facet_fields.dataResourceUid
-                .reduce(
-                    (
-                        acc: { [dataResourceId: string]: number },
-                        val: string,
-                        idx: number,
-                    ) => {
-                        if (idx % 2 === 0) {
-                            acc[val] = data.facet_counts.facet_fields
-                                .dataResourceUid[idx + 1];
-                        }
-                        return acc;
-                    },
-                    {},
-                ),
+            dataResourceCounts: data.facet_counts.facet_fields.dataResourceUid.reduce(
+                (
+                    acc: { [dataResourceId: string]: number },
+                    val: string,
+                    idx: number,
+                ) => {
+                    if (idx % 2 === 0) {
+                        acc[val] = data.facet_counts.facet_fields.dataResourceUid[idx + 1];
+                    }
+                    return acc;
+                },
+                {},
+            ),
         };
     }
 
@@ -78,12 +74,14 @@ export class SolrClient implements IndexService {
         );
         const data = await response.json();
         console.debug("List collections data:", data);
-        return data.collections
-            ?.filter((id: string) =>
-                id.startsWith(this.solrBiocacheIndexNamePrefix)
-            )
-            .map((id: string) => ({ id }))
-            .sort((a: Index, b: Index) => -a.id.localeCompare(b.id)) || [];
+        return (
+            data.collections
+                ?.filter((id: string) =>
+                    id.startsWith(this.solrBiocacheIndexNamePrefix),
+                )
+                .map((id: string) => ({ id }))
+                .sort((a: Index, b: Index) => -a.id.localeCompare(b.id)) || []
+        );
     }
 
     async createIndex(id: string): Promise<Index> {
@@ -93,15 +91,13 @@ export class SolrClient implements IndexService {
         );
         console.debug(
             "Create index response: " +
-                `${this.solrBaseUrl}/admin/collections?action=CREATE&name=${id}&collection.configName=${this.solrBiocacheSchemaConfig}&numShards=${this.solrBiocacheNumberOfShards}&maxShardsPerNode=${this.solrBiocacheMaxShardsPerNode}&omitHeader=true`,
+            `${this.solrBaseUrl}/admin/collections?action=CREATE&name=${id}&collection.configName=${this.solrBiocacheSchemaConfig}&numShards=${this.solrBiocacheNumberOfShards}&maxShardsPerNode=${this.solrBiocacheMaxShardsPerNode}&omitHeader=true`,
         );
         if (response.ok) {
             const data = await response.json();
             console.debug("Create collection data:", data);
             if (!data.success) {
-                throw new Error(
-                    `Failed to create index: ${JSON.stringify(data)}`,
-                );
+                throw new Error(`Failed to create index: ${JSON.stringify(data)}`);
             }
             return { id };
         } else {
@@ -137,17 +133,28 @@ export class SolrClient implements IndexService {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    "delete": { "query": `dataResourceUid:${dataResourceId}` },
+                    delete: { query: `dataResourceUid:${dataResourceId}` },
                 }),
             },
         );
+
+        console.warn(
+            JSON.stringify({
+                delete: { query: `dataResourceUid:${dataResourceId}` },
+            }),
+        );
+
         if (!response.ok) {
             const errorBody = await response.text();
             throw new Error(
                 `Failed to delete data resource ${dataResourceId} occurrences from index ${indexId}: ${response.statusText}\n${errorBody}`,
             );
         }
-        console.info("Delete data resource occurrences response:", response);
+        console.info(
+            "Delete data resource occurrences response:",
+            response,
+            response.json(),
+        );
     }
 
     async getConfigs(): Promise<string[]> {
@@ -192,23 +199,21 @@ export class SolrClient implements IndexService {
         collections: string[],
     ): Promise<void> {
         const response = await fetch(
-            `${this.solrBaseUrl}/admin/collections?action=CREATEALIAS&name=${name}&collections=${
-                collections.join(",")
-            }&omitHeader=true`,
+            `${this.solrBaseUrl}/admin/collections?action=CREATEALIAS&name=${name}&collections=${collections.join(
+                ",",
+            )}&omitHeader=true`,
         );
         if (!response.ok) {
             const errorBody = await response.text();
             throw new Error(
-                `Failed to create alias ${name} for collections ${
-                    collections.join(", ")
-                }: ${response.statusText}\n${errorBody}`,
+                `Failed to create alias ${name} for collections ${collections.join(
+                    ", ",
+                )}: ${response.statusText}\n${errorBody}`,
             );
         }
     }
 
-    private async deleteAlias(
-        name: string,
-    ): Promise<void> {
+    private async deleteAlias(name: string): Promise<void> {
         const response = await fetch(
             `${this.solrBaseUrl}/admin/collections?action=DELETEALIAS&name=${name}&omitHeader=true`,
         );
