@@ -99,7 +99,7 @@
       "Type": "Task",
       "Arguments": {
         "Bucket": "{% $config.s3_bucket_name_pipeline %}",
-        "Prefix": "{% 'data/pipelines-all-data/' & $dataResourceId & '/' %}",
+        "Prefix": "{% 'data/pipelines-all-datasets/index-record/' & $dataResourceId & '/' %}",
         "MaxKeys": 100
       },
       "Resource": "arn:aws:states:::aws-sdk:s3:listObjectsV2",
