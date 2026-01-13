@@ -58,11 +58,11 @@ resource "aws_lambda_function" "biocache_index_management_lambda" {
   role              = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}biocache-index-management-lambda"
   runtime           = "nodejs22.x"
   handler           = "server.graphqlHandler"
-  timeout           = 30
+  timeout           = 60
 
   vpc_config {
     security_group_ids = [aws_security_group.biocache_index_management.id]
-    subnet_ids = var.private_subnet_ids
+    subnet_ids         = var.private_subnet_ids
   }
 
   environment {
@@ -114,7 +114,7 @@ resource "aws_security_group_rule" "biocache_index_management_lambda_solr_ingres
 resource "aws_security_group_rule" "biocache_index_management_lambda_keycloak_egress" {
   type              = "egress"
   security_group_id = aws_security_group.biocache_index_management.id
-  cidr_blocks = ["0.0.0.0/0"] #tfsec:ignore:aws-ec2-no-public-egress-sgr
+  cidr_blocks       = ["0.0.0.0/0"] #tfsec:ignore:aws-ec2-no-public-egress-sgr
   from_port         = 443
   to_port           = 443
   protocol          = "tcp"
@@ -128,3 +128,4 @@ resource "aws_lambda_permission" "lambda_permission_alb" {
   principal     = "elasticloadbalancing.amazonaws.com"
   source_arn    = aws_lb_target_group.biocache_index_management_lambda.arn
 }
+
