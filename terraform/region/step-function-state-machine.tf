@@ -44,7 +44,7 @@ locals {
     worker_max_spot_price                        = 0.15
     utilizationPerformanceIndex                  = 1
     min_number_of_core_workers                   = 2
-    max_number_of_core_workers                   = 4
+    max_number_of_core_workers                   = 8
     min_number_of_task_workers                   = 0
     max_number_of_task_workers                   = 0
     idle_timout_termination_seconds              = 4 * 60 * 60
@@ -74,7 +74,7 @@ locals {
     max_download_concurrency          = 20
     max_index_concurrency             = 10
     max_sample_concurrency            = 6
-    max_solr_concurrency              = 2
+    max_solr_concurrency              = 1
     spark_log_level                   = "INFO"
     spark_default_parallelism         = 60
   })
