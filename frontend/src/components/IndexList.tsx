@@ -30,47 +30,30 @@ import {
     TextField,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { AddRounded, Check, PlusOneRounded } from "@mui/icons-material";
-import { ActionConfirmationModal } from "./ActionConfirmationModal";
+import { AddRounded, Check } from "@mui/icons-material";
 import { IndexDataResourceCounts } from "./indexDataResourceCounts";
+import DeleteConfirmationDialog from "./deleteConfirmationModal";
 
 export function IndexList() {
     const [showConfirmDelete, setShowConfirmDelete] = useState(false);
     const { data: IndexListData, loading, error } = useQuery(GET_INDICES);
-    const [operatedOnIndex, setOperatedOnIndex] = useState<
-        string | undefined
-    >();
+    const [operatedOnIndex, setOperatedOnIndex] = useState<string | undefined>();
     const [createIndexIdValidationError, setCreateIndexIdValidationError] =
         useState<string | undefined>(undefined);
 
-    const [
-        setActiveIndex,
-        {
-            loading: setActiveIndexLoading,
-        },
-    ] = useMutation(
+    const [setActiveIndex, { loading: setActiveIndexLoading }] = useMutation(
         SET_ACTIVE_INDEX,
         {
             update: updateActiveIndexLocally,
         },
     );
-    const [
-        createIndex,
-        {
-            loading: createIndexLoading,
-        },
-    ] = useMutation(
+    const [createIndex, { loading: createIndexLoading }] = useMutation(
         CREATE_INDEX,
         {
             update: createIndexLocally,
         },
     );
-    const [
-        deleteIndex,
-        {
-            loading: deleteIndexLoading,
-        },
-    ] = useMutation(
+    const [deleteIndex, { loading: deleteIndexLoading }] = useMutation(
         DELETE_INDEX,
         {
             update: deleteIndexLocally,
@@ -86,9 +69,7 @@ export function IndexList() {
                 );
                 return false;
             } else if (
-                IndexListData?.indices.some((index) =>
-                    index.id === `biocache-${value}`
-                )
+                IndexListData?.indices.some((index) => index.id === `biocache-${value}`)
             ) {
                 setCreateIndexIdValidationError(
                     "An index with this ID already exists.",
@@ -122,12 +103,10 @@ export function IndexList() {
 
     const defaultIndexId = useMemo(() => {
         const now = new Date();
-        const padZero = (
-            value: number,
-        ) => (value < 10 ? `0${value}` : `${value}`);
-        return `${now.getFullYear()}${padZero(now.getMonth() + 1)}${
-            padZero(now.getDay())
-        }`;
+        const padZero = (value: number) => (value < 10 ? `0${value}` : `${value}`);
+        return `${now.getFullYear()}${padZero(now.getMonth() + 1)}${padZero(
+            now.getDay(),
+        )}`;
     }, []);
 
     if (loading) return <Spinner />;
@@ -138,9 +117,8 @@ export function IndexList() {
             {IndexListData?.indices.map((index) => (
                 <Accordion
                     key={index.id}
-                    className={`index-list-item index-list-item-${
-                        index.active ? "active" : "inactive"
-                    }`}
+                    className={`index-list-item index-list-item-${index.active ? "active" : "inactive"
+                        }`}
                     slotProps={{ transition: { unmountOnExit: true } }}
                 >
                     <AccordionSummary
@@ -148,76 +126,67 @@ export function IndexList() {
                         component="div"
                         expandIcon={<ExpandMoreIcon />}
                     >
-                        <div className="index-list-item-summary-content">
-                            {index.id}
-                        </div>
-                        {index.active
-                            ? (
-                                <Check className="index-list-item-summary-active-check" />
-                            )
-                            : (
-                                <div className="index-list-item-summary-buttons">
-                                    <Button
-                                        variant="outlined"
-                                        onClick={() => {
-                                            setOperatedOnIndex(index.id);
-                                            setActiveIndex({
+                        <div className="index-list-item-summary-content">{index.id}</div>
+                        {index.active ? (
+                            <Check className="index-list-item-summary-active-check" />
+                        ) : (
+                            <div className="index-list-item-summary-buttons">
+                                <Button
+                                    variant="outlined"
+                                    onClick={() => {
+                                        setOperatedOnIndex(index.id);
+                                        setActiveIndex({
+                                            variables: {
+                                                input: {
+                                                    indexId: index.id,
+                                                },
+                                            },
+                                        });
+                                    }}
+                                    disabled={
+                                        (setActiveIndexLoading || deleteIndexLoading) &&
+                                        operatedOnIndex === index.id
+                                    }
+                                >
+                                    {setActiveIndexLoading && operatedOnIndex === index.id
+                                        ? "Activating..."
+                                        : "Activate"}
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    color="error"
+                                    onClick={() => {
+                                        setOperatedOnIndex(index.id);
+                                        setShowConfirmDelete(true);
+                                    }}
+                                    disabled={
+                                        (setActiveIndexLoading || deleteIndexLoading) &&
+                                        operatedOnIndex === index.id
+                                    }
+                                >
+                                    {deleteIndexLoading && operatedOnIndex === index.id
+                                        ? "Deleting..."
+                                        : "Delete"}
+                                </Button>
+
+                                {showConfirmDelete && (
+                                    <DeleteConfirmationDialog
+                                        id={index.id}
+                                        onConfirm={async () => {
+                                            await deleteIndex({
                                                 variables: {
                                                     input: {
                                                         indexId: index.id,
                                                     },
                                                 },
                                             });
+                                            setShowConfirmDelete(false);
                                         }}
-                                        disabled={(setActiveIndexLoading ||
-                                            deleteIndexLoading) &&
-                                            operatedOnIndex === index.id}
-                                    >
-                                        {setActiveIndexLoading &&
-                                                operatedOnIndex === index.id
-                                            ? "Activating..."
-                                            : "Activate"}
-                                    </Button>
-                                    <Button
-                                        variant="outlined"
-                                        color="error"
-                                        onClick={() => {
-                                            setOperatedOnIndex(index.id);
-                                            setShowConfirmDelete(true);
-                                        }}
-                                        disabled={(setActiveIndexLoading ||
-                                            deleteIndexLoading) &&
-                                            operatedOnIndex === index.id}
-                                    >
-                                        {deleteIndexLoading &&
-                                                operatedOnIndex === index.id
-                                            ? "Deleting..."
-                                            : "Delete"}
-                                    </Button>
-
-                                    {showConfirmDelete && (
-                                        <ActionConfirmationModal
-                                            title="Confirm Delete Index"
-                                            message="Are you sure you want to delete this index?"
-                                            actionLabel={deleteIndexLoading
-                                                ? "Cancelling..."
-                                                : "Confirm"}
-                                            onConfirm={async () => {
-                                                await deleteIndex({
-                                                    variables: {
-                                                        input: {
-                                                            indexId: index.id,
-                                                        },
-                                                    },
-                                                });
-                                                setShowConfirmDelete(false);
-                                            }}
-                                            onCancel={() =>
-                                                setShowConfirmDelete(false)}
-                                        />
-                                    )}
-                                </div>
-                            )}
+                                        onCancel={() => setShowConfirmDelete(false)}
+                                    />
+                                )}
+                            </div>
+                        )}
                     </AccordionSummary>
                     <AccordionDetails className="index-list-item-details">
                         <IndexDataResourceCounts indexId={index.id} />
@@ -243,9 +212,7 @@ export function IndexList() {
                             slotProps={{
                                 input: {
                                     startAdornment: (
-                                        <InputAdornment position="start">
-                                            biocache-
-                                        </InputAdornment>
+                                        <InputAdornment position="start">biocache-</InputAdornment>
                                     ),
                                 },
                             }}
@@ -315,11 +282,14 @@ const createIndexLocally: MutationUpdaterFunction<
         cache.modify({
             fields: {
                 indices(existingIndices = []) {
-                    return [...existingIndices, {
-                        __typename: "Index",
-                        id: indexId,
-                        active: false,
-                    }];
+                    return [
+                        ...existingIndices,
+                        {
+                            __typename: "Index",
+                            id: indexId,
+                            active: false,
+                        },
+                    ];
                 },
             },
         });
