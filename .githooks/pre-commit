@@ -1,0 +1,19 @@
+#!/bin/sh
+
+if ! command -v trivy &> /dev/null
+then
+    echo "trivy not installed, skipping pre-commit hook"
+    exit 0
+else
+    exec trivy config . --disable-telemetry --exit-code 1 -q --skip-dirs "**/node_modules" --table-mode detailed
+fi
+
+if ! command -v tfsec &> /dev/null
+then
+    echo "tfsec not installed, skipping pre-commit hook"
+    exit 0
+else
+  exec tfsec --concise-output -m MEDIUM
+fi
+
+

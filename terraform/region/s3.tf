@@ -1,4 +1,4 @@
-#tfsec:ignore:aws-s3-enable-bucket-encryption tfsec:ignore:aws-s3-encryption-customer-key tfsec:ignore:aws-s3-enable-bucket-logging tfsec:ignore:aws-s3-enable-versioning
+#tfsec:ignore:aws-s3-enable-bucket-encryption tfsec:ignore:aws-s3-encryption-customer-key tfsec:ignore:s3-bucket-logging tfsec:ignore:aws-s3-enable-bucket-logging tfsec:ignore:aws-s3-enable-versioning
 resource "aws_s3_bucket" "pipelines" {
   bucket = "${var.resource_prefix}${var.aws_env}-pipelines"
 
@@ -20,28 +20,28 @@ resource "aws_s3_object" "emr_pipelines_config" {
   bucket = aws_s3_bucket.pipelines.bucket
   key    = "config/la-pipelines.yaml"
   source = "${path.module}/config/la-pipelines.yaml"
-  etag = filemd5("${path.module}/config/la-pipelines.yaml")
+  etag   = filemd5("${path.module}/config/la-pipelines.yaml")
 }
 
 resource "aws_s3_object" "batch_pipelines_config" {
   bucket = aws_s3_bucket.pipelines.bucket
   key    = "config/la-pipelines-batch.yaml"
   source = "${path.module}/config/la-pipelines-batch.yaml"
-  etag = filemd5("${path.module}/config/la-pipelines-batch.yaml")
+  etag   = filemd5("${path.module}/config/la-pipelines-batch.yaml")
 }
 
 resource "aws_s3_object" "batch_pipelines_log_config" {
   bucket = aws_s3_bucket.pipelines.bucket
   key    = "config/log4j.properties"
   source = "${path.module}/config/log4j.properties"
-  etag = filemd5("${path.module}/config/log4j.properties")
+  etag   = filemd5("${path.module}/config/log4j.properties")
 }
 
 resource "aws_s3_object" "emr_pipelines_elastic_schema" {
   bucket = aws_s3_bucket.pipelines.bucket
   key    = "config/es-event-core-schema.json"
   source = "${path.module}/config/es-event-core-schema.json"
-  etag = filemd5("${path.module}/config/es-event-core-schema.json")
+  etag   = filemd5("${path.module}/config/es-event-core-schema.json")
 }
 
 resource "aws_s3_object" "pipelines-vocabularies" {
@@ -99,3 +99,4 @@ rm /tmp/pipelines-shapefiles.zip
 EOF
   }
 }
+
