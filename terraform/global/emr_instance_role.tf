@@ -4,11 +4,22 @@ data "aws_iam_policy_document" "ec2_assume_role" {
     effect = "Allow"
 
     principals {
-      type = "Service"
+      type        = "Service"
       identifiers = ["ec2.amazonaws.com"]
     }
 
     actions = ["sts:AssumeRole"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
+    }
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values   = ["arn:aws:ecs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"]
+    }
   }
 }
 
@@ -110,7 +121,7 @@ data "aws_iam_policy_document" "iam_emr_instance_profile_policy" {
 
 
   statement {
-    effect = "Allow"
+    effect  = "Allow"
     actions = ["ssm:DescribeParameters"]
     #tfsec:ignore:aws-iam-no-policy-wildcards
     resources = ["*"]
@@ -204,3 +215,4 @@ resource "aws_iam_role_policy_attachment" "ssm_managed_instance_core" {
   role       = aws_iam_role.iam_emr_instance_role.id
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
+

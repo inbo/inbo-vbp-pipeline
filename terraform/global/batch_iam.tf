@@ -1,6 +1,6 @@
 data "aws_iam_policy_document" "batch_assume_policy" {
   statement {
-    effect = "Allow"
+    effect  = "Allow"
     actions = ["sts:AssumeRole"]
     principals {
       type = "Service"
@@ -8,6 +8,17 @@ data "aws_iam_policy_document" "batch_assume_policy" {
         "ecs-tasks.amazonaws.com",
         "batch.amazonaws.com"
       ]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
+    }
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values   = ["arn:aws:ecs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"]
     }
   }
 }
