@@ -15,7 +15,7 @@ data "aws_iam_policy_document" "lambda_assume_role_policy" {
     condition {
       test     = "ArnLike"
       variable = "aws:SourceArn"
-      values   = ["arn:aws:ecs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"]
+      values   = ["arn:aws:lambda:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"]
     }
   }
 }
