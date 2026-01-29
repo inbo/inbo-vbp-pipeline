@@ -205,6 +205,7 @@ resource "aws_cloudwatch_event_connection" "portal_authenticated_connection_oaut
   authorization_type = "OAUTH_CLIENT_CREDENTIALS"
 
   auth_parameters {
+    invocation_http_parameters {}
     oauth {
       authorization_endpoint = var.oauth.token_endpoint
       http_method            = "POST"
