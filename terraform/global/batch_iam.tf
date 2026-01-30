@@ -18,7 +18,9 @@ data "aws_iam_policy_document" "batch_assume_policy" {
     condition {
       test     = "ArnLike"
       variable = "aws:SourceArn"
-      values   = ["arn:aws:ecs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"]
+      values = [
+        "arn:aws:batch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
+      ]
     }
   }
 }
