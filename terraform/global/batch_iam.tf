@@ -10,19 +10,19 @@ data "aws_iam_policy_document" "batch_assume_policy" {
       ]
     }
 
-    condition {
-      test     = "StringEquals"
-      variable = "aws:SourceAccount"
-      values   = [data.aws_caller_identity.current.account_id]
-    }
-    condition {
-      test     = "ArnLike"
-      variable = "aws:SourceArn"
-      values = [
-        "arn:aws:ecs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*",
-        "arn:aws:batch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
-      ]
-    }
+    # condition {
+    #   test     = "StringEquals"
+    #   variable = "aws:SourceAccount"
+    #   values   = [data.aws_caller_identity.current.account_id]
+    # }
+    # condition {
+    #   test     = "ArnLike"
+    #   variable = "aws:SourceArn"
+    #   values = [
+    #     "arn:aws:ecs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*",
+    #     "arn:aws:batch:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
+    #   ]
+    # }
   }
 }
 
