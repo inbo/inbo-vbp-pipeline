@@ -6,23 +6,21 @@ resource "aws_iam_role" "iam_emr_scaling_role" {
 
 data "aws_iam_policy_document" "emr_scaling_role_assume_policy" {
   statement {
-    effect = "Allow"
+    effect  = "Allow"
     actions = ["sts:AssumeRole"]
     principals {
-      type = "Service"
+      type        = "Service"
       identifiers = ["elasticmapreduce.amazonaws.com"]
     }
     condition {
       test     = "StringEquals"
       variable = "aws:SourceAccount"
-      values = [data.aws_caller_identity.current.id]
+      values   = [data.aws_caller_identity.current.account_id]
     }
     condition {
       test     = "ArnLike"
       variable = "aws:SourceArn"
-      values = [
-        "arn:aws:application-autoscaling:${var.aws_region}:${data.aws_caller_identity.current.id}:scalable-target/*"
-      ]
+      values   = ["arn:aws:elasticmapreduce:${var.aws_region}:${data.aws_caller_identity.current.account_id}:cluster/*"]
     }
   }
 }

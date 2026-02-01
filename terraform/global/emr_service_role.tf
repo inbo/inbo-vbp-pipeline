@@ -10,21 +10,21 @@ resource "aws_iam_role" "iam_emr_service_role" {
 
 data "aws_iam_policy_document" "emr_role_assume_policy" {
   statement {
-    effect = "Allow"
+    effect  = "Allow"
     actions = ["sts:AssumeRole"]
     principals {
-      type = "Service"
+      type        = "Service"
       identifiers = ["elasticmapreduce.amazonaws.com"]
     }
     condition {
       test     = "StringEquals"
       variable = "aws:SourceAccount"
-      values = [data.aws_caller_identity.current.id]
+      values   = [data.aws_caller_identity.current.account_id]
     }
     condition {
       test     = "ArnLike"
       variable = "aws:SourceArn"
-      values = ["arn:aws:elasticmapreduce:${var.aws_region}:${data.aws_caller_identity.current.id}:*"]
+      values   = ["arn:aws:elasticmapreduce:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"]
     }
   }
 }
@@ -47,7 +47,7 @@ data "aws_iam_policy_document" "emr_service_role" {
     condition {
       test     = "StringLike"
       variable = "iam:PassedToService"
-      values = ["ec2.amazonaws.com*"]
+      values   = ["ec2.amazonaws.com*"]
     }
   }
 }

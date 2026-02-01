@@ -3,12 +3,12 @@ variable "application" {
 }
 
 variable "organisation" {
-  type = string
+  type    = string
   default = "inbo"
 }
 
 variable "resource_prefix" {
-  type = string
+  type    = string
   default = "inbo-vbp-"
 }
 
