@@ -1,31 +1,35 @@
 body {
-    font-family: "Roboto", sans-serif;
-    font-optical-sizing: auto;
-    font-weight: 400;
-    font-style: normal;
+  font-family: "Roboto", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
 }
+
 #main {
-    width: 100vw;
+  width: 100vw;
 }
 #overview {
-    display: grid;
-    grid-template-columns: minmax(300px, 1fr) minmax(300px, 2fr);
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) minmax(300px, 2fr);
 }
-#indexes, #pipelines {
-    min-width: 450px;
+#indexes,
+#pipelines {
+  min-width: 450px;
 }
 
 @media (max-width: 900px) {
-    #overview {
-        display: block;
-    }
-    #indexes, #pipelines {}
+  #overview {
+    display: block;
+  }
+  #indexes,
+  #pipelines {
+  }
 }
 
 button {
-    margin: 1em;
+  margin: 1em;
 }
 
 .hidden {
-    display: none !important;
+  display: none !important;
 }
