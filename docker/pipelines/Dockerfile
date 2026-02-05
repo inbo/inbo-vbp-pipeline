@@ -5,7 +5,7 @@ FROM --platform=${BUILDPLATFORM} maven:3.9-amazoncorretto-17 AS custom-maven-17
 RUN mkdir ~/.m2
 COPY settings.xml /root/.m2/settings.xml
 
-#trivy:ignore:ds015
+#trivy:ignore:DS-0015
 RUN --mount=type=cache,target=/var/cache/yum,sharing=locked \
     yum -y install git unzip
 
@@ -29,7 +29,7 @@ LABEL ala.version=inbo-${COMMIT}
 WORKDIR /app
 RUN git clone --branch ${VERSION} ${SOURCE} . && git checkout ${COMMIT}
 
-#trivy:ignore:ds013
+#trivy:ignore:DS-0013
 RUN --mount=type=cache,target=/root/.m2/repository \
     mvn --batch-mode --no-transfer-progress \
         clean install \
@@ -59,7 +59,7 @@ ARG COMMIT=33c173abe893ccc3427397078687f4045cbfca0b
 LABEL ala.version=inbo-${COMMIT}
 #
 # ARG VERSION=2.18.6-SNAPSHOT
-#trivy:ignore:ds015
+#trivy:ignore:DS-0015
 RUN --mount=type=cache,target=/var/cache/yum,sharing=locked \
     yum update -y && \
     yum install -y \
