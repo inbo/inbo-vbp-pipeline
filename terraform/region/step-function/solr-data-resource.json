@@ -22,8 +22,9 @@
           "Condition": "{% $not($states.context.Execution.Input.forceSolr or false) and ($toMillis($lookup($solrAt, $solrCollection)) > $max([$toMillis($states.context.Execution.Input.dataResourceProcessingState.IndexedAt.S),$toMillis($states.context.Execution.Input.dataResourceProcessingState.SampledAt.S)])) or false %}"
         }
       ],
-      "Default": "Get Sample Records"
+      "Default": "List Sample Records"
     },
+
     "Do Nothing": {
       "Type": "Pass",
       "End": true,
@@ -31,16 +32,18 @@
         "result": "SKIPPED"
       }
     },
-    "Get Sample Records": {
+
+    "List Sample Records": {
       "Type": "Task",
       "Arguments": {
         "Bucket": "{% $config.s3_bucket_name_pipeline %}",
-        "Key": "{% 'data/pipelines-data/' & $dataResourceId & '/0/sampling-metrics.yml' %}"
+        "Prefix": "{% 'data/pipelines-data/' & $dataResourceId & '/0/sampling/' %}",
+        "MaxKeys": 0
       },
-      "Resource": "arn:aws:states:::aws-sdk:s3:getObject",
+      "Resource": "arn:aws:states:::aws-sdk:s3:listObjectsV2",
       "Next": "Get or create EMR Cluster",
       "Assign": {
-        "sampledRecords": "{% $number($match($states.result.Body, /sampledRecords: ?(\\d+)/).groups[0]) %}"
+        "hasSampledRecords": "{% $states.input.IsTruncated %}"
       }
     },
     "Get or create EMR Cluster": {
@@ -120,7 +123,7 @@
               "{% '--solrCollection=' & $states.context.Execution.Input.solrCollection %}",
               "--awsRegion=eu-west-1",
               "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline & '/data'%}",
-              "{% '--includeSampling=' & $string($sampledRecords > 0) %}"
+              "{% '--includeSampling=' & $string($hasSampledRecords) %}"
             ]
           }
         }
