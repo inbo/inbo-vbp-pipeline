@@ -38,12 +38,12 @@
       "Arguments": {
         "Bucket": "{% $config.s3_bucket_name_pipeline %}",
         "Prefix": "{% 'data/pipelines-data/' & $dataResourceId & '/0/sampling/' %}",
-        "MaxKeys": 0
+        "MaxKeys": 1
       },
       "Resource": "arn:aws:states:::aws-sdk:s3:listObjectsV2",
       "Next": "Get or create EMR Cluster",
       "Assign": {
-        "hasSampledRecords": "{% $states.input.IsTruncated %}"
+        "hasSampledRecords": "{% $exists($states.result.Contents) %}"
       }
     },
     "Get or create EMR Cluster": {
