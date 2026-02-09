@@ -1,68 +1,68 @@
 .index-list {
-    border: 1px solid #ddd;
-    overflow-y: auto;
-    height: 100%;
-    max-height: 500px;
-    margin-right: 2em;
+  border: 1px solid #ddd;
+  overflow-y: auto;
+  height: 100%;
+  max-height: 500px;
+  margin-right: 2em;
 }
 
 .index-list-item {
-    margin: 0 !important;
+  margin: 0 !important;
 }
 
 .index-list-item-active {
-    background-color: color-mix(
-        in srgb,
-        var(--mui-palette-primary-light) 10%,
-        #fff
-    ) !important;
+  background-color: color-mix(
+    in srgb,
+    var(--mui-palette-primary-light) 10%,
+    var(--mui-palette-background-default)
+  ) !important;
 
-    /* background-color: red !important; */
-    border-left: 5px solid var(--mui-palette-primary-light);
+  /* background-color: red !important; */
+  border-left: 5px solid var(--mui-palette-primary-light);
 }
 
 .index-list-item-summary {
-    display: flex;
-    gap: 1em;
-    justify-content: space-between;
-    line-height: 3em;
+  display: flex;
+  gap: 1em;
+  justify-content: space-between;
+  line-height: 3em;
 }
 .index-list-item-summary-content {
-    flex: 1;
-    display: flex;
-    align-items: center;
+  flex: 1;
+  display: flex;
+  align-items: center;
 }
 .index-list-item-summary-active-check {
-    flex: 1;
-    max-width: fit-content;
-    color: var(--mui-palette-primary-light);
-    margin: auto;
+  flex: 1;
+  max-width: fit-content;
+  color: var(--mui-palette-primary-light);
+  margin: auto;
 }
 .index-list-item-summary-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1em;
-    align-items: center;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1em;
+  align-items: center;
 }
 
 .index-list-item-details-count {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    gap: 2em;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  gap: 2em;
 }
 
 .index-list-item-details-count-item-label {
-    font-weight: bold;
+  font-weight: bold;
 }
 
 .index-list-item-create-new-index-form {
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    margin-top: 1em;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  margin-top: 1em;
 }
 
 .index-list-item-create-new-index-button {
-    height: 4em;
+  height: 4em;
 }
