@@ -19,7 +19,7 @@ RUN mkdir /opt/aws-xray-agent \
 ARG BUILDPLATFORM=linux/amd64
 FROM --platform=${BUILDPLATFORM} custom-maven-17 AS builder
 
-ARG VERSION=use-match-on-taxonID-when-coming-from-gbif
+ARG VERSION=develop-vbp
 ARG COMMIT=33c173abe893ccc3427397078687f4045cbfca0b
 ARG SOURCE=https://github.com/StefanVanDyck/pipelines.git
 #ARG SOURCE=https://github.com/gbif/pipelines.git
