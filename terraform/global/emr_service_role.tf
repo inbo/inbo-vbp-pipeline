@@ -34,13 +34,13 @@ data "aws_iam_policy_document" "emr_role_assume_policy" {
 // https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-iam-role.html
 
 locals {
-  network_arns = flatten([
-    for subnet_id in var.private_subnet_ids : [
+  network_arns = concat(
+    [
+      for subnet_id in var.private_subnet_ids :
       "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:subnet/${subnet_id}"
-    ]
-    ]) + [
-    "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:vpc/${var.main_vpc_id}"
-  ]
+      ], [
+      "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:vpc/${var.main_vpc_id}"
+  ])
 }
 
 data "aws_iam_policy_document" "emr_service_role_main" {
