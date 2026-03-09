@@ -1,5 +1,5 @@
 resource "aws_batch_compute_environment" "fargate" {
-  compute_environment_name = "${var.resource_prefix}pipelines"
+  name = "${var.resource_prefix}pipelines"
 
   compute_resources {
     max_vcpus = 16
@@ -18,7 +18,7 @@ resource "aws_batch_compute_environment" "fargate" {
 }
 
 resource "aws_batch_compute_environment" "fargate_spot" {
-  compute_environment_name = "${var.resource_prefix}pipelines-spot"
+  name = "${var.resource_prefix}pipelines-spot"
 
   compute_resources {
     max_vcpus = 16
@@ -51,3 +51,4 @@ resource "aws_batch_job_queue" "pipelines_queue" {
     compute_environment = aws_batch_compute_environment.fargate.arn
   }
 }
+
