@@ -45,7 +45,7 @@ locals {
 
 data "aws_iam_policy_document" "emr_service_role_main" {
   statement {
-    sid    = "CreateInTaggedNetwork-WithoutTags"
+    sid    = "CreateInTaggedNetworkWithoutTags"
     effect = "Allow"
     actions = [
       "ec2:CreateNetworkInterface",
@@ -283,7 +283,7 @@ data "aws_iam_policy_document" "emr_service_role_main" {
   }
 
   statement {
-    sid    = "CreateDefaultSecurityGroupInVPCWithEMRTags-WithoutTags"
+    sid    = "CreateDefaultSecurityGroupInVPCWithEMRTagsWithoutTags"
     effect = "Allow"
     actions = [
       "ec2:CreateSecurityGroup",
@@ -418,7 +418,7 @@ data "aws_iam_policy_document" "emr_service_role_main" {
   }
 
   statement {
-    sid    = "CreateAndModifyEmrServiceVPCEndpoint-WithoutTags"
+    sid    = "CreateAndModifyEmrServiceVPCEndpointWithoutTags"
     effect = "Allow"
     actions = [
       "ec2:ModifyVpcEndpoint",
