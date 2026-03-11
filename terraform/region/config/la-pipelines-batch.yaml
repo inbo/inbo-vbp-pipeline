@@ -247,7 +247,7 @@ solr:
   includeJackKnife: false
   includeClustering: false
   runner: SparkRunner
-  zkHost: zk-solr-v2.vbp.internal:9983
+  zkHost: zk-solr-v2.vbp.internal:2181
   numOfPartitions: 12
 
 # class: au.org.ala.pipelines.beam.IndexRecordToSolrPipeline
@@ -322,7 +322,7 @@ dataset-count-dump:
 validation-report:
   targetPath: /tmp/dataset-validation-list.csv
   fullReportPath: /tmp/full-validation-list.csv
-  zkHost: zk-solr-v2.vbp.internal:9983
+  zkHost: zk-solr-v2.vbp.internal:2181
   checkSolr: true
   checkSampling: true
   solrCollection: biocache
