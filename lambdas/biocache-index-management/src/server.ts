@@ -74,23 +74,17 @@ export const graphqlHandler = startServerAndCreateLambdaHandler(
                     };
                 }
 
-                console.info("REQUEST: ", event);
                 return async (result) => {
-                    console.info("RESULT: ", result);
                     return result;
                 };
             },
         ],
-        context: async (
-            { event, context },
-        ) => {
+        context: async ({ event, context }) => {
             try {
-                const user =
-                    (event as CustomALBEvent).originatesFromStepFunction
-                        ? null
-                        : await authService.authenticate(event.headers);
+                const user = (event as CustomALBEvent).originatesFromStepFunction
+                    ? null
+                    : await authService.authenticate(event.headers);
 
-                console.info("USER: ", user);
                 return {
                     ...context,
                     user,
