@@ -20,7 +20,7 @@ resource "aws_s3_bucket_public_access_block" "biodiversiteitsportaal_downloads" 
 resource "aws_s3_object" "emr_pipelines_config" {
   bucket  = aws_s3_bucket.pipelines.bucket
   key     = "config/la-pipelines.yaml"
-  content = replace(file("${path.module}/config/la-pipelines.yaml"), "${SOLR_ZK_HOST}", var.solr.zk_host)
+  content = replace(file("${path.module}/config/la-pipelines.yaml"), "$${SOLR_ZK_HOST}", var.solr.zk_host)
   etag    = filemd5("${path.module}/config/la-pipelines.yaml")
 }
 
