@@ -185,7 +185,8 @@
               {
                 "Classification": "export",
                 "Properties": {
-                  "APIKEY": "{% $config.apikey_secret_value %}"
+                  "APIKEY": "{% $config.apikey_secret_value %}",
+                  "SOLR_ZK_HOST": "{% $config.solr_zk_host %}"
                 }
               }
             ]

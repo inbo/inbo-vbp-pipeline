@@ -77,6 +77,7 @@ locals {
     max_solr_concurrency              = 1
     spark_log_level                   = "INFO"
     spark_default_parallelism         = 60
+    solr_zk_host                      = var.solr.zk_host
   })
 }
 

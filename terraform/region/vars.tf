@@ -106,6 +106,7 @@ variable "solr" {
   type = object({
     base_url          = string
     security_group_id = string
+    zk_host           = string
   })
 }
 
@@ -128,3 +129,4 @@ variable "oauth" {
   })
   sensitive = true
 }
+
