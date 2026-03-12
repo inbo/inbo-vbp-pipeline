@@ -21,14 +21,14 @@ resource "aws_s3_object" "emr_pipelines_config" {
   bucket  = aws_s3_bucket.pipelines.bucket
   key     = "config/la-pipelines.yaml"
   content = replace(file("${path.module}/config/la-pipelines.yaml"), "$${SOLR_ZK_HOST}", var.solr.zk_host)
-  etag    = filemd5("${path.module}/config/la-pipelines.yaml")
+  etag    = md5(replace(file("${path.module}/config/la-pipelines.yaml"), "$${SOLR_ZK_HOST}", var.solr.zk_host))
 }
 
 resource "aws_s3_object" "batch_pipelines_config" {
-  bucket = aws_s3_bucket.pipelines.bucket
-  key    = "config/la-pipelines-batch.yaml"
-  source = "${path.module}/config/la-pipelines-batch.yaml"
-  etag   = filemd5("${path.module}/config/la-pipelines-batch.yaml")
+  bucket  = aws_s3_bucket.pipelines.bucket
+  key     = "config/la-pipelines-batch.yaml"
+  content = replace(file("${path.module}/config/la-pipelines-batch.yaml"), "$${SOLR_ZK_HOST}", var.solr.zk_host)
+  etag    = md5(replace(file("${path.module}/config/la-pipelines-batch.yaml"), "$${SOLR_ZK_HOST}", var.solr.zk_host))
 }
 
 resource "aws_s3_object" "batch_pipelines_log_config" {
