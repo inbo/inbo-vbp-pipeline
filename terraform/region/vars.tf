@@ -72,6 +72,13 @@ variable "collectory_data_volume" {
   })
 }
 
+variable "solr_pipeline_credentials_arn" {
+  type = string
+}
+variable "solr_pipeline_management_credentials_arn" {
+  type = string
+}
+
 variable "secrets_kms_key_arn" {
   type = string
 }

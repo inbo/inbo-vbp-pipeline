@@ -49,6 +49,10 @@ data "aws_s3_object" "biocache_index_management_lambda" {
   ]
 }
 
+data "aws_secretsmanager_secret_version" "solr_pipeline_management_credentials" {
+  secret_id = var.solr_pipeline_management_credentials_arn
+}
+
 #tfsec:ignore:aws-lambda-enable-tracing - no other logs to correlate with
 resource "aws_lambda_function" "biocache_index_management_lambda" {
   function_name     = "${var.resource_prefix}biocache-index-management"
@@ -68,6 +72,8 @@ resource "aws_lambda_function" "biocache_index_management_lambda" {
   environment {
     variables = {
       SOLR_BASE_URL                     = var.solr.base_url
+      SOLR_USERNAME                     = jsondecode(data.aws_secretsmanager_secret_version.solr_pipeline_management_credentials.secret_string).username
+      SOLR_PASSWORD                     = jsondecode(data.aws_secretsmanager_secret_version.solr_pipeline_management_credentials.secret_string).password
       SOLR_BIOCACHE_SCHEMA_CONFIG       = "biocache"
       SOLR_BIOCACHE_NUMBER_OF_SHARDS    = "4"
       SOLR_BIOCACHE_MAX_SHARDS_PER_NODE = "4"
