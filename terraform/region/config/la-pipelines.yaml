@@ -199,7 +199,7 @@ solr:
   includeJackKnife: false
   includeClustering: false
   runner: SparkRunner
-  zkHost: ${ZK_HOST}
+  zkHost: ${SOLR_ZK_HOST}
   numOfPartitions: 12
 
 # class: au.org.ala.pipelines.beam.IndexRecordToSolrPipeline
