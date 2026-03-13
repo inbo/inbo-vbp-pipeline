@@ -31,7 +31,7 @@ resource "aws_batch_job_definition" "la_pipelines" {
     command = [
       <<-EOT
       #!/usr/bin/env bash
-      set -e -x -o pipefail
+      set -e -o pipefail
 
       mkdir -p /tmp/spark
       mkdir -p /tmp/dwca
@@ -45,6 +45,8 @@ resource "aws_batch_job_definition" "la_pipelines" {
       aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_log_config.id} ../configs/log4j.properties
       sed -i "s\\\$${APIKEY}\\$${APIKEY}\\g" ../configs/la-pipelines.yaml
       sed -i "s\\inbo-vbp-dev-pipelines\\${aws_s3_bucket.pipelines.bucket}\\g" ../configs/la-pipelines.yaml
+
+      cat ../configs/la-pipelines.yaml
 
       export LOG_CONFIG="$(pwd)/../configs/log4j.properties"
 
