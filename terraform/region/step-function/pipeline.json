@@ -40,10 +40,13 @@
               "Type": "Task",
               "Resource": "arn:aws:states:::http:invoke",
               "Arguments": {
-                "ApiEndpoint": "{% $config.collectory_base_url & '/ws/dataResource/' %}",
+                "ApiEndpoint": "{% $config.collectory_base_url & '/ws/dataResource' %}",
                 "Method": "GET",
                 "Authentication": {
                   "ConnectionArn": "{% $config.portal_authenticated_connection_arn %}"
+                },
+                "QueryParameters": {
+                  "resourceType": "records",
                 }
               },
               "Retry": [
@@ -67,14 +70,14 @@
               "Type": "Task",
               "Resource": "arn:aws:states:::http:invoke",
               "Arguments": {
-                "ApiEndpoint": "{% $config.species_list_base_url & '/ws/speciesList' %}",
+                "ApiEndpoint": "{% $config.species_list_base_url & '/ws/speciesList?' %}",
                 "Method": "GET",
                 "InvocationConfig": {
                   "ConnectionArn": "{% $config.portal_authenticated_connection_arn %}"
                 },
                 "QueryParameters": {
                   "isAuthoritative": "eq:true",
-                  "max": 100
+                  "max": 200
                 }
               },
               "Retry": [
