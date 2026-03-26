@@ -46,7 +46,7 @@
                   "ConnectionArn": "{% $config.portal_authenticated_connection_arn %}"
                 },
                 "QueryParameters": {
-                  "resourceType": "records",
+                  "resourceType": "records"
                 }
               },
               "Retry": [
