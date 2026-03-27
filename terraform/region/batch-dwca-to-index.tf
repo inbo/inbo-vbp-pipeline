@@ -55,10 +55,11 @@ resource "aws_batch_job_definition" "la_pipelines" {
 
       $(aws configure export-credentials | yq -r '"export AWS_ACCESS_KEY_ID=" + .AccessKeyId + "\nexport AWS_SECRET_ACCESS_KEY="  + .SecretAccessKey + "\nexport AWS_SESSION_TOKEN=" + .SessionToken + "')
 
-      ./la-pipelines dwca-avro "$${DATA_RESOURCE_ID}" --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
-      ./la-pipelines interpret  --$${COMPUTE_ENVIRONMENT} "$${DATA_RESOURCE_ID}" --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
-      ./la-pipelines validate   --$${COMPUTE_ENVIRONMENT} "$${DATA_RESOURCE_ID}" --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
-      ./la-pipelines uuid       --$${COMPUTE_ENVIRONMENT} "$${DATA_RESOURCE_ID}" --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
+      set -x
+      ./la-pipelines dwca-avro                            $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
+      ./la-pipelines interpret  --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
+      ./la-pipelines validate   --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
+      ./la-pipelines uuid       --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
 
       MULTI_MEDIA_RECORDS=$(aws s3 cp s3://inbo-vbp-dev-pipelines/data/pipelines-data/$${DATA_RESOURCE_ID}/0/interpretation-metrics.yml - | grep multimediaRecordsCountAttempted | awk '{ print $2}' || echo '0')
       if [ $${MULTI_MEDIA_RECORDS} -gt 0 ]; then
