@@ -7,13 +7,13 @@ COPY settings.xml /root/.m2/settings.xml
 
 #trivy:ignore:DS-0015
 RUN --mount=type=cache,target=/var/cache/yum,sharing=locked \
-    yum -y install git unzip
+  yum -y install git unzip
 
 # Download and unzip aws x-ray agent for easy copy to runtime images
 RUN mkdir /opt/aws-xray-agent \
-    && curl -fL https://github.com/aws/aws-xray-java-agent/releases/latest/download/xray-agent.zip -o /opt/aws-xray-agent/xray-agent.zip \
-    && unzip /opt/aws-xray-agent/xray-agent.zip -d /opt/aws-xray-agent \
-    && rm /opt/aws-xray-agent/xray-agent.zip
+  && curl -fL https://github.com/aws/aws-xray-java-agent/releases/latest/download/xray-agent.zip -o /opt/aws-xray-agent/xray-agent.zip \
+  && unzip /opt/aws-xray-agent/xray-agent.zip -d /opt/aws-xray-agent \
+  && rm /opt/aws-xray-agent/xray-agent.zip
 
 # syntax=docker/dockerfile:1.14.0
 ARG BUILDPLATFORM=linux/amd64
@@ -31,17 +31,17 @@ RUN git clone --branch ${VERSION} ${SOURCE} . && git checkout ${COMMIT}
 
 #trivy:ignore:DS-0013
 RUN --mount=type=cache,target=/root/.m2/repository \
-    mvn --batch-mode --no-transfer-progress \
-        clean install \
-        -Dspotless.check.skip=true -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true \
-        -Dproject.build.outputTimestamp=${SOURCE_DATE_EPOCH} \
-        -T 10 -U \
-    && cd livingatlas \
-    && mvn --batch-mode --no-transfer-progress \
-        clean package -P livingatlas-artifacts \
-        -Dspotless.check.skip=true -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true \
-        -Dproject.build.outputTimestamp=${SOURCE_DATE_EPOCH} \
-        -T 10 -U
+  mvn --batch-mode --no-transfer-progress \
+  clean install \
+  -Dspotless.check.skip=true -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true \
+  -Dproject.build.outputTimestamp=${SOURCE_DATE_EPOCH} \
+  -T 10 -U \
+  && cd livingatlas \
+  && mvn --batch-mode --no-transfer-progress \
+  clean package -P livingatlas-artifacts \
+  -Dspotless.check.skip=true -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true \
+  -Dproject.build.outputTimestamp=${SOURCE_DATE_EPOCH} \
+  -T 10 -U
 
 # ARG VERSION=pipelines-parent-2.18.5
 # RUN git clone --branch ${VERSION} --depth 1 https://github.com/gbif/pipelines.git /app
@@ -61,14 +61,14 @@ LABEL ala.version=inbo-${COMMIT}
 # ARG VERSION=2.18.6-SNAPSHOT
 #trivy:ignore:DS-0015
 RUN --mount=type=cache,target=/var/cache/yum,sharing=locked \
-    yum update -y && \
-    yum install -y \
-    nano \
-    file \
-    curl \
-    unzip \
-    which \
-    shadow-utils
+  yum update -y && \
+  yum install -y \
+  nano \
+  file \
+  curl \
+  unzip \
+  which \
+  shadow-utils
 
 RUN mkdir /data && chown 1000:1000 /data
 VOLUME /data
@@ -78,20 +78,20 @@ VOLUME /tmp
 ARG TARGETARCH
 
 RUN curl -o /usr/bin/yq -LJO https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_$TARGETARCH \
-    && chmod +x /usr/bin/yq
+  && chmod +x /usr/bin/yq
 
-RUN if [ $TARGETARCH = "amd64" ] ; then curl -o /usr/bin/docopts -LJO https://github.com/docopt/docopts/releases/download/v0.6.3-rc2/docopts_linux_amd64 ; fi
-RUN if [ $TARGETARCH = "arm64" ] ; then curl -o /usr/bin/docopts -LJO https://github.com/docopt/docopts/releases/download/v0.6.3-rc2/docopts_linux_arm ; fi
+RUN if [ $TARGETARCH = "amd64" ] ; then curl -o /usr/bin/docopts -LJO https://github.com/docopt/docopts/releases/download/v0.6.4-with-no-mangle-double-dash/docopts_linux_amd64 ; fi
+RUN if [ $TARGETARCH = "arm64" ] ; then curl -o /usr/bin/docopts -LJO https://github.com/docopt/docopts/releases/download/v0.6.4-with-no-mangle-double-dash/docopts_linux_arm ; fi
 RUN chmod +x /usr/bin/docopts
 
 RUN if [ $TARGETARCH = "amd64" ] ; then curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o "awscliv2.zip" ; fi
 RUN if [ $TARGETARCH = "arm64" ] ; then curl https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o "awscliv2.zip" ; fi
 RUN unzip -q awscliv2.zip && \
-    ./aws/install
+  ./aws/install
 
 # Create the user
 RUN groupadd --gid 1000 app \
-    && useradd --uid 1000 --gid 1000 -m -d /app app
+  && useradd --uid 1000 --gid 1000 -m -d /app app
 
 USER 1000
 
@@ -102,25 +102,25 @@ WORKDIR /app/livingatlas/scripts
 COPY log4j.properties /app/livingatlas/configs/log4j.properties
 ENV LOG_CONFIG="/app/livingatlas/configs/log4j.properties"
 ENV EXTRA_JVM_CLI_ARGS="--add-opens=java.base/java.lang=ALL-UNNAMED \
---add-opens=java.base/java.lang.invoke=ALL-UNNAMED \
---add-opens=java.base/java.lang.reflect=ALL-UNNAMED \
---add-opens=java.base/java.io=ALL-UNNAMED \
---add-opens=java.base/java.net=ALL-UNNAMED \
---add-opens=java.base/java.nio=ALL-UNNAMED \
---add-opens=java.base/java.util=ALL-UNNAMED \
---add-opens=java.base/java.util.concurrent=ALL-UNNAMED \
---add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED \
---add-opens=java.base/sun.nio.ch=ALL-UNNAMED \
---add-opens=java.base/sun.nio.cs=ALL-UNNAMED \
---add-opens=java.base/sun.security.action=ALL-UNNAMED \
---add-opens=java.base/sun.util.calendar=ALL-UNNAMED \
---add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED \
---add-exports=java.desktop/sun.awt=ALL-UNNAMED \
---add-exports=java.desktop/com.sun.imageio.spi=ALL-UNNAMED \
---add-exports=java.desktop/sun.swing=ALL-UNNAMED \
---add-opens=java.desktop/javax.imageio.spi=ALL-UNNAMED \
--Dlog4j.configuration=file://${LOG_CONFIG} \
--Dlog4j.configurationFile=file://${LOG_CONFIG}"
+  --add-opens=java.base/java.lang.invoke=ALL-UNNAMED \
+  --add-opens=java.base/java.lang.reflect=ALL-UNNAMED \
+  --add-opens=java.base/java.io=ALL-UNNAMED \
+  --add-opens=java.base/java.net=ALL-UNNAMED \
+  --add-opens=java.base/java.nio=ALL-UNNAMED \
+  --add-opens=java.base/java.util=ALL-UNNAMED \
+  --add-opens=java.base/java.util.concurrent=ALL-UNNAMED \
+  --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED \
+  --add-opens=java.base/sun.nio.ch=ALL-UNNAMED \
+  --add-opens=java.base/sun.nio.cs=ALL-UNNAMED \
+  --add-opens=java.base/sun.security.action=ALL-UNNAMED \
+  --add-opens=java.base/sun.util.calendar=ALL-UNNAMED \
+  --add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED \
+  --add-exports=java.desktop/sun.awt=ALL-UNNAMED \
+  --add-exports=java.desktop/com.sun.imageio.spi=ALL-UNNAMED \
+  --add-exports=java.desktop/sun.swing=ALL-UNNAMED \
+  --add-opens=java.desktop/javax.imageio.spi=ALL-UNNAMED \
+  -Dlog4j.configuration=file://${LOG_CONFIG} \
+  -Dlog4j.configurationFile=file://${LOG_CONFIG}"
 
 ENTRYPOINT ["bash", "-c"]
 
