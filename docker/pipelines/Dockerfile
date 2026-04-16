@@ -19,8 +19,8 @@ RUN mkdir /opt/aws-xray-agent \
 ARG BUILDPLATFORM=linux/amd64
 FROM --platform=${BUILDPLATFORM} custom-maven-17 AS builder
 
-ARG VERSION=develop-vbp
-ARG COMMIT=33c173abe893ccc3427397078687f4045cbfca0b
+ARG VERSION=fix-develop-vbp-build
+ARG COMMIT=275e07e14d7bf7cacadb7976529b10062bc2396a
 ARG SOURCE=https://github.com/StefanVanDyck/pipelines.git
 #ARG SOURCE=https://github.com/gbif/pipelines.git
 ARG SOURCE_DATE_EPOCH
@@ -34,6 +34,7 @@ RUN --mount=type=cache,target=/root/.m2/repository \
   mvn --batch-mode --no-transfer-progress \
   clean install \
   -Dspotless.check.skip=true -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true \
+  -pl '!gbif/ingestion/ingestion-integration-tests-hbase,!gbif/coordinator/tasks-integration-tests-hbase,!gbif/coordinator/tasks-integration-tests' \
   -Dproject.build.outputTimestamp=${SOURCE_DATE_EPOCH} \
   -T 10 -U \
   && cd livingatlas \
@@ -55,7 +56,7 @@ RUN --mount=type=cache,target=/root/.m2/repository \
 #
 FROM amazoncorretto:17
 
-ARG COMMIT=33c173abe893ccc3427397078687f4045cbfca0b
+ARG COMMIT=275e07e14d7bf7cacadb7976529b10062bc2396a
 LABEL ala.version=inbo-${COMMIT}
 #
 # ARG VERSION=2.18.6-SNAPSHOT
