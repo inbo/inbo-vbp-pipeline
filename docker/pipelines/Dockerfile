@@ -54,6 +54,24 @@ RUN --mount=type=cache,target=/root/.m2/repository \
 # ARG test=2
 # RUN ls -la livingatlas/pipelines/target/pipelines-2.18.6-SNAPSHOT.jar
 #
+
+# --- docopts builder --------------------------------------------------------
+# Upstream docopts v0.6.4 releases are inconsistent across architectures:
+# the `docopts_linux_arm` asset is a 32-bit ARM EABI5 binary, not aarch64,
+# which breaks on AWS Graviton with
+# `/usr/bin/docopts: cannot execute binary file: Exec format error`.
+# To avoid any ambiguity we always build docopts from source for the current
+# $TARGETPLATFORM and copy the resulting binary into the final image.
+FROM golang:1.22-alpine AS docopts-builder
+RUN apk add --no-cache git ca-certificates
+WORKDIR /src
+RUN git clone --depth 1 --branch v0.6.4-with-no-mangle-double-dash \
+      https://github.com/docopt/docopts.git . \
+  && go mod init github.com/docopt/docopts 2>/dev/null || true \
+  && go get github.com/docopt/docopt-go \
+  && CGO_ENABLED=0 GOOS=linux go build -ldflags='-s -w' -o /out/docopts docopts.go
+# ---------------------------------------------------------------------------
+
 FROM amazoncorretto:17
 
 ARG COMMIT=275e07e14d7bf7cacadb7976529b10062bc2396a
@@ -81,9 +99,10 @@ ARG TARGETARCH
 RUN curl -o /usr/bin/yq -LJO https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_$TARGETARCH \
   && chmod +x /usr/bin/yq
 
-RUN if [ $TARGETARCH = "amd64" ] ; then curl -o /usr/bin/docopts -LJO https://github.com/docopt/docopts/releases/download/v0.6.4-with-no-mangle-double-dash/docopts_linux_amd64 ; fi
-RUN if [ $TARGETARCH = "arm64" ] ; then curl -o /usr/bin/docopts -LJO https://github.com/docopt/docopts/releases/download/v0.6.4-with-no-mangle-double-dash/docopts_linux_arm ; fi
-RUN chmod +x /usr/bin/docopts
+# docopts: built from source in the `docopts-builder` stage above for the
+# current $TARGETPLATFORM (see comment there for the reason).
+COPY --from=docopts-builder /out/docopts /usr/bin/docopts
+RUN chmod +x /usr/bin/docopts && file /usr/bin/docopts
 
 RUN if [ $TARGETARCH = "amd64" ] ; then curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o "awscliv2.zip" ; fi
 RUN if [ $TARGETARCH = "arm64" ] ; then curl https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o "awscliv2.zip" ; fi
