@@ -62,14 +62,21 @@ RUN --mount=type=cache,target=/root/.m2/repository \
 # `/usr/bin/docopts: cannot execute binary file: Exec format error`.
 # To avoid any ambiguity we always build docopts from source for the current
 # $TARGETPLATFORM and copy the resulting binary into the final image.
-FROM golang:1.22-alpine AS docopts-builder
+#
+# We pin this stage to $BUILDPLATFORM and cross-compile via GOARCH so we
+# never run the Go toolchain under qemu emulation (which crashes with
+# SIGSEGV in the Go runtime).
+FROM --platform=$BUILDPLATFORM golang:1.22-alpine AS docopts-builder
+ARG TARGETOS
+ARG TARGETARCH
 RUN apk add --no-cache git ca-certificates
 WORKDIR /src
 RUN git clone --depth 1 --branch v0.6.4-with-no-mangle-double-dash \
       https://github.com/docopt/docopts.git . \
   && go mod init github.com/docopt/docopts 2>/dev/null || true \
   && go get github.com/docopt/docopt-go \
-  && CGO_ENABLED=0 GOOS=linux go build -ldflags='-s -w' -o /out/docopts docopts.go
+  && CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
+       go build -ldflags='-s -w' -o /out/docopts docopts.go
 # ---------------------------------------------------------------------------
 
 FROM amazoncorretto:17
