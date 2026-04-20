@@ -27,6 +27,7 @@ resource "aws_batch_job_definition" "la_pipelines" {
       mkdir -p /tmp/spark
       mkdir -p /tmp/dwca
       mkdir -p /tmp/beam
+      mkdir -p /tmp/config
       mkdir -p /data/pipelines-shp
 
       aws s3 sync s3://${aws_s3_bucket.pipelines.bucket}/shp-layers/ /data/pipelines-shp
