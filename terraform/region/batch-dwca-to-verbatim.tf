@@ -10,21 +10,12 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
     "FARGATE",
   ]
 
-  # Don't know why this is necessary
-  lifecycle {
-    ignore_changes = [tags_all]
-  }
-
-  #   parameters = {
-  #     "DATA_RESOURCE_ID" = "CHANGE_ME"
-  #   }
-
   container_properties = jsonencode({
     name = var.name
     environment = [
       { name : "COMPUTE_ENVIRONMENT", value : "embedded" },
       { name : "DATA_RESOURCE_ID", value : "Ref::DATA_RESOURCE_ID" },
-      { name : "LOG_CONFIG", value : "../configs/log4j.properties" },
+      { name : "LOG_CONFIG", value : "/tmp/config/log4j.properties" },
     ],
     secrets = [
       {
@@ -40,17 +31,18 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
       mkdir -p /tmp/spark
       mkdir -p /tmp/dwca
       mkdir -p /tmp/beam
+      mkdir -p /tmp/config
       
-      aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_config.id} ../configs/la-pipelines.yaml
-      aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_log_config.id} ../configs/log4j.properties
-      sed -i "s\\\$${APIKEY}\\$${APIKEY}\\g" ../configs/la-pipelines.yaml
-      sed -i "s\\inbo-vbp-dev-pipelines\\${aws_s3_bucket.pipelines.bucket}\\g" ../configs/la-pipelines.yaml
+      aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_config.id} /tmp/config/la-pipelines.yaml
+      aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_log_config.id} /tmp/config/log4j.properties
+      sed -i "s\\\$${APIKEY}\\$${APIKEY}\\g" /tmp/config/la-pipelines.yaml
+      sed -i "s\\inbo-vbp-dev-pipelines\\${aws_s3_bucket.pipelines.bucket}\\g" /tmp/config/la-pipelines.yaml
 
-      export LOG_CONFIG="$(pwd)/../configs/log4j.properties"
+      export LOG_CONFIG="/tmp/configs/log4j.properties"
 
       $(aws configure export-credentials | yq -r '"export AWS_ACCESS_KEY_ID=" + .AccessKeyId + "\nexport AWS_SECRET_ACCESS_KEY="  + .SecretAccessKey + "\nexport AWS_SESSION_TOKEN=" + .SessionToken')
 
-      ./la-pipelines dwca-avro $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1,bundleSize=${local.bundle_size}
+      ./la-pipelines dwca-avro $${DATA_RESOURCE_ID} --config /tmp/config/la-pipelines.yaml --extra-args=awsRegion=eu-west-1,bundleSize=${local.bundle_size}
  EOT
     ]
     image      = "${var.ecr_repo}/${var.resource_prefix}pipelines:${var.docker_version}"
@@ -79,21 +71,23 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
     ephemeralStorage = {
       sizeInGiB = 200
     }
-
+    readonlyRootFilesystem = true
     mountPoints = [
-      {
-        sourceVolume  = "collectory"
-        containerPath = "/data"
-        readOnly      = false
-      },
       {
         sourceVolume  = "temp"
         containerPath = "/tmp"
         readOnly      = false
+      },
+      {
+        sourceVolume  = "collectory"
+        containerPath = "/data"
+        readOnly      = false
       }
     ]
-
     volumes = [
+      {
+        name = "temp"
+      },
       {
         name = "collectory"
         efsVolumeConfiguration = {
@@ -104,10 +98,7 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
             accessPointId = var.collectory_data_volume.access_point_id
             iam           = "ENABLED"
           }
-        },
-      },
-      {
-        name = "temp"
+        }
       }
     ]
 

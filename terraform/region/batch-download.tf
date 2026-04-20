@@ -6,15 +6,6 @@ resource "aws_batch_job_definition" "download_data_resource" {
     "FARGATE",
   ]
 
-  # Don't know why this is necessary
-  lifecycle {
-    ignore_changes = [tags_all]
-  }
-
-  #   parameters = {
-  #     "DATA_RESOURCE_ID" = "CHANGE_ME"
-  #   }
-
   container_properties = jsonencode({
     name = var.name
     environment = [
@@ -29,9 +20,10 @@ resource "aws_batch_job_definition" "download_data_resource" {
       }
     ],
     command = [
+      # Script is too large to simply inline
       <<EOF
-aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/bootstrap-actions/download-data-resource.sh download-data-resource.sh
-bash download-data-resource.sh
+aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/bootstrap-actions/download-data-resource.sh /tmp/download-data-resource.sh
+bash /tmp/download-data-resource.sh
 EOF
     ]
     image      = "${var.ecr_repo}/${var.resource_prefix}pipelines:${var.docker_version}"
@@ -57,15 +49,23 @@ EOF
       }
     ]
 
+    readonlyRootFilesystem = true
     mountPoints = [
+      {
+        sourceVolume  = "temp"
+        containerPath = "/tmp"
+        readOnly      = false
+      },
       {
         sourceVolume  = "collectory"
         containerPath = "/data"
         readOnly      = false
       }
     ]
-
     volumes = [
+      {
+        name = "temp"
+      },
       {
         name = "collectory"
         efsVolumeConfiguration = {

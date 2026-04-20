@@ -6,15 +6,6 @@ resource "aws_batch_job_definition" "index_to_solr" {
     "FARGATE",
   ]
 
-  # Don't know why this is necessary
-  lifecycle {
-    ignore_changes = [tags_all]
-  }
-
-  #   parameters = {
-  #     "DATA_RESOURCE_ID" = "CHANGE_ME"
-  #   }
-
   container_properties = jsonencode({
     name = var.name
     environment = [
@@ -47,15 +38,23 @@ resource "aws_batch_job_definition" "index_to_solr" {
       }
     ]
 
+    readonlyRootFilesystem = true
     mountPoints = [
+      {
+        sourceVolume  = "temp"
+        containerPath = "/tmp"
+        readOnly      = false
+      },
       {
         sourceVolume  = "collectory"
         containerPath = "/data"
         readOnly      = false
       }
     ]
-
     volumes = [
+      {
+        name = "temp"
+      },
       {
         name = "collectory"
         efsVolumeConfiguration = {

@@ -6,21 +6,12 @@ resource "aws_batch_job_definition" "la_pipelines" {
     "FARGATE",
   ]
 
-  # Don't know why this is necessary
-  lifecycle {
-    ignore_changes = [tags_all]
-  }
-
-  #   parameters = {
-  #     "DATA_RESOURCE_ID" = "CHANGE_ME"
-  #   }
-
   container_properties = jsonencode({
     name = var.name
     environment = [
       { name : "COMPUTE_ENVIRONMENT", value : "embedded" },
       { name : "DATA_RESOURCE_ID", value : "Ref::DATA_RESOURCE_ID" },
-      { name : "LOG_CONFIG", value : "../configs/log4j.properties" },
+      { name : "LOG_CONFIG", value : "/tmp/config/log4j.properties" },
     ],
     secrets = [
       {
@@ -38,37 +29,34 @@ resource "aws_batch_job_definition" "la_pipelines" {
       mkdir -p /tmp/beam
       mkdir -p /data/pipelines-shp
 
-
-      
       aws s3 sync s3://${aws_s3_bucket.pipelines.bucket}/shp-layers/ /data/pipelines-shp
       aws s3 sync s3://${aws_s3_bucket.pipelines.bucket}/pipelines-vocabularies/ /data/pipelines-vocabularies
 
-      rm ../configs/la-pipelines.yaml
-      aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_config.id} ../configs/la-pipelines.yaml
-      aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_log_config.id} ../configs/log4j.properties
-      sed -i "s\\\$${APIKEY}\\$${APIKEY}\\g" ../configs/la-pipelines.yaml
-      sed -i "s\\inbo-vbp-dev-pipelines\\${aws_s3_bucket.pipelines.bucket}\\g" ../configs/la-pipelines.yaml
+      aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_config.id} /tmp/config/la-pipelines.yaml
+      aws s3 cp s3://${aws_s3_bucket.pipelines.bucket}/${aws_s3_object.batch_pipelines_log_config.id} /tmp/config/log4j.properties
+      sed -i "s\\\$${APIKEY}\\$${APIKEY}\\g" /tmp/config/la-pipelines.yaml
+      sed -i "s\\inbo-vbp-dev-pipelines\\${aws_s3_bucket.pipelines.bucket}\\g" /tmp/config/la-pipelines.yaml
 
-      cat ../configs/la-pipelines.yaml
+      cat /tmp/config/la-pipelines.yaml
 
-      export LOG_CONFIG="$(pwd)/../configs/log4j.properties"
+      export LOG_CONFIG="/tmp/config/log4j.properties"
 
       $(aws configure export-credentials | yq -r '"export AWS_ACCESS_KEY_ID=" + .AccessKeyId + "\nexport AWS_SECRET_ACCESS_KEY="  + .SecretAccessKey + "\nexport AWS_SESSION_TOKEN=" + .SessionToken')
 
       set -x
-      ./la-pipelines dwca-avro                            $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
-      ./la-pipelines interpret  --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
-      ./la-pipelines validate   --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
-      ./la-pipelines uuid       --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
+      ./la-pipelines dwca-avro                            $${DATA_RESOURCE_ID} --config /tmp/config/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
+      ./la-pipelines interpret  --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config /tmp/config/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
+      ./la-pipelines validate   --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config /tmp/config/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
+      ./la-pipelines uuid       --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config /tmp/config/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
 
       MULTI_MEDIA_RECORDS=$(aws s3 cp s3://inbo-vbp-dev-pipelines/data/pipelines-data/$${DATA_RESOURCE_ID}/0/interpretation-metrics.yml - | grep multimediaRecordsCountAttempted | awk '{ print $2}' || echo '0')
       if [ $${MULTI_MEDIA_RECORDS} -gt 0 ]; then
         echo "Detected Multimedia Records $${MULTI_MEDIA_RECORDS}"
-        ./la-pipelines image-sync --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
-        ./la-pipelines image-load --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
+        ./la-pipelines image-sync --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config /tmp/config/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
+        ./la-pipelines image-load --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config /tmp/config/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
       fi
 
-      ./la-pipelines index      --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config ../configs/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
+      ./la-pipelines index      --$${COMPUTE_ENVIRONMENT} $${DATA_RESOURCE_ID} --config /tmp/config/la-pipelines.yaml --extra-args=awsRegion=eu-west-1
  EOT
     ]
     image      = "${var.ecr_repo}/${var.resource_prefix}pipelines:${var.docker_version}"
@@ -94,15 +82,23 @@ resource "aws_batch_job_definition" "la_pipelines" {
       }
     ]
 
+    readonlyRootFilesystem = true
     mountPoints = [
+      {
+        sourceVolume  = "temp"
+        containerPath = "/tmp"
+        readOnly      = false
+      },
       {
         sourceVolume  = "collectory"
         containerPath = "/data"
         readOnly      = false
       }
     ]
-
     volumes = [
+      {
+        name = "temp"
+      },
       {
         name = "collectory"
         efsVolumeConfiguration = {
