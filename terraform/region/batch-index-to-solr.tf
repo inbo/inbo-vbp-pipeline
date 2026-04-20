@@ -1,5 +1,5 @@
 resource "aws_batch_job_definition" "index_to_solr" {
-  name = "index-to-solr"
+  name = "${var.resource_prefix}index-to-solr"
   type = "container"
 
   platform_capabilities = [
@@ -33,7 +33,7 @@ resource "aws_batch_job_definition" "index_to_solr" {
 
     runtimePlatform = {
       operatingSystemFamily = "LINUX"
-      cpuArchitecture = "ARM64"
+      cpuArchitecture       = "ARM64"
     }
 
     resourceRequirements = [
@@ -42,7 +42,7 @@ resource "aws_batch_job_definition" "index_to_solr" {
         value = "0.25"
       },
       {
-        type = "MEMORY"
+        type  = "MEMORY"
         value = "512"
       }
     ]
@@ -82,4 +82,6 @@ resource "aws_batch_job_definition" "index_to_solr" {
       secretOptions = []
     }
   })
+
+  propagate_tags = true
 }

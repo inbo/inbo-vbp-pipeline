@@ -1,5 +1,5 @@
 resource "aws_batch_job_definition" "download_data_resource" {
-  name = "download-data-resources"
+  name = "${var.resource_prefix}download-data-resources"
   type = "container"
 
   platform_capabilities = [
@@ -43,7 +43,7 @@ EOF
 
     runtimePlatform = {
       operatingSystemFamily = "LINUX"
-      cpuArchitecture = "ARM64"
+      cpuArchitecture       = "ARM64"
     }
 
     resourceRequirements = [
@@ -52,7 +52,7 @@ EOF
         value = "0.25"
       },
       {
-        type = "MEMORY"
+        type  = "MEMORY"
         value = "512"
       }
     ]
@@ -92,4 +92,6 @@ EOF
       secretOptions = []
     }
   })
+
+  propagate_tags = true
 }

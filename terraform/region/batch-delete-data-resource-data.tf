@@ -1,5 +1,5 @@
 resource "aws_batch_job_definition" "delete_data_resource_data" {
-  name = "delete-data-resource-data"
+  name = "${var.resource_prefix}delete-data-resource-data"
   type = "container"
 
   platform_capabilities = [
@@ -32,7 +32,7 @@ resource "aws_batch_job_definition" "delete_data_resource_data" {
 
     runtimePlatform = {
       operatingSystemFamily = "LINUX"
-      cpuArchitecture = "ARM64"
+      cpuArchitecture       = "ARM64"
     }
 
     resourceRequirements = [
@@ -41,7 +41,7 @@ resource "aws_batch_job_definition" "delete_data_resource_data" {
         value = "0.25"
       },
       {
-        type = "MEMORY"
+        type  = "MEMORY"
         value = "512"
       }
     ]
@@ -80,5 +80,7 @@ resource "aws_batch_job_definition" "delete_data_resource_data" {
       },
       secretOptions = []
     }
+
+    propagate_tags = true
   })
 }

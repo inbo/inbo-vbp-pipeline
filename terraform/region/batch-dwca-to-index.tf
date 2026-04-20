@@ -1,5 +1,5 @@
 resource "aws_batch_job_definition" "la_pipelines" {
-  name = "dwca-to-index"
+  name = "${var.resource_prefix}dwca-to-index"
   type = "container"
 
   platform_capabilities = [
@@ -130,4 +130,6 @@ resource "aws_batch_job_definition" "la_pipelines" {
       secretOptions = []
     }
   })
+
+  propagate_tags = true
 }

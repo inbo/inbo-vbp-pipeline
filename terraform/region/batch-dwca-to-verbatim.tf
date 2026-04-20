@@ -3,7 +3,7 @@ locals {
 }
 
 resource "aws_batch_job_definition" "dwca_to_verbatim" {
-  name = "dwca-to-verbatim"
+  name = "${var.resource_prefix}dwca-to-verbatim"
   type = "container"
 
   platform_capabilities = [
@@ -124,4 +124,6 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
       secretOptions = []
     }
   })
+
+  propagate_tags = true
 }
