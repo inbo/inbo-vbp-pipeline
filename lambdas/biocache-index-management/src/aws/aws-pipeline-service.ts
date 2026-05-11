@@ -62,16 +62,16 @@ export class AwsPipelineServiceImpl implements PipelineService {
 
     return output.executionArn
       ? {
-        id: output.name!,
-        executionArn: output.executionArn!,
-        status: output.status! as PipelineStatus,
-        startedAt: output.startDate,
-        stoppedAt: output.stopDate,
-        input: output.input,
-        output: output.output,
-        error: output.error,
-        cause: output.cause,
-      }
+          id: output.name!,
+          executionArn: output.executionArn!,
+          status: output.status! as PipelineStatus,
+          startedAt: output.startDate,
+          stoppedAt: output.stopDate,
+          input: output.input,
+          output: output.output,
+          error: output.error,
+          cause: output.cause,
+        }
       : null;
   }
 
@@ -171,8 +171,9 @@ export class AwsPipelineServiceImpl implements PipelineService {
 
     const pipeline = await this.getPipeline(pipelineId);
     const lockRemovalPromises: Promise<UpdateItemCommandOutput>[] = [];
-    const removeLock = (lockId: string) =>
-      this.dynamoDB.updateItem({
+    const removeLock = (lockId: string) => {
+      console.info(`Removing lock: ${lockId}`);
+      return this.dynamoDB.updateItem({
         TableName: this.awsDynamoDBTableName,
         Key: {
           PK: { S: lockId },
@@ -186,17 +187,23 @@ export class AwsPipelineServiceImpl implements PipelineService {
           ":executionId": { SS: [pipelineId] },
         },
       });
+    };
 
+    console.info(`Pipeline ${JSON.stringify(pipeline)}`);
     if (pipeline?.input) {
       const input = JSON.parse(pipeline?.input);
       ["LOCK#Download", "LOCK#Index", "LOCK#Sample", "LOCK#Solr"]
         .concat(input.dataResources.map((id: string) => `LOCK#${id}`))
-        .forEach((lockId) => lockRemovalPromises.push(removeLock(lockId)));
+        .forEach((lockId) => {
+          console.info(`Adding promise for lock ${lockId}`);
+          lockRemovalPromises.push(removeLock(lockId));
+        });
     } else {
       const scanLimit = 50;
       let startKey;
       let scanResult;
       do {
+        console.info("Scanning the entire DynamoDB table for unlocking");
         scanResult = await this.dynamoDB.scan({
           TableName: this.awsDynamoDBTableName,
           ExclusiveStartKey: startKey,
@@ -353,14 +360,14 @@ export class AwsPipelineServiceImpl implements PipelineService {
           : Math.min(pagination?.first || 100, pagination?.last || 100),
       ExclusiveStartKey: pagination?.after
         ? {
-          PK: { S: `RUN#${pipelineId}` },
-          SK: { S: pagination.after },
-        }
+            PK: { S: `RUN#${pipelineId}` },
+            SK: { S: pagination.after },
+          }
         : pagination?.before
           ? {
-            PK: { S: `RUN#${pipelineId}` },
-            SK: { S: pagination.before },
-          }
+              PK: { S: `RUN#${pipelineId}` },
+              SK: { S: pagination.before },
+            }
           : undefined,
       ScanIndexForward: pagination?.after
         ? true
