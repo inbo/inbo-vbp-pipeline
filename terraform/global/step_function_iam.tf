@@ -123,6 +123,7 @@ data "aws_iam_policy_document" "pipeline" {
 
     actions = [
       "batch:SubmitJob",
+      "batch:CancelJob",
       "batch:TerminateJob",
       "batch:DescribeJobs",
     ]
