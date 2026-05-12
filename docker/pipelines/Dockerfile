@@ -20,7 +20,7 @@ ARG BUILDPLATFORM=linux/amd64
 FROM --platform=${BUILDPLATFORM} custom-maven-17 AS builder
 
 ARG VERSION=fix-develop-vbp-build
-ARG COMMIT=275e07e14d7bf7cacadb7976529b10062bc2396a
+ARG COMMIT=2275e07e14d7bf7cacadb7976529b10062bc2396
 ARG SOURCE=https://github.com/StefanVanDyck/pipelines.git
 #ARG SOURCE=https://github.com/gbif/pipelines.git
 ARG SOURCE_DATE_EPOCH
@@ -72,16 +72,16 @@ ARG TARGETARCH
 RUN apk add --no-cache git ca-certificates
 WORKDIR /src
 RUN git clone --depth 1 --branch v0.6.4-with-no-mangle-double-dash \
-      https://github.com/docopt/docopts.git . \
+  https://github.com/docopt/docopts.git . \
   && go mod init github.com/docopt/docopts 2>/dev/null || true \
   && go get github.com/docopt/docopt-go \
   && CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
-       go build -ldflags='-s -w' -o /out/docopts docopts.go
+  go build -ldflags='-s -w' -o /out/docopts docopts.go
 # ---------------------------------------------------------------------------
 
 FROM amazoncorretto:17
 
-ARG COMMIT=275e07e14d7bf7cacadb7976529b10062bc2396a
+ARG COMMIT=2275e07e14d7bf7cacadb7976529b10062bc2396
 LABEL ala.version=inbo-${COMMIT}
 #
 # ARG VERSION=2.18.6-SNAPSHOT
