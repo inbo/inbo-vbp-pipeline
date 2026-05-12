@@ -159,10 +159,21 @@ export class AwsPipelineServiceImpl implements PipelineService {
       AttributesToGet: ["ClusterId"],
     });
     if (item.Item?.ClusterId?.S) {
+      const clusterId = item.Item.ClusterId.S;
       console.debug(
-        `Terminating pipeline: ${pipelineId} cluster: ${item.Item.ClusterId.S}`,
+        `Terminating pipeline: ${pipelineId} cluster: ${clusterId}`,
       );
-      await this.emr.terminateJobFlows({ JobFlowIds: [item.Item.ClusterId.S] });
+      try {
+        await this.emr.terminateJobFlows({ JobFlowIds: [clusterId] });
+      } catch (err: any) {
+        if (err?.message?.includes("Specified job flow ID not valid")) {
+          console.warn(
+            `Cluster ${clusterId} for pipeline ${pipelineId} is no longer valid (already terminated or never started). Skipping termination.`,
+          );
+        } else {
+          throw err;
+        }
+      }
     }
   }
 
@@ -170,7 +181,8 @@ export class AwsPipelineServiceImpl implements PipelineService {
     console.info(`Force unlock pipeline: ${pipelineId}`);
 
     const pipeline = await this.getPipeline(pipelineId);
-    const lockRemovalPromises: Promise<UpdateItemCommandOutput>[] = [];
+    const lockRemovalPromises: Promise<UpdateItemCommandOutput | undefined>[] =
+      [];
     const removeLock = async (lockId: string) => {
       console.info(`Removing lock: ${lockId}`);
       const item = await this.dynamoDB.getItem({
@@ -183,7 +195,9 @@ export class AwsPipelineServiceImpl implements PipelineService {
       });
       const executionIds = item.Item?.ExecutionIds?.SS;
       if (!executionIds || executionIds.length === 0) return;
-      const toRemove = executionIds.filter((id) => id.startsWith(`${pipelineId}#`));
+      const toRemove = executionIds.filter((id) =>
+        id.startsWith(`${pipelineId}#`),
+      );
       if (toRemove.length === 0) return;
       return this.dynamoDB.updateItem({
         TableName: this.awsDynamoDBTableName,
