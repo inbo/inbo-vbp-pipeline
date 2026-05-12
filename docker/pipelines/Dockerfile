@@ -20,7 +20,7 @@ ARG BUILDPLATFORM=linux/amd64
 FROM --platform=${BUILDPLATFORM} custom-maven-17 AS builder
 
 ARG VERSION=fix-develop-vbp-build
-ARG COMMIT=2275e07e14d7bf7cacadb7976529b10062bc2396
+ARG COMMIT=9768facd9d958fb8f519d29f80e0c445ac216870
 ARG SOURCE=https://github.com/StefanVanDyck/pipelines.git
 #ARG SOURCE=https://github.com/gbif/pipelines.git
 ARG SOURCE_DATE_EPOCH
@@ -81,7 +81,7 @@ RUN git clone --depth 1 --branch v0.6.4-with-no-mangle-double-dash \
 
 FROM amazoncorretto:17
 
-ARG COMMIT=2275e07e14d7bf7cacadb7976529b10062bc2396
+ARG COMMIT=9768facd9d958fb8f519d29f80e0c445ac216870
 LABEL ala.version=inbo-${COMMIT}
 #
 # ARG VERSION=2.18.6-SNAPSHOT
