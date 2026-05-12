@@ -171,20 +171,32 @@ export class AwsPipelineServiceImpl implements PipelineService {
 
     const pipeline = await this.getPipeline(pipelineId);
     const lockRemovalPromises: Promise<UpdateItemCommandOutput>[] = [];
-    const removeLock = (lockId: string) => {
+    const removeLock = async (lockId: string) => {
       console.info(`Removing lock: ${lockId}`);
+      const item = await this.dynamoDB.getItem({
+        TableName: this.awsDynamoDBTableName,
+        Key: {
+          PK: { S: lockId },
+          SK: { S: lockId },
+        },
+        AttributesToGet: ["ExecutionIds"],
+      });
+      const executionIds = item.Item?.ExecutionIds?.SS;
+      if (!executionIds || executionIds.length === 0) return;
+      const toRemove = executionIds.filter((id) => id.startsWith(`${pipelineId}#`));
+      if (toRemove.length === 0) return;
       return this.dynamoDB.updateItem({
         TableName: this.awsDynamoDBTableName,
         Key: {
           PK: { S: lockId },
           SK: { S: lockId },
         },
-        UpdateExpression: "DELETE #ExecutionIds :executionId",
+        UpdateExpression: "DELETE #ExecutionIds :executionIds",
         ExpressionAttributeNames: {
           "#ExecutionIds": "ExecutionIds",
         },
         ExpressionAttributeValues: {
-          ":executionId": { SS: [pipelineId] },
+          ":executionIds": { SS: toRemove },
         },
       });
     };
@@ -208,20 +220,22 @@ export class AwsPipelineServiceImpl implements PipelineService {
           TableName: this.awsDynamoDBTableName,
           ExclusiveStartKey: startKey,
           Limit: scanLimit,
-          FilterExpression:
-            "#pk begins_with(:lockPrefix) and #execIds contains(:execId)",
+          FilterExpression: "begins_with(#pk, :lockPrefix)",
           ExpressionAttributeNames: {
             "#pk": "PK",
-            "#execIds": "ExecutionIds",
           },
           ExpressionAttributeValues: {
             ":lockPrefix": { S: "LOCK#" },
-            ":execId": { S: pipelineId },
           },
-          AttributesToGet: ["PK"],
+          AttributesToGet: ["PK", "ExecutionIds"],
         });
         startKey = scanResult.LastEvaluatedKey;
-        scanResult.Items?.forEach((item) => removeLock(item.PK.S!));
+        scanResult.Items?.forEach((item) => {
+          const hasMatch = item.ExecutionIds?.SS?.some((id) =>
+            id.startsWith(`${pipelineId}#`),
+          );
+          if (hasMatch) lockRemovalPromises.push(removeLock(item.PK.S!));
+        });
       } while (scanResult.Count === scanLimit);
     }
     return await Promise.all(lockRemovalPromises);
