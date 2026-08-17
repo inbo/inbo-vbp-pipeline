@@ -130,3 +130,19 @@ variable "oauth" {
   sensitive = true
 }
 
+# Header injected by the EventBridge connection on every outgoing HTTP request
+# to the portal, so the portal WAF can whitelist pipeline step-function
+# invocations (ChallengeBots rule). Both must be set together or left null.
+# Values come from the portal's bridge_header_key Secrets Manager secret.
+variable "bridge_header_name" {
+  type      = string
+  default   = null
+  sensitive = true
+}
+
+variable "bridge_header_value" {
+  type      = string
+  default   = null
+  sensitive = true
+}
+

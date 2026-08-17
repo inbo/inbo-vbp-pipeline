@@ -222,6 +222,24 @@ resource "aws_cloudwatch_event_connection" "portal_authenticated_connection_oaut
         }
       }
     }
+
+    # Header added to every outgoing request using this connection, so the
+    # portal WAF ChallengeBots rule can whitelist step-function HTTP invokes.
+    # AWS cannot update invocation_http_parameters on an existing connection
+    # (UpdateConnection silently ignores the field); to apply this change to
+    # an existing connection, recreate it once:
+    #   terraform apply -replace=aws_cloudwatch_event_connection.portal_authenticated_connection_oauth
+    dynamic "invocation_http_parameters" {
+      for_each = var.bridge_header_name != null && var.bridge_header_value != null ? [1] : []
+
+      content {
+        header {
+          key             = var.bridge_header_name
+          value           = var.bridge_header_value
+          is_value_secret = false
+        }
+      }
+    }
   }
 
   lifecycle {
