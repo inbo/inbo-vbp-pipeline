@@ -87,6 +87,7 @@ LABEL ala.version=inbo-${COMMIT}
 # ARG VERSION=2.18.6-SNAPSHOT
 #trivy:ignore:DS-0015
 RUN --mount=type=cache,target=/var/cache/yum,sharing=locked \
+  yum remove -y curl-minimal && \
   yum update -y && \
   yum install -y \
   nano \
