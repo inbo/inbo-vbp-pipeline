@@ -19,8 +19,8 @@ RUN mkdir /opt/aws-xray-agent \
 ARG BUILDPLATFORM=linux/amd64
 FROM --platform=${BUILDPLATFORM} custom-maven-17 AS builder
 
-ARG VERSION=fix-develop-vbp-build
-ARG COMMIT=a93b0c497b36f2c255c67c0c434ab001ad65552a
+ARG VERSION=fix-spatial-validity-checks
+ARG COMMIT=a3f9a6904ef145f58019dfb8fe257d9311824971
 ARG SOURCE=https://github.com/StefanVanDyck/pipelines.git
 #ARG SOURCE=https://github.com/gbif/pipelines.git
 ARG SOURCE_DATE_EPOCH
@@ -81,7 +81,7 @@ RUN git clone --depth 1 --branch v0.6.4-with-no-mangle-double-dash \
 
 FROM amazoncorretto:17
 
-ARG COMMIT=a93b0c497b36f2c255c67c0c434ab001ad65552a
+ARG COMMIT=a3f9a6904ef145f58019dfb8fe257d9311824971
 LABEL ala.version=inbo-${COMMIT}
 #
 # ARG VERSION=2.18.6-SNAPSHOT
