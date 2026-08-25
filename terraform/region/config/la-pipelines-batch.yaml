@@ -82,6 +82,8 @@ samplingService:
   retryConfig:
     maxAttempts: 10
     initialIntervalMillis: 1000
+
+imageCachePath: null
 geocodeConfig:
   country:
     path: /data/pipelines-shp/political

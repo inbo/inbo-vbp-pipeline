@@ -43,6 +43,7 @@ samplingService:
   retryConfig:
     maxAttempts: 5
     initialIntervalMillis: 1000
+imageCachePath: null
 geocodeConfig:
   country:
     path: /opt/inbo/pipelines/shp-layers/political
