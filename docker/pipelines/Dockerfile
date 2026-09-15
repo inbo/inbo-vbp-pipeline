@@ -20,7 +20,7 @@ ARG BUILDPLATFORM=linux/amd64
 FROM --platform=${BUILDPLATFORM} custom-maven-17 AS builder
 
 ARG VERSION=fix-spatial-validity-checks
-ARG COMMIT=dc88fee74422d6cf35280cf3d9a0d069bec7d0b8
+ARG COMMIT=d10f22109461bf3619e255f844e966a0cbd5f375
 ARG SOURCE=https://github.com/StefanVanDyck/pipelines.git
 #ARG SOURCE=https://github.com/gbif/pipelines.git
 ARG SOURCE_DATE_EPOCH
@@ -81,7 +81,7 @@ RUN git clone --depth 1 --branch v0.6.4-with-no-mangle-double-dash \
 
 FROM amazoncorretto:17
 
-ARG COMMIT=dc88fee74422d6cf35280cf3d9a0d069bec7d0b8
+ARG COMMIT=d10f22109461bf3619e255f844e966a0cbd5f375
 LABEL ala.version=inbo-${COMMIT}
 #
 # ARG VERSION=2.18.6-SNAPSHOT
