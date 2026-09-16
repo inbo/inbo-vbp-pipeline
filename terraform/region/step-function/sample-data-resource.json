@@ -62,7 +62,7 @@
               "{% '--datasetId=' & $dataResourceId %}",
               "--config=/opt/inbo/pipelines/config/la-pipelines.yaml",
               "--awsRegion=eu-west-1",
-              "{% '--forceSamplingAllLayers= & $not($states.context.Execution.Input.forceSample %}",
+              "{% '--forceSamplingAllLayers=' & $states.context.Execution.Input.forceSample %}",
               "{% '--fsPath=s3://' & $config.s3_bucket_name_pipeline & '/data'%}"
             ]
           }
