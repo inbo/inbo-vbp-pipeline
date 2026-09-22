@@ -386,38 +386,6 @@ data "aws_iam_policy_document" "emr_service_role_main" {
   }
 
   statement {
-    sid    = "PassRoleForAutoScaling"
-    effect = "Allow"
-    actions = [
-      "iam:PassRole",
-    ]
-    resources = [
-      "arn:aws:iam::*:role/EMR_AutoScaling_DefaultRole",
-    ]
-    condition {
-      test     = "StringLike"
-      variable = "iam:PassedToService"
-      values   = ["application-autoscaling.amazonaws.com*"]
-    }
-  }
-
-  statement {
-    sid    = "PassRoleForEC2"
-    effect = "Allow"
-    actions = [
-      "iam:PassRole",
-    ]
-    resources = [
-      "arn:aws:iam::*:role/EMR_EC2_DefaultRole",
-    ]
-    condition {
-      test     = "StringLike"
-      variable = "iam:PassedToService"
-      values   = ["ec2.amazonaws.com*"]
-    }
-  }
-
-  statement {
     sid    = "CreateAndModifyEmrServiceVPCEndpointWithoutTags"
     effect = "Allow"
     actions = [
@@ -520,5 +488,55 @@ data "aws_iam_policy_document" "emr_service_role" {
 resource "aws_iam_role_policy" "emr_service_role" {
   name   = "${var.resource_prefix}pipelines-emr-pass-ec2-instance-role"
   policy = data.aws_iam_policy_document.emr_service_role.json
+  role   = aws_iam_role.iam_emr_service_role.id
+}
+
+// iam:PassRole is kept in its own inline policy, separate from ec2:RunInstances.
+// A single policy containing both allows privilege escalation (launch an EC2
+// instance with any passable role and harvest its credentials), which Prowler
+// flags via iam_inline_policy_allows_privilege_escalation. Splitting them is
+// functionally neutral: the role's cumulative permissions are unchanged, so
+// EMR automatic scaling (incl. scale-to-zero) keeps working.
+data "aws_iam_policy_document" "emr_service_role_pass_roles" {
+  statement {
+    sid    = "PassRoleForAutoScaling"
+    effect = "Allow"
+    actions = [
+      "iam:PassRole",
+    ]
+    resources = [
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/EMR_AutoScaling_DefaultRole",
+      // The step function creates clusters with this custom AutoScalingRole
+      // (AutoScalingRole in get-or-create-emr-cluster.json); the EMR service
+      // must be able to pass it to application-autoscaling.
+      aws_iam_role.iam_emr_scaling_role.arn,
+    ]
+    condition {
+      test     = "StringLike"
+      variable = "iam:PassedToService"
+      values   = ["application-autoscaling.amazonaws.com*"]
+    }
+  }
+
+  statement {
+    sid    = "PassRoleForEC2"
+    effect = "Allow"
+    actions = [
+      "iam:PassRole",
+    ]
+    resources = [
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/EMR_EC2_DefaultRole",
+    ]
+    condition {
+      test     = "StringLike"
+      variable = "iam:PassedToService"
+      values   = ["ec2.amazonaws.com*"]
+    }
+  }
+}
+
+resource "aws_iam_role_policy" "emr_service_role_pass_roles" {
+  name   = "${var.resource_prefix}pipelines-emr-pass-roles"
+  policy = data.aws_iam_policy_document.emr_service_role_pass_roles.json
   role   = aws_iam_role.iam_emr_service_role.id
 }
