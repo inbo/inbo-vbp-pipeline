@@ -15,6 +15,6 @@ resource "aws_secretsmanager_secret_version" "apikey_credentials" {
   secret_string = data.aws_secretsmanager_random_password.apikey_credentials.random_password
 
   lifecycle {
-    ignore_changes = [secret_string,]
+    ignore_changes = [secret_string, ]
   }
 }

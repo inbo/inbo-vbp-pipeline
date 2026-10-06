@@ -20,48 +20,12 @@ variable "resource_prefix" {
   default = "inbo-vbp-"
 }
 
-variable "ecs_cluster_arn" {
-  type = string
-}
-
 variable "docker_version" {
   type = string
 }
 
-
-variable "environment" {
-  type = list(object({
-    name  = string
-    value = string
-  }))
-  default = []
-}
-
-variable "secrets" {
-  type = list(object({
-    name      = string
-    valueFrom = string
-  }))
-  default = []
-}
-
 variable "base_domain" {
   type = string
-}
-
-variable "cpu" {
-  type    = number
-  default = 512
-}
-variable "memory" {
-  type    = number
-  default = 1024
-}
-
-
-variable "user" {
-  type    = string
-  default = "1000:1000"
 }
 
 variable "collectory_data_volume" {

@@ -27,6 +27,3 @@ rm ./pipelines-${var.docker_version}.jar
 EOF
   }
 }
-
-data "aws_ecr_authorization_token" "token" {
-}

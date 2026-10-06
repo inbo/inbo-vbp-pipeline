@@ -32,7 +32,7 @@ resource "aws_batch_job_definition" "spatial_sampling" {
 
     runtimePlatform = {
       operatingSystemFamily = "LINUX"
-      cpuArchitecture = "ARM64"
+      cpuArchitecture       = "ARM64"
     }
 
     resourceRequirements = [
@@ -41,7 +41,7 @@ resource "aws_batch_job_definition" "spatial_sampling" {
         value = "0.25"
       },
       {
-        type = "MEMORY"
+        type  = "MEMORY"
         value = "512"
       }
     ]
