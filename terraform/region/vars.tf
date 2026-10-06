@@ -48,6 +48,10 @@ variable "log_group_name" {
   type = string
 }
 
+variable "states_log_group_name" {
+  type = string
+}
+
 variable "main_vpc_id" {
   type = string
 }

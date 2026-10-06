@@ -271,6 +271,24 @@ data "aws_iam_policy_document" "pipeline" {
       "*"
     ]
   }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "logs:CreateLogDelivery",
+      "logs:GetLogDelivery",
+      "logs:UpdateLogDelivery",
+      "logs:DeleteLogDelivery",
+      "logs:ListLogDeliveries",
+      "logs:PutResourcePolicy",
+      "logs:DescribeResourcePolicies",
+      "logs:DescribeLogGroups"
+    ]
+    #tfsec:ignore:aws-iam-no-policy-wildcards - CloudWatch log delivery requires wildcard resources
+    resources = [
+      "*"
+    ]
+  }
 }
 
 resource "aws_iam_role_policy" "pipeline" {
