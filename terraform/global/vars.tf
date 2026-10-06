@@ -28,7 +28,9 @@ variable "dynamodb_kms_key_arn" {
   type = string
 }
 
-variable "aws_region" {}
+variable "aws_region" {
+  type = string
+}
 
 variable "base_domain" {
   type = string

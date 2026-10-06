@@ -44,22 +44,22 @@ resource "aws_security_group_rule" "emr_master_internet_access" {
 }
 
 resource "aws_security_group_rule" "emr_master_cluster_manager_egress_1" {
-  type              = "egress"
-  security_group_id = aws_security_group.emr_cluster_instances.id
+  type                     = "egress"
+  security_group_id        = aws_security_group.emr_cluster_instances.id
   source_security_group_id = aws_security_group.emr_service_access.id
-  from_port         = 9443
-  to_port           = 9443
-  protocol          = "tcp"
-  description       = "Allow EMR master instance to communicate with cluster manager."
+  from_port                = 9443
+  to_port                  = 9443
+  protocol                 = "tcp"
+  description              = "Allow EMR master instance to communicate with cluster manager."
 }
 
 
 resource "aws_security_group_rule" "emr_master_cluster_manager_egress_2" {
-  type              = "egress"
-  security_group_id = aws_security_group.emr_cluster_instances.id
+  type                     = "egress"
+  security_group_id        = aws_security_group.emr_cluster_instances.id
   source_security_group_id = aws_security_group.emr_service_access.id
-  from_port         = 443
-  to_port           = 443
-  protocol          = "tcp"
-  description       = "Allow EMR master instance to communicate with cluster manager."
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  description              = "Allow EMR master instance to communicate with cluster manager."
 }

@@ -101,6 +101,12 @@ resource "aws_sfn_state_machine" "pipeline" {
 
   definition = replace(file("${path.module}/step-function/pipeline.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 
+  logging_configuration {
+    log_destination        = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:${var.states_log_group_name}:*"
+    include_execution_data = true
+    level                  = var.aws_env == "dev" ? "ALL" : "ERROR"
+  }
+
   tracing_configuration {
     enabled = true
   }
@@ -111,6 +117,12 @@ resource "aws_sfn_state_machine" "step_wrapper" {
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/step-wrapper.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
+
+  logging_configuration {
+    log_destination        = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:${var.states_log_group_name}:*"
+    include_execution_data = true
+    level                  = var.aws_env == "dev" ? "ALL" : "ERROR"
+  }
 
   tracing_configuration {
     enabled = true
@@ -123,6 +135,12 @@ resource "aws_sfn_state_machine" "lock" {
 
   definition = replace(file("${path.module}/step-function/lock.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 
+  logging_configuration {
+    log_destination        = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:${var.states_log_group_name}:*"
+    include_execution_data = true
+    level                  = var.aws_env == "dev" ? "ALL" : "ERROR"
+  }
+
   tracing_configuration {
     enabled = true
   }
@@ -133,6 +151,12 @@ resource "aws_sfn_state_machine" "download" {
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/download-data-resource.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
+
+  logging_configuration {
+    log_destination        = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:${var.states_log_group_name}:*"
+    include_execution_data = true
+    level                  = var.aws_env == "dev" ? "ALL" : "ERROR"
+  }
 
   tracing_configuration {
     enabled = true
@@ -145,6 +169,12 @@ resource "aws_sfn_state_machine" "index" {
 
   definition = replace(file("${path.module}/step-function/index-data-resource.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 
+  logging_configuration {
+    log_destination        = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:${var.states_log_group_name}:*"
+    include_execution_data = true
+    level                  = var.aws_env == "dev" ? "ALL" : "ERROR"
+  }
+
   tracing_configuration {
     enabled = true
   }
@@ -155,6 +185,12 @@ resource "aws_sfn_state_machine" "sample" {
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/sample-data-resource.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
+
+  logging_configuration {
+    log_destination        = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:${var.states_log_group_name}:*"
+    include_execution_data = true
+    level                  = var.aws_env == "dev" ? "ALL" : "ERROR"
+  }
 
   tracing_configuration {
     enabled = true
@@ -167,6 +203,12 @@ resource "aws_sfn_state_machine" "solr" {
 
   definition = replace(file("${path.module}/step-function/solr-data-resource.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 
+  logging_configuration {
+    log_destination        = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:${var.states_log_group_name}:*"
+    include_execution_data = true
+    level                  = var.aws_env == "dev" ? "ALL" : "ERROR"
+  }
+
   tracing_configuration {
     enabled = true
   }
@@ -178,6 +220,12 @@ resource "aws_sfn_state_machine" "get_or_create_emr_cluster" {
 
   definition = replace(file("${path.module}/step-function/get-or-create-emr-cluster.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
 
+  logging_configuration {
+    log_destination        = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:${var.states_log_group_name}:*"
+    include_execution_data = true
+    level                  = var.aws_env == "dev" ? "ALL" : "ERROR"
+  }
+
   tracing_configuration {
     enabled = true
   }
@@ -188,6 +236,12 @@ resource "aws_sfn_state_machine" "cleanup_emr_cluster" {
   role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}pipeline-step-function"
 
   definition = replace(file("${path.module}/step-function/cleanup-emr-cluster.json"), "${var.resource_prefix}dev-pipelines", "${var.resource_prefix}${var.aws_env}-pipelines")
+
+  logging_configuration {
+    log_destination        = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:${var.states_log_group_name}:*"
+    include_execution_data = true
+    level                  = var.aws_env == "dev" ? "ALL" : "ERROR"
+  }
 
   tracing_configuration {
     enabled = true
