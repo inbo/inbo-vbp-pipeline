@@ -30,4 +30,8 @@ resource "aws_dynamodb_table" "biodiversiteitsportaal_pipelines" {
   point_in_time_recovery {
     enabled = true
   }
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
