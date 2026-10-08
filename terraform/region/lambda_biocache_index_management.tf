@@ -83,6 +83,10 @@ resource "aws_lambda_function" "biocache_index_management_lambda" {
     log_group  = var.lambdas.log_group_name
     log_format = "JSON"
   }
+
+  dead_letter_config {
+    target_arn = aws_sqs_queue.lambda_dlq.arn
+  }
 }
 
 resource "aws_security_group" "biocache_index_management" {

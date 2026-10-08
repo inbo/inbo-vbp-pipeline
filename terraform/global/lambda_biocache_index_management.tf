@@ -112,6 +112,17 @@ data "aws_iam_policy_document" "biocache_index_management_permission" {
     resources = [var.dynamodb_kms_key_arn]
   }
 
+  // Deliver failed async invocations to the shared lambda DLQ.
+  statement {
+    effect = "Allow"
+    actions = [
+      "sqs:SendMessage",
+    ]
+    resources = [
+      "arn:aws:sqs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:${var.resource_prefix}lambda-dlq"
+    ]
+  }
+
 }
 
 resource "aws_iam_role_policy" "biocache-index-management" {
