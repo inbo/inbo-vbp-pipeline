@@ -31,6 +31,8 @@ resource "aws_dynamodb_table" "biodiversiteitsportaal_pipelines" {
     enabled = true
   }
 
+  deletion_protection_enabled = true
+
   lifecycle {
     prevent_destroy = true
   }
