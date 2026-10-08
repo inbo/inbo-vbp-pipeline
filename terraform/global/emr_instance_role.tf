@@ -112,6 +112,18 @@ data "aws_iam_policy_document" "iam_emr_instance_profile_policy" {
     resources = ["arn:aws:s3:::${var.resource_prefix}${var.aws_env}-pipelines/logs/*"]
   }
 
+  // SSE-KMS on the pipelines bucket: writers need data-key rights on the bucket key.
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+      "kms:Encrypt",
+      "kms:GenerateDataKey",
+    ]
+    resources = [var.s3_kms_key_arn]
+  }
+
 
   statement {
     effect  = "Allow"

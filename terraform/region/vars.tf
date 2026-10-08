@@ -44,6 +44,10 @@ variable "dynamodb_kms_key_arn" {
   type = string
 }
 
+variable "s3_kms_key_arn" {
+  type = string
+}
+
 variable "log_group_name" {
   type = string
 }

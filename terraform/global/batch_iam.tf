@@ -165,6 +165,18 @@ data "aws_iam_policy_document" "batch" {
     ]
     resources = [var.dynamodb_kms_key_arn]
   }
+
+  // SSE-KMS on the pipelines bucket: writers need data-key rights on the bucket key.
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+      "kms:Encrypt",
+      "kms:GenerateDataKey",
+    ]
+    resources = [var.s3_kms_key_arn]
+  }
 }
 
 resource "aws_iam_role_policy" "batch_task_role" {

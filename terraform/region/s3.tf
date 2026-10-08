@@ -1,9 +1,20 @@
-#tfsec:ignore:aws-s3-enable-bucket-encryption tfsec:ignore:aws-s3-encryption-customer-key tfsec:ignore:s3-bucket-logging tfsec:ignore:aws-s3-enable-bucket-logging tfsec:ignore:aws-s3-enable-versioning
+#tfsec:ignore:s3-bucket-logging tfsec:ignore:aws-s3-enable-bucket-logging tfsec:ignore:aws-s3-enable-versioning
 resource "aws_s3_bucket" "pipelines" {
   bucket = "${var.resource_prefix}${var.aws_env}-pipelines"
 
   tags = {
     Backup = "false"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "pipelines" {
+  bucket = aws_s3_bucket.pipelines.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      kms_master_key_id = var.s3_kms_key_arn
+      sse_algorithm     = "aws:kms"
+    }
   }
 }
 
