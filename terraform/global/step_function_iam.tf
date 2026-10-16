@@ -253,6 +253,34 @@ data "aws_iam_policy_document" "pipeline" {
     effect = "Allow"
     actions = [
       "kms:Decrypt",
+      "kms:DescribeKey",
+      "kms:GenerateDataKey"
+    ]
+    resources = [var.secrets_kms_key_arn]
+    condition {
+      test = "StringLike"
+      values = [
+        "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:/${var.organisation}/${var.application}/pipelines-*"
+      ]
+      variable = "kms:EncryptionContext:SecretARN"
+    }
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:DescribeKey",
+      "kms:Encrypt",
+      "kms:GenerateDataKey",
+    ]
+    resources = [var.s3_kms_key_arn]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
     ]
     resources = [var.dynamodb_kms_key_arn]
   }
