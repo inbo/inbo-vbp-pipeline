@@ -10,29 +10,42 @@ export function RunningPipelines() {
         variables: { status: PipelineStatus.Running },
     });
 
+    const hasRunning = (pipelinesData?.pipelines.length ?? 0) > 0;
+
     return (
         <div>
-            {pipelinesData?.pipelines.length === 0
-                ? (
+            {hasRunning && (
+                <>
+                    <h2>Running Pipelines:</h2>
+
+                    <ul>
+                        {pipelinesData?.pipelines.map((pipeline) => (
+                            <Pipeline key={pipeline.id} id={pipeline.id} />
+                        ))}
+                    </ul>
+                </>
+            )}
+            {pipelinesData && (
+                <>
                     <Button
-                        variant="contained"
+                        variant={hasRunning ? "outlined" : "contained"}
+                        color={hasRunning ? "warning" : "primary"}
                         component={Link}
                         to="/start"
                     >
-                        Start New Pipeline
+                        {hasRunning
+                            ? "Start Another Pipeline"
+                            : "Start New Pipeline"}
                     </Button>
-                )
-                : (
-                    <>
-                        <h2>Running Pipelines:</h2>
-
-                        <ul>
-                            {pipelinesData?.pipelines.map((pipeline) => (
-                                <Pipeline key={pipeline.id} id={pipeline.id} />
-                            ))}
-                        </ul>
-                    </>
-                )}
+                    {hasRunning && (
+                        <p>
+                            A pipeline is already running. Running multiple
+                            pipelines at the same time may overload upstream
+                            services.
+                        </p>
+                    )}
+                </>
+            )}
         </div>
     );
 }
