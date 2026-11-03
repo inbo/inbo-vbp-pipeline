@@ -14,13 +14,14 @@ import type { ApolloCache } from "@apollo/client";
 import type {
     DeleteIndexInput,
     DeleteIndexMutation,
-    Exact,
     GetOrCreateIndexInput,
     GetOrCreateIndexMutation,
     SetActiveIndexInput,
     SetActiveIndexMutation,
 } from "../__generated__/biocache-index-management/graphql";
 import { Spinner } from "./Spinner";
+
+type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 import {
     Accordion,
     AccordionDetails,

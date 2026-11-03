@@ -1,6 +1,5 @@
 import { SolrClient } from "../src/solr/solr";
 import { GenericContainer } from "testcontainers";
-import fetch from "node-fetch";
 import { describe, expect, test } from "@jest/globals";
 
 jest.setTimeout(60000);

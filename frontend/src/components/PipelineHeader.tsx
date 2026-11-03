@@ -1,7 +1,7 @@
 import "../styles/PipelineHeader.css";
 
 import { Link } from "react-router";
-import type { Pipeline } from "../__generated__/biocache-index-management/graphql";
+import type { Pipeline } from "../__generated__/biocache-index-management/schema-types";
 import { PipelineStatusChip } from "./PipelineStatusChip";
 import { AccessTime, Timelapse } from "@mui/icons-material";
 import { formatDuration } from "../utils/datetime";
