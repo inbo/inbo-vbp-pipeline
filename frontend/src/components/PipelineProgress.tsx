@@ -1,10 +1,6 @@
 import { type Dispatch, type SetStateAction } from "react";
-import {
-    type PipelineStats,
-    PipelineStep,
-    PipelineStepState,
-    type PipelineStepStats,
-} from "../__generated__/biocache-index-management/graphql";
+import type { PipelineStats, PipelineStepStats } from "../__generated__/biocache-index-management/schema-types";
+import { PipelineStep, PipelineStepState } from "../__generated__/biocache-index-management/graphql";
 
 import "../styles/PipelineProgress.css";
 import { type DataResourceFilter } from "./DataResourceProgress";

@@ -4,7 +4,7 @@ import { GET_ALL_DATA_RESOURCES } from "../graphql/dataResources";
 import { useCallback, useEffect, useState } from "react";
 import { Checkbox, InputAdornment, TextField } from "@mui/material";
 
-import type { DataResource } from "../__generated__/biocache-index-management/graphql";
+import type { DataResource } from "../__generated__/biocache-index-management/schema-types";
 import { FilterListRounded } from "@mui/icons-material";
 
 const SelectAllStates = [

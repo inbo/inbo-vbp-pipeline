@@ -2,8 +2,8 @@ import "../styles/DataResourceProgress.css";
 
 import { useQuery } from "@apollo/client/react";
 import { GET_PIPELINE_DATA_RESOURCE_PROGRESS } from "../graphql/pipelines";
+import type { DataResourceProgress } from "../__generated__/biocache-index-management/schema-types";
 import type {
-    DataResourceProgress,
     PipelineStep,
     PipelineStepState,
 } from "../__generated__/biocache-index-management/graphql";
