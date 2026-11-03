@@ -56,7 +56,7 @@ resource "aws_lambda_function" "biocache_index_management_lambda" {
   s3_key            = data.aws_s3_object.biocache_index_management_lambda.key
   s3_object_version = data.aws_s3_object.biocache_index_management_lambda.version_id
   role              = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.resource_prefix}biocache-index-management-lambda"
-  runtime           = "nodejs22.x"
+  runtime           = "nodejs24.x"
   handler           = "server.graphqlHandler"
   timeout           = 60
 
