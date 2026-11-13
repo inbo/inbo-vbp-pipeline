@@ -38,7 +38,8 @@ resource "aws_batch_job_definition" "la_pipelines" {
       sed -i "s\\\$${APIKEY}\\$${APIKEY}\\g" /tmp/config/la-pipelines.yaml
       sed -i "s\\inbo-vbp-dev-pipelines\\${aws_s3_bucket.pipelines.bucket}\\g" /tmp/config/la-pipelines.yaml
 
-      cat /tmp/config/la-pipelines.yaml
+      # Print the effective config for debugging, with the API key masked.
+      sed -E 's/^(\s*(apiKey|Authorization):).*/\1 ***/' /tmp/config/la-pipelines.yaml
 
       export LOG_CONFIG="/tmp/config/log4j.properties"
 
@@ -122,7 +123,7 @@ resource "aws_batch_job_definition" "la_pipelines" {
         awslogs-group             = var.log_group_name,
         awslogs-region            = var.aws_region,
         awslogs-stream-prefix     = "batch/dwca-to-index"
-        awslogs-multiline-pattern = "^\\d\\d\\d\\d-\\d\\d-\\d\\d \\d\\d:\\d\\d:\\d\\d,\\d\\d\\d"
+        awslogs-multiline-pattern = "^\\S" # new event for every line not starting with whitespace; indented stack trace lines stay attached
       },
       secretOptions = []
     }

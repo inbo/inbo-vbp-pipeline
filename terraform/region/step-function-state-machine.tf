@@ -35,7 +35,6 @@ locals {
     lambda_biocache_index_management_arn         = aws_lambda_function.biocache_index_management_lambda.qualified_arn
     job_queue_arn                                = aws_batch_job_queue.pipelines_queue.arn
     dynamodb_table_name                          = aws_dynamodb_table.biodiversiteitsportaal_pipelines.name
-    apikey_secret_value                          = aws_secretsmanager_secret_version.apikey_credentials.secret_string
     dataresource_size_threshold                  = 20000000
     pipelines_version                            = var.docker_version
     master_ec2_instance_type                     = "r6g.2xlarge"

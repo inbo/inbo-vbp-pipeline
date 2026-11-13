@@ -109,8 +109,8 @@ resource "aws_batch_job_definition" "dwca_to_verbatim" {
       options = {
         awslogs-group             = var.log_group_name,
         awslogs-region            = var.aws_region,
-        awslogs-stream-prefix     = "batch/dwca-to-index"
-        awslogs-multiline-pattern = "^\\d\\d\\d\\d-\\d\\d-\\d\\d \\d\\d:\\d\\d:\\d\\d,\\d\\d\\d"
+        awslogs-stream-prefix     = "batch/dwca-to-verbatim"
+        awslogs-multiline-pattern = "^\\S" # new event for every line not starting with whitespace; indented stack trace lines stay attached
       },
       secretOptions = []
     }
