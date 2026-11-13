@@ -27,6 +27,41 @@ resource "aws_s3_bucket_public_access_block" "biodiversiteitsportaal_downloads" 
   restrict_public_buckets = true
 }
 
+# Deny any request that is not made over TLS
+# (prowler: s3_bucket_secure_transport_policy).
+data "aws_iam_policy_document" "pipelines_tls" {
+  statement {
+    sid    = "DenyInsecureTransport"
+    effect = "Deny"
+
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
+    actions = ["s3:*"]
+    resources = [
+      aws_s3_bucket.pipelines.arn,
+      "${aws_s3_bucket.pipelines.arn}/*",
+    ]
+
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "pipelines_tls" {
+  bucket = aws_s3_bucket.pipelines.id
+  policy = data.aws_iam_policy_document.pipelines_tls.json
+
+  # Avoid S3 "conflicting conditional operation" errors from concurrent
+  # bucket-level updates.
+  depends_on = [aws_s3_bucket_public_access_block.biodiversiteitsportaal_downloads]
+}
+
 
 resource "aws_s3_object" "emr_pipelines_config" {
   bucket  = aws_s3_bucket.pipelines.bucket
