@@ -18,7 +18,10 @@ sudo chown -R hadoop:yarn /opt/inbo/pipelines
 sudo chmod +x -R /opt/inbo/pipelines/bootstrap-actions
 sudo chmod +x "/opt/inbo/pipelines/pipelines-${PIPELINE_VERSION}.jar"
 
+# Don't trace these two lines: xtrace would print the API key to the bootstrap log.
+set +x
 APIKEY=$(aws secretsmanager get-secret-value --secret-id "${APIKEY_SECRET_ARN}" --output text --query 'SecretString')
 sudo sed -i "s@\${APIKEY}@${APIKEY}@g" /opt/inbo/pipelines/config/la-pipelines.yaml
+set -x
 
 mkdir -p /tmp/pipelines && chmod 777 /tmp/pipelines
