@@ -1,5 +1,14 @@
 # syntax=docker/dockerfile:1.14.0
 ARG BUILDPLATFORM=linux/amd64
+
+# What is built: one source of truth, used for the checkout AND the labels of the final image.
+# COMMIT must be a full commit SHA (checked after the checkout).
+ARG SOURCE=https://github.com/StefanVanDyck/pipelines.git
+# Branch cache-jars
+ARG COMMIT=60258f4e71753a3a0311da707347292b10939ea3
+# pipelines-parent version at COMMIT (root pom.xml), used for the labels (checked in the builder)
+ARG APP_VERSION=3.2.14-SNAPSHOT
+
 FROM --platform=${BUILDPLATFORM} maven:3.9-amazoncorretto-17 AS custom-maven-17
 
 RUN mkdir ~/.m2
@@ -15,19 +24,20 @@ RUN mkdir /opt/aws-xray-agent \
   && unzip /opt/aws-xray-agent/xray-agent.zip -d /opt/aws-xray-agent \
   && rm /opt/aws-xray-agent/xray-agent.zip
 
-# syntax=docker/dockerfile:1.14.0
-ARG BUILDPLATFORM=linux/amd64
 FROM --platform=${BUILDPLATFORM} custom-maven-17 AS builder
 
-ARG VERSION=cache-jars
-ARG COMMIT=60258f4e71753a3a0311da707347292b10939ea3
-ARG SOURCE=https://github.com/StefanVanDyck/pipelines.git
-#ARG SOURCE=https://github.com/gbif/pipelines.git
+ARG SOURCE
+ARG COMMIT
+ARG APP_VERSION
 ARG SOURCE_DATE_EPOCH
-LABEL ala.version=inbo-${COMMIT}
 
 WORKDIR /app
-RUN git clone --branch ${VERSION} ${SOURCE} . && git checkout ${COMMIT}
+# Full clone (not shallow): COMMIT does not have to be a branch head
+RUN git clone -q ${SOURCE} . \
+  && git checkout -q ${COMMIT} \
+  && test "$(git rev-parse HEAD)" = "${COMMIT}" \
+  && grep -q "<version>${APP_VERSION}</version>" pom.xml \
+  || { echo "Checkout of ${COMMIT} failed or APP_VERSION ${APP_VERSION} is not in pom.xml" >&2; exit 1; }
 
 #trivy:ignore:DS-0013
 RUN --mount=type=cache,target=/root/.m2/repository \
@@ -43,17 +53,6 @@ RUN --mount=type=cache,target=/root/.m2/repository \
   -Dspotless.check.skip=true -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true \
   -Dproject.build.outputTimestamp=${SOURCE_DATE_EPOCH} \
   -T 10 -U
-
-# ARG VERSION=pipelines-parent-2.18.5
-# RUN git clone --branch ${VERSION} --depth 1 https://github.com/gbif/pipelines.git /app
-# WORKDIR /app
-#
-# RUN --mount=type=cache,target=/root/.m2/repository \
-#     cd livingatlas && mvn clean package -P livingatlas-artifacts -DskipTests -DskipITs -T 10 -U
-
-# ARG test=2
-# RUN ls -la livingatlas/pipelines/target/pipelines-2.18.6-SNAPSHOT.jar
-#
 
 # --- docopts builder --------------------------------------------------------
 # Upstream docopts v0.6.4 releases are inconsistent across architectures:
@@ -81,10 +80,6 @@ RUN git clone --depth 1 --branch v0.6.4-with-no-mangle-double-dash \
 
 FROM amazoncorretto:17
 
-ARG COMMIT=60258f4e71753a3a0311da707347292b10939ea3
-LABEL ala.version=inbo-${COMMIT}
-#
-# ARG VERSION=2.18.6-SNAPSHOT
 #trivy:ignore:DS-0015
 RUN --mount=type=cache,target=/var/cache/yum,sharing=locked \
   yum update -y && \
@@ -120,6 +115,13 @@ RUN groupadd --gid 1000 app \
   && useradd --uid 1000 --gid 1000 -m -d /app app
 
 USER 1000
+
+ARG SOURCE
+ARG COMMIT
+ARG APP_VERSION
+LABEL org.opencontainers.image.source=${SOURCE}
+LABEL org.opencontainers.image.revision=${COMMIT}
+LABEL org.opencontainers.image.version=${APP_VERSION}
 
 COPY --from=builder --chown=1000:1000 /app /app
 
