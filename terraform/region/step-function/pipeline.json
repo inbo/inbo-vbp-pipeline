@@ -70,14 +70,14 @@
               "Type": "Task",
               "Resource": "arn:aws:states:::http:invoke",
               "Arguments": {
-                "ApiEndpoint": "{% $config.species_list_base_url & '/ws/speciesList?' %}",
+                "ApiEndpoint": "{% $config.species_list_base_url & '/v2/speciesList' %}",
                 "Method": "GET",
                 "InvocationConfig": {
                   "ConnectionArn": "{% $config.portal_authenticated_connection_arn %}"
                 },
                 "QueryParameters": {
-                  "isAuthoritative": "eq:true",
-                  "max": 200
+                  "isAuthoritative": "true",
+                  "pageSize": 1000
                 }
               },
               "Retry": [
@@ -122,7 +122,7 @@
       ],
       "Assign": {
         "dataResources": "{% $sort($states.result[0]) %}",
-        "speciesLists": "{% $states.result[1].ResponseBody.lists{`dataResourceUid`: lastUpdated} %}",
+        "speciesLists": "{% $states.result[1].ResponseBody.lists{`dataResourceUid`: $fromMillis(lastUpdated, '[Y0001]-[M01]-[D01]T[H01]:[m01]:[s01]Z')} %}",
         "spatialFields": "{% $states.result[2].ResponseBody.id%}"
       }
     },

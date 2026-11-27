@@ -22,7 +22,7 @@ locals {
     portal_authenticated_connection_arn          = aws_cloudwatch_event_connection.portal_authenticated_connection_oauth.arn
     biocache_service_base_url                    = "https://${var.base_domain}/biocache-service"
     collectory_base_url                          = "https://${var.base_domain}/collectory"
-    species_list_base_url                        = "https://${var.base_domain}/species-list"
+    species_list_base_url                        = "https://${var.base_domain}/api/lists"
     spatial_service_base_url                     = "https://${var.base_domain}/spatial-service"
     download_data_resource_job_definition_arn    = aws_batch_job_definition.download_data_resource.arn
     process_data_resource_job_definition_arn     = aws_batch_job_definition.la_pipelines.arn
